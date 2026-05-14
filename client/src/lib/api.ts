@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 
 export async function apiFetch(url: string, options: RequestInit = {}) {
+  console.log(`🚀 API Request: ${options.method || 'GET'} ${url}`);
   const { data: { session } } = await supabase.auth.getSession();
   
   const headers = {
