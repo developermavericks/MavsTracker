@@ -6,5 +6,10 @@
     "build": "npm --prefix client run build",
     "start": "npm --prefix client run start",
     "lint": "npm --prefix client run lint"
+  },
+  "dependencies": {
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
   }
 }
