@@ -183,11 +183,11 @@ export default function AddEntryModal({
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700">Client</label>
               <select 
-                required
-                value={formData.client_id}
+                value={formData.client_id || (showNewClientInput ? 'ADD_NEW' : '')}
                 onChange={(e) => {
                   if (e.target.value === 'ADD_NEW') {
                     setShowNewClientInput(true);
+                    setFormData({ ...formData, client_id: '' });
                   } else {
                     setFormData({ ...formData, client_id: e.target.value });
                     setShowNewClientInput(false);
