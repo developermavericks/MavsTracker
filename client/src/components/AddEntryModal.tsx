@@ -106,21 +106,29 @@ export default function AddEntryModal({
           method: 'POST',
           body: JSON.stringify({ name: newClientName })
         });
-        const clientData = await clientRes.json();
-        if (!clientRes.ok) throw new Error(clientData.error || 'Failed to create client');
         
+        if (!clientRes.ok) {
+          const errorText = await clientRes.text();
+          try {
+            const errorJson = JSON.parse(errorText);
+            throw new Error(errorJson.error || 'Failed to create client');
+          } catch {
+            throw new Error(`Server Error: ${clientRes.status} during client creation`);
+          }
+        }
+        
+        const clientData = await clientRes.json();
         currentClientId = clientData.id;
-        // Update local state for consistency
         setClients(prev => [...prev, clientData]);
       } catch (err: any) {
-        alert(err.message);
+        alert(`Client Creation Failed: ${err.message}`);
         setLoading(false);
         return;
       }
     }
 
-    if (!currentClientId && !showNewClientInput) {
-      alert("Please select a client");
+    if (!currentClientId) {
+      alert("Please select or enter a client name");
       setLoading(false);
       return;
     }
@@ -144,23 +152,33 @@ export default function AddEntryModal({
         })
       });
 
-      const result = await response.json();
-
-      if (response.status === 409) {
-        onOverlap(result.existing, result.error.includes('Blocking'), { ...formData, client_id: currentClientId });
-        setLoading(false);
-        return;
+      if (!response.ok) {
+        const errorText = await response.text();
+        if (response.status === 409) {
+          try {
+            const result = JSON.parse(errorText);
+            onOverlap(result.existing, result.error.includes('Blocking'), { ...formData, client_id: currentClientId });
+            setLoading(false);
+            return;
+          } catch (e) {
+             throw new Error("Conflict error, but failed to parse details");
+          }
+        }
+        
+        try {
+          const result = JSON.parse(errorText);
+          throw new Error(result.error || 'Failed to save');
+        } catch {
+          throw new Error(`Server Error: ${response.status} during allocation saving`);
+        }
       }
-
-      if (!response.ok) throw new Error(result.error || 'Failed to save');
 
       onSuccess();
       onClose();
-      // Reset new client state
       setShowNewClientInput(false);
       setNewClientName('');
     } catch (err: any) {
-      alert(err.message);
+      alert(`Save Failed: ${err.message}`);
     } finally {
       setLoading(false);
     }
