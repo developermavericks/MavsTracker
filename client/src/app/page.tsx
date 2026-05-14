@@ -5,6 +5,14 @@ import { LogIn } from 'lucide-react';
 
 export default function LoginPage() {
   const handleLogin = async () => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')) {
+      alert("⚠️ ERROR: NEXT_PUBLIC_SUPABASE_URL is not set in Vercel!");
+      return;
+    }
+    if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'placeholder') {
+      alert("⚠️ ERROR: NEXT_PUBLIC_SUPABASE_ANON_KEY is not set in Vercel!");
+      return;
+    }
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
