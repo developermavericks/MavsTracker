@@ -16,6 +16,8 @@ export const getMyEvents = async (req: Request, res: Response) => {
     );
     res.json(events);
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    console.error('❌ GOOGLE API ERROR:', error.response?.data || error.message);
+    const message = error.response?.data?.error_description || error.message;
+    res.status(500).json({ error: `Google Error: ${message}` });
   }
 };

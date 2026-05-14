@@ -17,19 +17,38 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [selectedEvents, setSelectedEvents] = useState<Set<string>>(new Set());
+  const [user, setUser] = useState<any>(null);
+
+  useState(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+  });
+
+  const handleLoginRefresh = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.href,
+        scopes: 'https://www.googleapis.com/auth/calendar.readonly'
+      },
+    });
+  };
 
   const handleFetch = async () => {
     setLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.provider_token;
-
-      console.log("🛠️ Debug: Session found:", !!session);
-      console.log("🛠️ Debug: Token found:", !!accessToken);
+      
+      // Try to find the token in multiple places
+      const accessToken = session?.provider_token || (session as any)?.access_token;
+      
+      console.log("🛠️ Debug: Session:", session);
+      console.log("🛠️ Debug: Provider Token:", !!session?.provider_token);
 
       if (!accessToken) {
-        alert('🚨 ERROR: Google Access Token is missing. You must Logout and Login again to refresh permissions.');
         setLoading(false);
+        if (confirm('🚨 Your Google Session has expired. Would you like to refresh it now to fetch calendar events?')) {
+          handleLoginRefresh();
+        }
         return;
       }
 
