@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { LayoutDashboard, Users, User, ArrowLeft, Search, Calendar } from 'lucide-react';
 import { supabase } from '@/lib/supabase';

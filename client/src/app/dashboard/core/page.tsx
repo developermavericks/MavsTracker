@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { Settings, FileText, Briefcase, Download, Plus, Search, ShieldCheck, User as UserIcon } from 'lucide-react';
 import StatsCard from '@/components/StatsCard';

@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import { Clock, Calendar as CalendarIcon, Plus, Filter, Download } from 'lucide-react';
 import StatsCard from '@/components/StatsCard';
