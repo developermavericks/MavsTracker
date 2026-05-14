@@ -97,6 +97,34 @@ export default function AddEntryModal({
     if (e) e.preventDefault();
     setLoading(true);
 
+    let currentClientId = formData.client_id;
+
+    // Auto-create client if user typed a new name
+    if (showNewClientInput && newClientName.trim()) {
+      try {
+        const clientRes = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients`, {
+          method: 'POST',
+          body: JSON.stringify({ name: newClientName })
+        });
+        const clientData = await clientRes.json();
+        if (!clientRes.ok) throw new Error(clientData.error || 'Failed to create client');
+        
+        currentClientId = clientData.id;
+        // Update local state for consistency
+        setClients(prev => [...prev, clientData]);
+      } catch (err: any) {
+        alert(err.message);
+        setLoading(false);
+        return;
+      }
+    }
+
+    if (!currentClientId && !showNewClientInput) {
+      alert("Please select a client");
+      setLoading(false);
+      return;
+    }
+
     const method = isEdit ? 'PUT' : 'POST';
     const url = isEdit 
       ? `${process.env.NEXT_PUBLIC_API_URL}/api/allocations/${initialData.id}`
@@ -110,6 +138,7 @@ export default function AddEntryModal({
           month,
           kind: type,
           ...formData,
+          client_id: currentClientId,
           hours: parseFloat(formData.hours),
           force
         })
@@ -118,7 +147,7 @@ export default function AddEntryModal({
       const result = await response.json();
 
       if (response.status === 409) {
-        onOverlap(result.existing, result.error.includes('Blocking'), { ...formData });
+        onOverlap(result.existing, result.error.includes('Blocking'), { ...formData, client_id: currentClientId });
         setLoading(false);
         return;
       }
@@ -127,6 +156,9 @@ export default function AddEntryModal({
 
       onSuccess();
       onClose();
+      // Reset new client state
+      setShowNewClientInput(false);
+      setNewClientName('');
     } catch (err: any) {
       alert(err.message);
     } finally {
