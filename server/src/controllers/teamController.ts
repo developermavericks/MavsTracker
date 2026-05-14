@@ -1,0 +1,64 @@
+import { Request, Response } from 'express';
+import { supabase } from '../config/supabase';
+
+export const getTeamMembers = async (req: Request, res: Response) => {
+  const { managerId } = req.query;
+
+  if (!managerId) {
+    return res.status(400).json({ error: 'Missing managerId' });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('teams')
+      .select(`
+        member_id,
+        member:users!member_id(id, name, email, picture)
+      `)
+      .eq('manager_id', managerId);
+
+    if (error) throw error;
+    
+    // Flatten the response
+    const members = data.map((item: any) => item.member);
+    res.json(members);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getMemberAllocations = async (req: Request, res: Response) => {
+  const { memberId, month, kind } = req.query;
+
+  if (!memberId || !month) {
+    return res.status(400).json({ error: 'Missing memberId or month' });
+  }
+
+  try {
+    const table = kind === 'projected' ? 'allocations_monthly' : 'allocations_weekly';
+    const { data, error } = await supabase
+      .from(table)
+      .select('*, clients(name)')
+      .eq('user_id', memberId)
+      .eq('month', month);
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getAllUsers = async (req: Request, res: Response) => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};

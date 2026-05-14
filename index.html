@@ -1,0 +1,3062 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --bg: #f7f7fb;
+            --card: #ffffff;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --primary: #2563eb;
+            --primary-weak: #eef2ff;
+            --danger: #b00020;
+            --warning: #f59e0b;
+            --table-head: #f9fafb;
+            --shadow: 0 10px 30px rgba(0, 0, 0, .06);
+            --radius: 16px;
+            --radius-sm: 10px;
+
+            /* NEW: portal + data type accents */
+            --team-accent: #059669;
+            --manager-accent: #4f46e5;
+            --core-accent: #f97316;
+            --calendar-accent: #0ea5e9;
+            --calendar-bg: #ecfeff;
+            --saved-bg: #f9fafb;
+        }
+
+        html,
+        body {
+            height: 100%
+        }
+
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+            color: var(--text);
+            background: var(--bg);
+            margin: 0;
+            padding: 28px;
+            line-height: 1.35;
+        }
+
+        /* Hide projected tabs completely */
+        #t_tab_projected,
+        #m_s_tab_projected,
+        #c_s_tab_projected {
+            display: none !important;
+        }
+
+        /* Hide projected sections */
+        #t_projected_section,
+        #m_s_projected_section,
+        #c_s_projected_section {
+            display: none !important;
+        }
+
+        h2 {
+            margin: 0 0 10px 0;
+            font-weight: 600;
+            letter-spacing: -.01em;
+        }
+
+        .card {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 18px 18px 22px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border-top-width: 4px;
+            border-top-color: var(--primary);
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .right {
+            margin-left: auto;
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .error {
+            color: var(--danger);
+            margin-top: 6px;
+            min-height: 1.2em;
+        }
+
+        .warning {
+            color: var(--warning);
+            margin-top: 6px;
+            min-height: 1.2em;
+        }
+
+        #profile {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 6px 0;
+        }
+
+        #profile img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: var(--primary-weak);
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(37, 99, 235, .4);
+        }
+
+        button {
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text);
+            transition: box-shadow .15s ease, background .15s ease, border-color .15s ease, transform .02s ease;
+            font-size: 0.9rem;
+        }
+
+        button:hover {
+            background: #fafafa;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, .08);
+        }
+
+        button:active {
+            transform: translateY(1px);
+            box-shadow: none;
+        }
+
+        button:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(0.96);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: #fff;
+            border-color: var(--warning);
+        }
+
+        .btn-warning:hover {
+            filter: brightness(0.96);
+        }
+
+        .linklike {
+            color: var(--danger);
+            background: transparent;
+            border: none;
+            text-decoration: underline;
+            padding: 0 4px;
+        }
+
+        .row label {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: .86rem;
+            color: var(--muted);
+        }
+
+        select,
+        input[type="text"],
+        input[type="number"] {
+            appearance: none;
+            height: 38px;
+            padding: 0 10px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: #fff;
+            color: var(--text);
+            min-width: 180px;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"] {
+            min-width: 240px;
+        }
+
+        input[type="number"] {
+            min-width: 120px;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+        }
+
+        .screens {
+            margin-top: 12px;
+        }
+
+        .screen {
+            display: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+
+        .visible {
+            display: block;
+        }
+
+        .section {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            margin-top: 12px;
+            background: #fff;
+        }
+
+        .pill {
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #f5f6f9;
+            font-size: 12px;
+            color: #374151;
+        }
+
+        .danger {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .warning-text {
+            color: var(--warning);
+            font-weight: 600;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            margin: 12px 0 8px;
+        }
+
+        .tab {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 10px 10px 0 0;
+            color: #4b5563;
+            border: 1px solid transparent;
+            font-weight: 600;
+            font-size: 0.9rem;
+            background: transparent;
+        }
+
+        .tab.active {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-bottom-color: #fff;
+        }
+
+        /* Portal-specific accents for tabs */
+        .screen-team .tab.active {
+            background: #ecfdf5;
+            border-color: rgba(16, 185, 129, .3);
+            color: #047857;
+        }
+
+        .screen-manager .tab.active {
+            background: #eef2ff;
+            border-color: rgba(79, 70, 229, .35);
+            color: #3730a3;
+        }
+
+        .screen-core .tab.active {
+            background: #fff7ed;
+            border-color: rgba(249, 115, 22, .35);
+            color: #c2410c;
+        }
+
+        .tabpane {
+            display: none;
+        }
+
+        .tabpane.active {
+            display: block;
+        }
+
+        .tablewrap {
+            overflow: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #fff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: var(--table-head);
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        th,
+        td {
+            padding: 10px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.88rem;
+        }
+
+        tbody tr:hover {
+            background: #fafafa;
+        }
+
+        #t_body td:nth-child(4),
+        #m_s_body td:nth-child(4),
+        #c_s_body td:nth-child(4) {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        #m_body td:nth-child(3),
+        #c_body td:nth-child(3) {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        #c_clients_table td:nth-child(2),
+        #c_clients_table th:nth-child(2),
+        #c_clients_roster td:nth-child(3),
+        #c_clients_roster th:nth-child(3) {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        tfoot td {
+            background: #fbfbfd;
+            font-weight: 600;
+        }
+
+        #auth {
+            padding: 8px 6px 2px;
+        }
+
+        #loading {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, .55);
+            backdrop-filter: blur(2px);
+            z-index: 9999;
+        }
+
+        #loading .box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: #fff;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        #loading .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e5e7eb;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        #loading .loading-text {
+            color: #374151;
+            font-size: .92rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .headline-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+
+        .cap-note {
+            color: var(--muted);
+            font-size: .86rem;
+        }
+
+        .summarywrap {
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            padding: 8px;
+            margin-top: 8px;
+            background: #fff;
+        }
+
+        .summarywrap h4 {
+            margin: 6px 8px;
+            font-size: 0.95rem;
+            color: #374151;
+        }
+
+        .summarywrap table {
+            background: #fff;
+        }
+
+        .checkbox-cell {
+            width: 36px;
+            text-align: center;
+        }
+
+        .checkbox-cell input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+
+        .overlap-warning {
+            background: #fffbeb;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+
+        .overlap-warning h4 {
+            color: #d97706;
+            margin: 0 0 8px 0;
+            font-size: 0.95rem;
+        }
+
+        .overlap-entry {
+            background: white;
+            border: 1px solid #fcd34d;
+            border-radius: 6px;
+            padding: 8px;
+            margin: 6px 0;
+            font-size: 0.85rem;
+        }
+
+        .coverage-pill {
+            display: inline-block;
+            background: #eef2ff;
+            color: #1f2937;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        /* NEW: portal labels */
+        .screen-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: .14em;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .screen-label span.bullet {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+        }
+
+        .screen-label-team {
+            background: rgba(16, 185, 129, .06);
+            border: 1px solid rgba(16, 185, 129, .35);
+            color: #047857;
+        }
+
+        .screen-label-team .bullet {
+            background: var(--team-accent);
+        }
+
+        .screen-label-manager {
+            background: rgba(79, 70, 229, .06);
+            border: 1px solid rgba(79, 70, 229, .35);
+            color: #3730a3;
+        }
+
+        .screen-label-manager .bullet {
+            background: var(--manager-accent);
+        }
+
+        .screen-label-core {
+            background: rgba(249, 115, 22, .06);
+            border: 1px solid rgba(249, 115, 22, .35);
+            color: #c2410c;
+        }
+
+        .screen-label-core .bullet {
+            background: var(--core-accent);
+        }
+
+        /* NEW: saved vs imported visual differentiation */
+        .alloc-tablewrap {
+            border-color: #d1fae5;
+            background: var(--saved-bg);
+        }
+
+        .alloc-tablewrap thead th {
+            background: #ecfdf5;
+        }
+
+        .events-tablewrap {
+            border-color: var(--calendar-accent);
+            background: var(--calendar-bg);
+        }
+
+        .events-tablewrap thead th {
+            background: #e0f2fe;
+        }
+
+        /* Legend component */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-top: 6px;
+            font-size: 0.78rem;
+        }
+
+        .legend-label {
+            text-transform: uppercase;
+            letter-spacing: .14em;
+            font-weight: 600;
+            color: var(--muted);
+            margin-right: 4px;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: #f9fafb;
+            border: 1px solid var(--border);
+            color: #374151;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+        }
+
+        .legend-dot.saved {
+            background: #22c55e;
+        }
+
+        .legend-dot.calendar {
+            background: #0ea5e9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="headline-bar">
+            <h2>Welcome Back!</h2>
+            <span class="cap-note" aria-live="polite">Monthly cap: 160h</span>
+        </div>
+
+        <div id="profile" class="row">
+            <img id="avatar" alt="Profile picture">
+            <div>
+                <div id="name" style="font-weight:600"></div>
+                <div id="email" class="muted"></div>
+            </div>
+            <div class="right row">
+                <span id="roleBadge" class="badge" style="display:none;"></span>
+                <button id="logoutBtn" aria-label="Logout">Logout</button>
+            </div>
+        </div>
+
+        <div id="auth">
+            <div class="row" role="tablist" aria-label="Choose flow">
+                <label><input type="radio" name="mode" value="login" checked> Continue</label>
+                <label style="margin-left:1rem;"><input type="radio" name="mode" value="signup"> Sign up</label>
+            </div>
+            <div id="signupExtras" style="margin:.5rem 0; display:none;">
+                <label class="muted"><input type="checkbox" id="acceptTerms"> I agree to the Terms</label>
+            </div>
+            <div style="margin-top: 0.75rem;">
+                <button id="primaryBtn" class="btn-primary">Continue</button>
+            </div>
+            <div id="error" class="error" role="alert" aria-live="polite"></div>
+            <p class="muted" style="margin-top:.5rem;">Only @themavericksindia.com accounts are allowed.</p>
+        </div>
+
+        <div class="screens" id="screens" style="display:none;">
+
+            <!-- TEAM -->
+            <div id="screen-team" class="screen screen-team" aria-label="Team screen">
+                <div class="screen-label screen-label-team">
+                    <span class="bullet"></span> Team Portal
+                </div>
+
+                <div class="tabs" role="tablist" aria-label="Team tabs">
+                    <div id="t_tab_projected" class="tab" role="tab" aria-selected="false">Projected</div>
+                    <div id="t_tab_weekly" class="tab active" role="tab" aria-selected="true">Weekly</div>
+                </div>
+
+                <div class="section" id="t_projected_section">
+                    <div class="row">
+                        <label>Month <select id="t_month" aria-label="Projected month"></select></label>
+                        <span class="pill">Mode: Projected</span>
+                        <label class="right">Display Change
+                            <select id="t_display" aria-label="Display mode">
+                                <option value="detailed" selected>Detailed</option>
+                                <option value="summary">Summary</option>
+                            </select>
+                        </label>
+                        <span id="t_warn" class="pill" style="display:none; background:#fff1f2; color:#b91c1c;"> Over
+                            100% of
+                            160h</span>
+                    </div>
+                    <div class="row" style="margin-top:6px;">
+                        <label>Client <select id="t_client"></select></label>
+                        <label>Category <input type="text" id="t_cat" placeholder="Billable / Internal"></label>
+                        <label>Hours <input type="number" id="t_hours" min="0" max="160" step="0.25" value="1"></label>
+                        <label style="flex:1; min-width:240px;">Notes <input type="text" id="t_notes"
+                                placeholder="Optional"></label>
+                        <button id="t_add" class="btn-primary">Add</button>
+                    </div>
+
+                    <div id="t_summarywrap" class="summarywrap" style="display:none;">
+                        <h4>Summary by Client</h4>
+                        <div class="tablewrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Client</th>
+                                        <th>Total Hours</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="t_summary_body"></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td style="text-align:right;"><b>Total</b></td>
+                                        <td id="t_summary_tot"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tablewrap alloc-tablewrap" style="margin-top:10px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:90px">Action</th>
+                                    <th>Client</th>
+                                    <th>Category</th>
+                                    <th>Hours</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="t_body"></tbody>
+                            <tfoot>
+                                <tr>
+                                    <td></td>
+                                    <td colspan="2" style="text-align:right;"><b>Total</b></td>
+                                    <td id="t_tot"></td>
+                                    <td class="muted">of 160h → <span id="t_pct"></span>%</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="section" id="t_weekly_section" style="display:none;">
+                    <div class="row">
+                        <label>Month <select id="t_w_month"></select></label>
+                        <label>Start Date<input type="date" id="t_w_start_date"></label>
+                        <label>End Date<input type="date" id="t_w_end_date"></label>
+                        <span id="t_w_coverage" class="coverage-pill" aria-live="polite" style="display:none;"></span>
+                        <button id="t_w_import" class="btn-primary">Import from Calendar</button>
+                        <label class="right">Display Change
+                            <select id="t_w_display">
+                                <option value="detailed" selected>Detailed</option>
+                                <option value="summary">Summary</option>
+                            </select>
+                        </label>
+                        <span class="muted">Import meetings for the selected week, or add manually below.</span>
+                    </div>
+
+                    <!-- NEW legend: saved vs imported -->
+                    <div class="legend" aria-hidden="true">
+                        <span class="legend-label">Legend</span>
+                        <span class="legend-item"><span class="legend-dot saved"></span>Saved weekly allocations</span>
+                        <span class="legend-item"><span class="legend-dot calendar"></span>Imported calendar
+                            events</span>
+                    </div>
+
+                    <div id="t_w_summarywrap" class="summarywrap" style="display:none;">
+                        <h4>Summary by Client</h4>
+                        <div class="tablewrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Client</th>
+                                        <th>Total Hours</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="t_w_summary_body"></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td style="text-align:right;"><b>Total</b></td>
+                                        <td id="t_w_summary_tot"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="t_w_overlap_warning" class="overlap-warning" style="display:none;">
+                        <h4>⚠️ Time Period Conflict</h4>
+                        <div id="t_w_overlap_content"></div>
+                        <div class="row" style="margin-top:10px; gap:8px;">
+                            <button id="t_w_force_add" class="btn-warning">Add Anyway</button>
+                            <button id="t_w_cancel_add">Cancel</button>
+                        </div>
+                    </div>
+
+                    <div class="row" style="justify-content:flex-end; margin-top:8px; gap:8px;">
+                        <button id="t_w_delete_selected_allocations">Delete Selected Allocations</button>
+                    </div>
+
+                    <div class="tablewrap alloc-tablewrap" style="margin-top:10px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="checkbox-cell"><input type="checkbox" id="t_w_select_all_allocations"
+                                            aria-label="Select all allocations"></th>
+                                    <th style="width:90px">Action</th>
+                                    <th>Period</th>
+                                    <th>Client</th>
+                                    <th>Category</th>
+                                    <th>Hours</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="t_w_body"></tbody>
+                            <tfoot>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td colspan="3" style="text-align:right;"><b>Total</b></td>
+                                    <td id="t_w_tot"></td>
+                                    <td class="muted">of 160h → <span id="t_w_pct"></span>%</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div class="tablewrap events-tablewrap" style="margin-top:10px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="checkbox-cell"><input type="checkbox" id="t_w_select_all"
+                                            aria-label="Select all events">
+                                    </th>
+                                    <th>Event</th>
+                                    <th>Start</th>
+                                    <th>End</th>
+                                    <th>Hours</th>
+                                    <th>Client</th>
+                                    <th>Save</th>
+                                </tr>
+                            </thead>
+                            <tbody id="t_w_events_body"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="t_w_preimport_info" class="overlap-warning" style="display:none;"></div>
+
+                    <div class="row" style="justify-content:flex-end; margin-top:8px; gap:8px;">
+                        <button id="t_w_delete_selected">Delete Selected Events</button>
+                        <button id="t_w_save_selected" class="btn-primary">Save Selected Events</button>
+                    </div>
+
+                    <div class="row" style="margin-top:12px;">
+                        <label>Client <select id="t_w_client"></select></label>
+                        <label>Category <input type="text" id="t_w_cat"
+                                placeholder="Meeting / Billable / Internal"></label>
+                        <label>Hours <input type="number" id="t_w_hours" min="0" max="160" step="0.25"
+                                value="1"></label>
+                        <label style="flex:1; min-width:240px;">Notes <input type="text" id="t_w_notes"
+                                placeholder="Optional"></label>
+                        <button id="t_w_add" class="btn-primary">Add</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MANAGER -->
+            <div id="screen-manager" class="screen screen-manager" aria-label="Manager screen">
+                <div class="screen-label screen-label-manager">
+                    <span class="bullet"></span> Manager Portal
+                </div>
+
+                <div class="tabs" role="tablist" aria-label="Manager tabs">
+                    <div id="m_tab_self" class="tab active" role="tab" aria-selected="true">Self</div>
+                    <div id="m_tab_members" class="tab" role="tab" aria-selected="false">Members</div>
+                </div>
+
+                <div id="m_pane_self" class="tabpane active">
+                    <div class="tabs" role="tablist" aria-label="Self view tabs">
+                        <div id="m_s_tab_projected" class="tab" role="tab" aria-selected="false">Projected</div>
+                        <div id="m_s_tab_weekly" class="tab active" role="tab" aria-selected="true">Weekly</div>
+                    </div>
+                    <div class="section" id="m_s_projected_section">
+                        <div class="row">
+                            <label>Month <select id="m_s_month"></select></label>
+                            <span class="pill">Mode: Projected</span>
+                            <label class="right">Display Change
+                                <select id="m_s_display">
+                                    <option value="detailed" selected>Detailed</option>
+                                    <option value="summary">Summary</option>
+                                </select>
+                            </label>
+                            <span id="m_s_warn" class="pill" style="display:none; background:#fff1f2; color:#b91c1c;">
+                                Over 100% of
+                                160h</span>
+                        </div>
+                        <div class="row" style="margin-top:6px;">
+                            <label>Client <select id="m_s_client"></select></label>
+                            <label>Category <input type="text" id="m_s_cat"></label>
+                            <label>Hours <input type="number" id="m_s_hours" min="0" max="160" step="0.25"
+                                    value="1"></label>
+                            <label style="flex:1;">Notes <input type="text" id="m_s_notes"></label>
+                            <button id="m_s_add" class="btn-primary">Add</button>
+                        </div>
+
+                        <div id="m_s_summarywrap" class="summarywrap" style="display:none;">
+                            <h4>Summary by Client</h4>
+                            <div class="tablewrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Client</th>
+                                            <th>Total Hours</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="m_s_summary_body"></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td style="text-align:right;"><b>Total</b></td>
+                                            <td id="m_s_summary_tot"></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="tablewrap alloc-tablewrap" style="margin-top:10px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width:90px">Action</th>
+                                        <th>Client</th>
+                                        <th>Category</th>
+                                        <th>Hours</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="m_s_body"></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td></td>
+                                        <td colspan="2" style="text-align:right;"><b>Total</b></td>
+                                        <td id="m_s_tot"></td>
+                                        <td class="muted">of 160h → <span id="m_s_pct"></span>%</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="section" id="m_s_weekly_section" style="display:none;">
+                        <div class="row">
+                            <label>Month <select id="m_s_w_month"></select></label>
+                            <label>Start Date<input type="date" id="m_s_w_start_date"></label>
+                            <label>End Date<input type="date" id="m_s_w_end_date"></label>
+                            <span id="m_s_w_coverage" class="coverage-pill" aria-live="polite"
+                                style="display:none;"></span>
+                            <button id="m_s_w_import" class="btn-primary">Import from Calendar</button>
+                            <label class="right">Display Change
+                                <select id="m_s_w_display">
+                                    <option value="detailed" selected>Detailed</option>
+                                    <option value="summary">Summary</option>
+                                </select>
+                            </label>
+                            <span class="muted">Import meetings for the selected week, or add manually below.</span>
+                        </div>
+
+                        <!-- NEW legend -->
+                        <div class="legend" aria-hidden="true">
+                            <span class="legend-label">Legend</span>
+                            <span class="legend-item"><span class="legend-dot saved"></span>Saved weekly
+                                allocations</span>
+                            <span class="legend-item"><span class="legend-dot calendar"></span>Imported calendar
+                                events</span>
+                        </div>
+
+                        <div id="m_s_w_summarywrap" class="summarywrap" style="display:none;">
+                            <h4>Summary by Client</h4>
+                            <div class="tablewrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Client</th>
+                                            <th>Total Hours</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="m_s_w_summary_body"></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td style="text-align:right;"><b>Total</b></td>
+                                            <td id="m_s_w_summary_tot"></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="m_s_w_overlap_warning" class="overlap-warning" style="display:none;">
+                            <h4>⚠️ Time Period Conflict</h4>
+                            <div id="m_s_w_overlap_content"></div>
+                            <div class="row" style="margin-top:10px; gap:8px;">
+                                <button id="m_s_w_force_add" class="btn-warning">Add Anyway</button>
+                                <button id="m_s_w_cancel_add">Cancel</button>
+                            </div>
+                        </div>
+
+                        <div class="row" style="justify-content:flex-end; margin-top:8px; gap:8px;">
+                            <button id="m_s_w_delete_selected_allocations">Delete Selected Allocations</button>
+                        </div>
+
+                        <div class="tablewrap alloc-tablewrap" style="margin-top:10px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="checkbox-cell"><input type="checkbox"
+                                                id="m_s_w_select_all_allocations" aria-label="Select all allocations">
+                                        </th>
+                                        <th style="width:90px">Action</th>
+                                        <th>Period</th>
+                                        <th>Client</th>
+                                        <th>Category</th>
+                                        <th>Hours</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="m_s_w_body"></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td colspan="3" style="text-align:right;"><b>Total</b></td>
+                                        <td id="m_s_w_tot"></td>
+                                        <td class="muted">of 160h → <span id="m_s_w_pct"></span>%</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <div class="tablewrap events-tablewrap" style="margin-top:10px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="checkbox-cell"><input type="checkbox" id="m_s_w_select_all"
+                                                aria-label="Select all events"></th>
+                                        <th>Event</th>
+                                        <th>Start</th>
+                                        <th>End</th>
+                                        <th>Hours</th>
+                                        <th>Client</th>
+                                        <th>Save</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="m_s_w_events_body"></tbody>
+                            </table>
+                        </div>
+
+                        <div id="m_s_w_preimport_info" class="overlap-warning" style="display:none;"></div>
+
+                        <div class="row" style="justify-content:flex-end; margin-top:8px; gap:8px;">
+                            <button id="m_s_w_delete_selected">Delete Selected Events</button>
+                            <button id="m_s_w_save_selected" class="btn-primary">Save Selected Events</button>
+                        </div>
+
+                        <div class="row" style="margin-top:12px;">
+                            <label>Client <select id="m_s_w_client"></select></label>
+                            <label>Category <input type="text" id="m_s_w_cat"
+                                    placeholder="Meeting / Billable / Internal"></label>
+                            <label>Hours <input type="number" id="m_s_w_hours" min="0" max="160" step="0.25"
+                                    value="1"></label>
+                            <label style="flex:1; min-width:240px;">Notes <input type="text" id="m_s_w_notes"
+                                    placeholder="Optional"></label>
+                            <button id="m_s_w_add" class="btn-primary">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="m_pane_members" class="tabpane">
+                    <div class="section">
+                        <div class="row">
+                            <label>Month <select id="m_month"></select></label>
+                            <label>Member <select id="m_member"></select></label>
+                            <label>View
+                                <select id="m_kind">
+                                    <option value="projected" style="display:none;">Projected</option>
+                                    <option value="actual">Weekly</option>
+                                </select>
+                            </label>
+                            <label>Display
+                                <select id="m_display">
+                                    <option value="detailed" selected>Detailed</option>
+                                    <option value="summary">Summary</option>
+                                </select>
+                            </label>
+                            <span class="pill">Free time: <b><span id="m_free">0.00</span>h</b></span>
+                            <button id="m_load">Load</button>
+                        </div>
+
+                        <div id="m_summarywrap" class="summarywrap" style="display:none;">
+                            <h4>Summary by Client</h4>
+                            <div class="tablewrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Client</th>
+                                            <th>Total Hours</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="m_summary_body"></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td style="text-align:right;"><b>Total</b></td>
+                                            <td id="m_summary_tot"></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="tablewrap alloc-tablewrap" style="margin-top:10px;">
+                            <table>
+                                <thead id="m_head">
+                                    <tr>
+                                        <th>Client</th>
+                                        <th>Category</th>
+                                        <th>Hours</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="m_body"></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="2" id="m_foot_label" style="text-align:right;"><b>Total</b></td>
+                                        <td id="m_tot"></td>
+                                        <td class="muted">of 160h → <span id="m_pct"></span>%</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CORE -->
+            <div id="screen-core" class="screen screen-core" aria-label="Core screen">
+                <div class="screen-label screen-label-core">
+                    <span class="bullet"></span> Core Portal
+                </div>
+
+                <div class="tabs" role="tablist" aria-label="Core tabs">
+                    <div id="c_tab_self" class="tab active" role="tab" aria-selected="true">Self</div>
+                    <div id="c_tab_members" class="tab" role="tab" aria-selected="false">Members</div>
+                    <div id="c_tab_clients" class="tab" role="tab" aria-selected="false">Clients (Admin)</div>
+                    <div id="c_tab_master" class="tab" role="tab" aria-selected="false">Master Allocations</div>
+                </div>
+
+                <div id="c_pane_self" class="tabpane active">
+                    <div class="tabs" role="tablist" aria-label="Self tabs">
+                        <div id="c_s_tab_projected" class="tab" role="tab" aria-selected="false">Projected</div>
+                        <div id="c_s_tab_weekly" class="tab active" role="tab" aria-selected="true">Weekly</div>
+                    </div>
+                    <div class="section" id="c_s_projected_section">
+                        <div class="row">
+                            <label>Month <select id="c_s_month"></select></label>
+                            <span class="pill">Mode: Projected</span>
+                            <label class="right">Display Change
+                                <select id="c_s_display">
+                                    <option value="detailed" selected>Detailed</option>
+                                    <option value="summary">Summary</option>
+                                </select>
+                            </label>
+                            <span id="c_s_warn" class="pill" style="display:none; background:#fff1f2; color:#b91c1c;">
+                                Over 100% of
+                                160h</span>
+                        </div>
+                        <div class="row" style="margin-top:6px;">
+                            <label>Client <select id="c_s_client"></select></label>
+                            <label>Category <input type="text" id="c_s_cat"></label>
+                            <label>Hours <input type="number" id="c_s_hours" min="0" max="160" step="0.25"
+                                    value="1"></label>
+                            <label style="flex:1;">Notes <input type="text" id="c_s_notes"></label>
+                            <button id="c_s_add" class="btn-primary">Add</button>
+                        </div>
+
+                        <div id="c_s_summarywrap" class="summarywrap" style="display:none;">
+                            <h4>Summary by Client</h4>
+                            <div class="tablewrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Client</th>
+                                            <th>Total Hours</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="c_s_summary_body"></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td style="text-align:right;"><b>Total</b></td>
+                                            <td id="c_s_summary_tot"></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="tablewrap alloc-tablewrap" style="margin-top:10px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width:90px">Action</th>
+                                        <th>Client</th>
+                                        <th>Category</th>
+                                        <th>Hours</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="c_s_body"></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td></td>
+                                        <td colspan="2" style="text-align:right;"><b>Total</b></td>
+                                        <td id="c_s_tot"></td>
+                                        <td class="muted">of 160h → <span id="c_s_pct"></span>%</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="section" id="c_s_weekly_section" style="display:none;">
+                        <div class="row">
+                            <label>Month <select id="c_s_w_month"></select></label>
+                            <label>Start Date<input type="date" id="c_s_w_start_date"></label>
+                            <label>End Date<input type="date" id="c_s_w_end_date"></label>
+                            <span id="c_s_w_coverage" class="coverage-pill" aria-live="polite"
+                                style="display:none;"></span>
+                            <button id="c_s_w_import" class="btn-primary">Import from Calendar</button>
+                            <label class="right">Display Change
+                                <select id="c_s_w_display">
+                                    <option value="detailed" selected>Detailed</option>
+                                    <option value="summary">Summary</option>
+                                </select>
+                            </label>
+                            <span class="muted">Import meetings for the selected week, or add manually below.</span>
+                        </div>
+
+                        <!-- NEW legend -->
+                        <div class="legend" aria-hidden="true">
+                            <span class="legend-label">Legend</span>
+                            <span class="legend-item"><span class="legend-dot saved"></span>Saved weekly
+                                allocations</span>
+                            <span class="legend-item"><span class="legend-dot calendar"></span>Imported calendar
+                                events</span>
+                        </div>
+
+                        <div id="c_s_w_summarywrap" class="summarywrap" style="display:none;">
+                            <h4>Summary by Client</h4>
+                            <div class="tablewrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Client</th>
+                                            <th>Total Hours</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="c_s_w_summary_body"></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td style="text-align:right;"><b>Total</b></td>
+                                            <td id="c_s_w_summary_tot"></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="c_s_w_overlap_warning" class="overlap-warning" style="display:none;">
+                            <h4>⚠️ Time Period Conflict</h4>
+                            <div id="c_s_w_overlap_content"></div>
+                            <div class="row" style="margin-top:10px; gap:8px;">
+                                <button id="c_s_w_force_add" class="btn-warning">Add Anyway</button>
+                                <button id="c_s_w_cancel_add">Cancel</button>
+                            </div>
+                        </div>
+
+                        <div class="row" style="justify-content:flex-end; margin-top:8px; gap:8px;">
+                            <button id="c_s_w_delete_selected_allocations">Delete Selected Allocations</button>
+                        </div>
+
+                        <div class="tablewrap alloc-tablewrap" style="margin-top:10px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="checkbox-cell"><input type="checkbox"
+                                                id="c_s_w_select_all_allocations" aria-label="Select all allocations">
+                                        </th>
+                                        <th style="width:90px">Action</th>
+                                        <th>Period</th>
+                                        <th>Client</th>
+                                        <th>Category</th>
+                                        <th>Hours</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="c_s_w_body"></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td colspan="3" style="text-align:right;"><b>Total</b></td>
+                                        <td id="c_s_w_tot"></td>
+                                        <td class="muted">of 160h → <span id="c_s_w_pct"></span>%</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <div class="tablewrap events-tablewrap" style="margin-top:10px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="checkbox-cell"><input type="checkbox" id="c_s_w_select_all"
+                                                aria-label="Select all events"></th>
+                                        <th>Event</th>
+                                        <th>Start</th>
+                                        <th>End</th>
+                                        <th>Hours</th>
+                                        <th>Client</th>
+                                        <th>Save</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="c_s_w_events_body"></tbody>
+                            </table>
+                        </div>
+
+                        <div id="c_s_w_preimport_info" class="overlap-warning" style="display:none;"></div>
+
+                        <div class="row" style="justify-content:flex-end; margin-top:8px; gap:8px;">
+                            <button id="c_s_w_delete_selected">Delete Selected Events</button>
+                            <button id="c_s_w_save_selected" class="btn-primary">Save Selected Events</button>
+                        </div>
+
+                        <div class="row" style="margin-top:12px;">
+                            <label>Client <select id="c_s_w_client"></select></label>
+                            <label>Category <input type="text" id="c_s_w_cat"
+                                    placeholder="Meeting / Billable / Internal"></label>
+                            <label>Hours <input type="number" id="c_s_w_hours" min="0" max="160" step="0.25"
+                                    value="1"></label>
+                            <label style="flex:1; min-width:240px;">Notes <input type="text" id="c_s_w_notes"
+                                    placeholder="Optional"></label>
+                            <button id="c_s_w_add" class="btn-primary">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="c_pane_members" class="tabpane">
+                    <div class="section">
+                        <div class="row">
+                            <label>Month <select id="c_month"></select></label>
+                            <label>Member <select id="c_member"></select></label>
+                            <label>View
+                                <select id="c_kind">
+                                    <option value="projected" style="display:none;">Projected</option>
+                                    <option value="actual">Weekly</option>
+                                </select>
+                            </label>
+                            <label>Display
+                                <select id="c_display">
+                                    <option value="detailed" selected>Detailed</option>
+                                    <option value="summary">Summary</option>
+                                </select>
+                            </label>
+                            <span class="pill">Free time: <b><span id="c_free">0.00</span>h</b></span>
+                            <button id="c_load">Load</button>
+                        </div>
+
+                        <div id="c_summarywrap" class="summarywrap" style="display:none;">
+                            <h4>Summary by Client</h4>
+                            <div class="tablewrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Client</th>
+                                            <th>Total Hours</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="c_summary_body"></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td style="text-align:right;"><b>Total</b></td>
+                                            <td id="c_summary_tot"></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="tablewrap alloc-tablewrap" style="margin-top:10px;">
+                            <table>
+                                <thead id="c_head">
+                                    <tr>
+                                        <th>Client</th>
+                                        <th>Category</th>
+                                        <th>Hours</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="c_body"></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="2" id="c_foot_label" style="text-align:right;"><b>Total</b></td>
+                                        <td id="c_tot"></td>
+                                        <td class="muted">of 160h → <span id="c_pct"></span>%</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="c_pane_clients" class="tabpane">
+                    <div class="section">
+                        <div class="row">
+                            <label>New Client <input type="text" id="c_new_client" placeholder="Client name"></label>
+                            <button id="c_add_client">Add client</button>
+                            <span id="c_client_msg" class="muted" aria-live="polite"></span>
+                        </div>
+                        <p class="muted">Core can add clients here. (FREE_TIME &amp; LEAVE also appear automatically in
+                            dropdowns.)
+                        </p>
+                    </div>
+                    <div class="section">
+                        <div class="row">
+                            <label>Month <select id="c_clients_month"></select></label>
+                            <label>View
+                                <select id="c_clients_kind">
+                                    <option value="projected" style="display:none;">Projected (Monthly)</option>
+                                    <option value="actual">Weekly (Actuals)</option>
+                                </select>
+                            </label>
+                            <button id="c_clients_load">Load summary</button>
+                        </div>
+                        <div class="tablewrap" style="margin-top:10px;">
+                            <table id="c_clients_table">
+                                <thead>
+                                    <tr>
+                                        <th>Client</th>
+                                        <th>Total Hours</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td style="text-align:right;"><b>Grand Total</b></td>
+                                        <td id="c_clients_total"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="row">
+                            <label>Client (from selected month)<select id="c_clients_client"></select></label>
+                            <button id="c_clients_roster_load">Load roster</button>
+                        </div>
+                        <div class="tablewrap" style="margin-top:10px;">
+                            <table id="c_clients_roster">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Hours</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="c_clients_roster_body"></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td style="text-align:right;" colspan="2"><b>Total</b></td>
+                                        <td id="c_clients_roster_total"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <p class="muted">Tip: change the month above, then pick a client to see who's staffed on it.</p>
+                    </div>
+                </div>
+
+                <div id="c_pane_master" class="tabpane">
+                    <div class="section">
+                        <div class="row">
+                            <label>Month <select id="c_master_month"></select></label>
+                            <label><input type="checkbox" id="c_master_group_bd" checked> Group BD</label>
+                            <label><input type="checkbox" id="c_master_group_leave" checked> Group LEAVE</label>
+                            <label><input type="checkbox" id="c_master_group_internal" checked> Group Internal</label>
+                            <button id="c_master_load">Load</button>
+                            <button id="c_master_download" class="btn-primary">Download Excel</button>
+                            <span class="muted">BD-* clients are rolled up into <b>BD</b> if grouped.</span>
+                        </div>
+
+                        <div class="tablewrap" style="margin-top:10px;">
+                            <table id="c_master_table">
+                                <thead id="c_master_head"></thead>
+                                <tbody id="c_master_body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="loading" aria-live="polite">
+        <div class="box" role="status" aria-label="Working">
+            <div class="spinner"></div>
+            <div class="loading-text">Working…</div>
+        </div>
+    </div>
+
+    <script>
+        const CAP = 160;
+        let FLOW_MODE = 'login';
+        const SKIP_AUTO_KEY = 'gs_skip_auto_resume';
+
+        // Store pending allocation for overlap handling
+        let pendingAllocation = null;
+
+        /* ===== Loader ===== */
+        function showLoading() { const el = document.getElementById('loading'); if (el) el.style.display = 'flex'; }
+        function hideLoading() { const el = document.getElementById('loading'); if (el) el.style.display = 'none'; }
+
+        /* ===== Month helpers (current + previous) ===== */
+        function monthLabelFromIso(iso) {
+            const [y, m] = String(iso).split('-').map(Number);
+            const dt = new Date(y, (m || 1) - 1, 1);
+            return dt.toLocaleString('en-GB', { month: 'long', year: 'numeric' });
+        }
+
+        function setMonthOptions(selectEl, monthIsos) {
+            selectEl.innerHTML = '';
+            (monthIsos || []).forEach(iso => {
+                const o = document.createElement('option');
+                const label = monthLabelFromIso(iso);
+                o.value = iso; // ✅ FIX: ensure value is set
+                o.textContent = label;
+                o.dataset.json = JSON.stringify({ iso, label });
+                selectEl.appendChild(o);
+            });
+            if (selectEl.options.length) selectEl.selectedIndex = 0;
+        }
+
+        function populateMonthSelect(selectEl, opts) {
+            return new Promise((resolve, reject) => {
+                google.script.run
+                    .withSuccessHandler(monthIsos => {
+                        setMonthOptions(selectEl, monthIsos || []);
+                        resolve(monthIsos || []);
+                    })
+                    .withFailureHandler(reject)
+                    .listAvailableMonths(opts || {});
+            });
+        }
+
+        // ✅ FIX: previously missing
+        function listRecentMonthIsos(monthsBack = 6) {
+            const out = [];
+            const d = new Date();
+            d.setDate(1);
+            for (let i = 0; i < monthsBack; i++) {
+                const yy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                out.push(`${yy}-${mm}`);
+                d.setMonth(d.getMonth() - 1);
+            }
+            return out;
+        }
+
+        // ✅ FIX: previously missing
+        function setCurrentAndPreviousMonths(selectEl, monthsBack = 6) {
+            if (!selectEl) return;
+            const current = String(selectEl.value || '').slice(0, 7);
+            const monthIsos = listRecentMonthIsos(monthsBack);
+            setMonthOptions(selectEl, monthIsos);
+            if (current && monthIsos.includes(current)) selectEl.value = current;
+        }
+
+        // ✅ FIX: previously missing
+        function readMonth(selectEl) {
+            if (!selectEl) return { iso: '', label: '' };
+            const opt = selectEl.selectedOptions && selectEl.selectedOptions[0];
+            if (opt && opt.dataset && opt.dataset.json) {
+                try {
+                    const obj = JSON.parse(opt.dataset.json);
+                    if (obj && obj.iso) return obj;
+                } catch (_) { }
+            }
+            const v = String(selectEl.value || '').trim();
+            const iso = v ? v.slice(0, 7) : '';
+            return { iso, label: iso ? monthLabelFromIso(iso) : '' };
+        }
+
+        function ensureClientPlaceholder(selectEl, label = 'Choose an existing Client') {
+            if (!selectEl) return;
+            const hasBlank = Array.from(selectEl.options).some(o => o.value === '');
+            if (hasBlank) return;
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = label;
+            placeholder.disabled = true;
+            placeholder.hidden = true;
+            selectEl.insertBefore(placeholder, selectEl.firstChild);
+        }
+
+        function downloadBase64File(base64, filename, mimeType) {
+            const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+            const blob = new Blob([bytes], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        function wireCoreMasterAllocations() {
+            const selMonth = document.getElementById('c_master_month');
+            const chkGroup = document.getElementById('c_master_group_bd');
+            const btnLoad = document.getElementById('c_master_load');
+            const btnDl = document.getElementById('c_master_download');
+
+            if (!selMonth || !btnLoad || !btnDl || !chkGroup) return;
+
+            populateMonthSelect(selMonth, { scope: 'all', kind: 'actual', monthsBack: 6 })
+                .then(load)
+                .catch(handleError);
+
+            function renderMaster(data) {
+                const head = document.getElementById('c_master_head');
+                const body = document.getElementById('c_master_body');
+                head.innerHTML = '';
+                body.innerHTML = '';
+
+                const clients = data.clients || [];
+                const rows = data.rows || [];
+
+                // --- Row 1: Core names ---
+                const trCore = document.createElement('tr');
+                const thMember1 = document.createElement('th');
+                thMember1.textContent = '';
+                thMember1.style.borderBottom = 'none'; // Visual cleanup
+                trCore.appendChild(thMember1);
+
+                // Calculate core groups for colspans
+                const groups = [];
+                if (clients.length > 0) {
+                    let lastCore = clients[0].core || '(Unassigned)';
+                    let count = 1;
+                    for (let i = 1; i < clients.length; i++) {
+                        const c = clients[i].core || '(Unassigned)';
+                        if (c === lastCore) {
+                            count++;
+                        } else {
+                            groups.push({ name: lastCore, count });
+                            lastCore = c;
+                            count = 1;
+                        }
+                    }
+                    groups.push({ name: lastCore, count });
+                }
+
+                groups.forEach(g => {
+                    const th = document.createElement('th');
+                    th.textContent = g.name;
+                    th.colSpan = g.count;
+                    th.style.textAlign = 'center';
+                    th.style.backgroundColor = '#f3f4f6'; // Slightly darker for distinction
+                    th.style.borderBottom = '1px solid #d1d5db';
+                    trCore.appendChild(th);
+                });
+                head.appendChild(trCore);
+
+                // --- Row 2: Client names ---
+                const trClient = document.createElement('tr');
+                const thMember2 = document.createElement('th');
+                thMember2.textContent = 'Member';
+                trClient.appendChild(thMember2);
+
+                clients.forEach(c => {
+                    const th = document.createElement('th');
+                    th.textContent = c.name;
+                    trClient.appendChild(th);
+                });
+                head.appendChild(trClient);
+
+                // --- Data Rows ---
+                rows.forEach(r => {
+                    const tr = document.createElement('tr');
+
+                    const tdM = document.createElement('td');
+                    tdM.textContent = r.name || r.email;
+                    tr.appendChild(tdM);
+
+                    clients.forEach(c => {
+                        const td = document.createElement('td');
+                        // Fix: property access by name
+                        const v = Number((r.allocations && r.allocations[c.name]) || 0);
+                        td.textContent = v ? v.toFixed(2) : '';
+                        td.style.textAlign = 'right';
+                        tr.appendChild(td);
+                    });
+
+                    body.appendChild(tr);
+                });
+            }
+
+            function load() {
+                const m = readMonth(selMonth);
+                const groupBd = chkGroup ? chkGroup.checked : true;
+                const groupLeave = document.getElementById('c_master_group_leave') ? document.getElementById('c_master_group_leave').checked : true;
+                const groupInternal = document.getElementById('c_master_group_internal') ? document.getElementById('c_master_group_internal').checked : true;
+
+                showLoading();
+                google.script.run
+                    .withSuccessHandler(res => { hideLoading(); renderMaster(res); })
+                    .withFailureHandler(e => { hideLoading(); handleError(e); })
+                    .getCoreMasterAllocations({ month: m.iso, group_bd: groupBd, group_leave: groupLeave, group_internal: groupInternal });
+            }
+
+            btnLoad.onclick = load;
+            selMonth.onchange = load;
+            if (chkGroup) chkGroup.onchange = load;
+
+            const chkLeave = document.getElementById('c_master_group_leave');
+            if (chkLeave) chkLeave.onchange = load;
+
+            const chkInternal = document.getElementById('c_master_group_internal');
+            if (chkInternal) chkInternal.onchange = load;
+
+            btnDl.onclick = () => {
+                const m = readMonth(selMonth);
+                const groupBd = chkGroup ? chkGroup.checked : true;
+                const groupLeave = document.getElementById('c_master_group_leave') ? document.getElementById('c_master_group_leave').checked : true;
+                const groupInternal = document.getElementById('c_master_group_internal') ? document.getElementById('c_master_group_internal').checked : true;
+
+                showLoading();
+                google.script.run
+                    .withSuccessHandler(res => {
+                        hideLoading();
+                        downloadBase64File(res.base64, res.filename, res.mimeType);
+                    })
+                    .withFailureHandler(e => { hideLoading(); handleError(e); })
+                    .exportCoreMasterAllocationsXlsx({ month: m.iso, group_bd: groupBd, group_leave: groupLeave, group_internal: groupInternal });
+            };
+
+            load();
+        }
+
+        function todayIso() {
+            const d = new Date();
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function normalizeClientForMatch(s) {
+            if (!s) return '';
+            return String(s || '')
+                .toLowerCase()
+                .replace(/\s*[-–—]\s*/g, '-')
+                .replace(/[^a-z0-9\- ]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function setMode(mode) {
+            FLOW_MODE = mode;
+            document.getElementById('signupExtras').style.display = (FLOW_MODE === 'signup') ? 'block' : 'none';
+            document.getElementById('error').textContent = '';
+            document.getElementById('primaryBtn').disabled = (FLOW_MODE === 'signup' && !document.getElementById('acceptTerms').checked);
+        }
+        function renderScreenForUser(user) {
+            const primary = user.primaryRole || 'team';
+            ['team', 'manager', 'core'].forEach(k => document.getElementById('screen-' + k).classList.toggle('visible', k === primary));
+            document.getElementById('screens').style.display = 'block';
+            const badge = document.getElementById('roleBadge'); badge.textContent = primary.charAt(0).toUpperCase() + primary.slice(1); badge.style.display = 'inline-block';
+        }
+        function showSignedIn(user) {
+            localStorage.removeItem(SKIP_AUTO_KEY);
+            document.getElementById('auth').style.display = 'none';
+            document.getElementById('profile').style.display = 'flex';
+            document.getElementById('name').textContent = user.name || '(No name)';
+            document.getElementById('email').textContent = user.email || '';
+            document.getElementById('avatar').src = user.picture || '';
+            renderScreenForUser(user);
+            bootApp(user);
+        }
+        function showSignedOut() { document.getElementById('profile').style.display = 'none'; document.getElementById('auth').style.display = 'block'; document.getElementById('error').textContent = ''; }
+        function handleError(err) {
+            const msg = (err && err.message) ? err.message : String(err);
+            document.getElementById('error').textContent = msg;
+        }
+        function autoResume() {
+            if (localStorage.getItem(SKIP_AUTO_KEY)) return;
+            showLoading();
+            google.script.run.withSuccessHandler(res => { hideLoading(); if (!res) return; if (res.status === 'OK') showSignedIn(res.user); else if (res.status === 'NO_ACCOUNT') { setMode('signup'); document.querySelector('input[name="mode"][value="signup"]').checked = true; document.getElementById('error').textContent = 'No account found. Please sign up.'; } })
+                .withFailureHandler(e => { hideLoading(); handleError(e); })
+                .getSession();
+        }
+
+        function fillSelect(el, items, toLabel = x => x, toValue = x => x) {
+            el.innerHTML = '';
+            items.forEach(it => {
+                const opt = document.createElement('option');
+                opt.value = toValue(it);
+                opt.textContent = toLabel(it);
+                el.appendChild(opt);
+            });
+        }
+
+        function detectClientFromText(text, clients) {
+            if (!text || !clients || !clients.length) return '';
+            const raw = String(text).toLowerCase();
+            const normText = normalizeClientForMatch(raw);
+            const sorted = clients.slice().sort((a, b) => b.length - a.length);
+            for (const c of sorted) {
+                const normC = normalizeClientForMatch(c);
+                if (!normC) continue;
+                if (normText.includes(normC)) return c;
+                const bare = normC.replace(/^(bd|internal)(\-|\s)+/, '');
+                if (bare && bare !== normC && normText.includes(bare)) return c;
+                const parts = bare.split(' ');
+                if (parts.length > 1) {
+                    const last = parts[parts.length - 1];
+                    if (last && normText.includes(last)) return c;
+                }
+            }
+            return '';
+        }
+
+        const INTERNAL_EMAIL_TO_GROUP = {
+            'aashna@themavericksindia.com': 'Internal HR',
+            'mitali.p@themavericksindia.com': 'Internal - CS',
+            'archana@themavericksindia.com': 'Internal - CS',
+            'smriti@themavericksindia.com': 'Internal - CS',
+            'avinash@themavericksindia.com': 'Internal Finance',
+            'pooja@themavericksindia.com': 'Internal Tech'
+        };
+        const INTERNAL_GROUPS = ['Internal - CS', 'Internal HR', 'Internal Tech', 'Internal Finance'];
+
+        const PERSONAL_CLIENT = 'Personal Commitments';
+        function isPersonalTitle(t) { return /\bpersonal\b/i.test(String(t || '')); }
+
+        function toTitleCaseWords(s) {
+            return s.split(/\s+/).filter(Boolean).map(w => w[0] ? (w[0].toUpperCase() + w.slice(1).toLowerCase()) : w).join(' ');
+        }
+        function extractBDFromHash(title) {
+            const m = String(title || '').match(/#([A-Za-z][\w-]*)/);
+            if (!m) return '';
+            const raw = m[1].replace(/[_-]+/g, ' ').trim();
+            if (!raw) return '';
+            return `BD - ${toTitleCaseWords(raw)}`;
+        }
+
+        function chooseClientForEvent({ title, attendees = [], attendeeCount = 0 }, clients, allOpts) {
+            const bdHash = extractBDFromHash(title);
+            if (bdHash) return bdHash;
+
+            if (isPersonalTitle(title)) return PERSONAL_CLIENT;
+
+            const clientHit = detectClientFromText(title, clients);
+            if (clientHit) return clientHit;
+
+            if (attendeeCount > 30) return 'BD';
+            if (attendeeCount >= 3 && attendeeCount <= 6) {
+                const set = new Set(attendees.map(e => String(e || '').toLowerCase()));
+                for (const [email, group] of Object.entries(INTERNAL_EMAIL_TO_GROUP)) {
+                    if (set.has(email)) return allOpts.includes(group) ? group : 'BD/ Internal';
+                }
+            }
+            return 'BD';
+        }
+
+        let CLIENTS_CACHE_PROMISE = null;
+        function loadClientsOnce() {
+            if (CLIENTS_CACHE_PROMISE) return CLIENTS_CACHE_PROMISE;
+            CLIENTS_CACHE_PROMISE = new Promise((resolve, reject) => {
+                google.script.run
+                    .withSuccessHandler(clients => {
+                        const extras = ['FREE_TIME', 'LEAVE', 'BD', PERSONAL_CLIENT, ...INTERNAL_GROUPS];
+                        const all = [...clients, ...extras];
+                        resolve({ clients, all });
+                    })
+                    .withFailureHandler(reject)
+                    .listClients();
+            });
+            return CLIENTS_CACHE_PROMISE;
+        }
+
+        async function fillClientSelect(selectEl, selectedValue) {
+            const { all } = await loadClientsOnce();
+            selectEl.innerHTML = '';
+
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Choose an existing Client';
+            placeholder.disabled = true;
+            placeholder.selected = !selectedValue;
+            placeholder.hidden = true;
+            selectEl.appendChild(placeholder);
+
+            all.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                selectEl.appendChild(opt);
+            });
+
+            if (selectedValue) {
+                if (!all.includes(selectedValue)) {
+                    const opt = document.createElement('option');
+                    opt.value = selectedValue;
+                    opt.textContent = selectedValue;
+                    selectEl.appendChild(opt);
+                }
+                selectEl.value = selectedValue;
+            }
+
+            return { all };
+        }
+
+        function warnIfOver(elWarn, total) { elWarn.style.display = (total > CAP + 1e-6) ? 'inline' : 'none'; }
+
+        function renderSummaryFromRows(rows, tbodyId, totalId) {
+            const byClient = new Map();
+            let total = 0;
+            (rows || []).forEach(r => {
+                const c = r.client || '(Unspecified)';
+                const h = Number(r.hours) || 0;
+                total += h;
+                byClient.set(c, (byClient.get(c) || 0) + h);
+            });
+            const tb = document.getElementById(tbodyId);
+            tb.innerHTML = '';
+            Array.from(byClient.entries()).sort((a, b) => a[0].localeCompare(b[0])).forEach(([client, hrs]) => {
+                const tr = document.createElement('tr');
+                const td1 = document.createElement('td'); td1.textContent = client;
+                const td2 = document.createElement('td'); td2.textContent = hrs.toFixed(2);
+                tr.appendChild(td1); tr.appendChild(td2);
+                tb.appendChild(tr);
+            });
+            document.getElementById(totalId).textContent = total.toFixed(2);
+        }
+
+        function showOverlapWarning(prefix, errorMessage, allocationData) {
+            const warningEl = document.getElementById(prefix + '_w_overlap_warning');
+            const contentEl = document.getElementById(prefix + '_w_overlap_content');
+
+            pendingAllocation = allocationData;
+
+            const isBlocking =
+                /same client/i.test(errorMessage) ||
+                /same event/i.test(errorMessage) ||
+                /edit the existing entry/i.test(errorMessage);
+
+            let warningHTML = '';
+
+            if (isBlocking) {
+                warningHTML = `
+          <p><strong>You already have an allocation for this client & event during this time period.</strong></p>
+          <p>Please edit the existing entry instead of creating a new one.</p>
+        `;
+            } else {
+                const lines = errorMessage.split('\n');
+                warningHTML = `
+          <p><strong>You already have allocations during this time period:</strong></p>
+        `;
+                lines.forEach(line => {
+                    if (line.trim().startsWith('•')) {
+                        warningHTML += `<div class="overlap-entry">${line}</div>`;
+                    }
+                });
+                warningHTML += `
+          <p style="margin-top: 10px;">Are you sure you want to add this new allocation for <strong>"${allocationData.client}"</strong>?</p>
+        `;
+            }
+
+            contentEl.innerHTML = warningHTML;
+            warningEl.style.display = 'block';
+            warningEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function hideOverlapWarning(prefix) {
+            const warningEl = document.getElementById(prefix + '_w_overlap_warning');
+            warningEl.style.display = 'none';
+            pendingAllocation = null;
+        }
+
+        function setupOverlapHandlers(prefix) {
+            document.getElementById(prefix + '_w_force_add').onclick = () => {
+                if (!pendingAllocation) return;
+                const forcedAllocation = { ...pendingAllocation, force: true };
+                showLoading();
+                google.script.run
+                    .withSuccessHandler(() => {
+                        hideLoading();
+                        hideOverlapWarning(prefix);
+                        const notesEl = document.getElementById(prefix + '_w_notes');
+                        if (notesEl) notesEl.value = '';
+                        const loadFunc = window[prefix + '_loadWeeklyTable'];
+                        if (loadFunc) loadFunc();
+                    })
+                    .withFailureHandler(e => {
+                        hideLoading();
+                        handleError(e);
+                    })
+                    .addWeeklyAllocation(forcedAllocation);
+            };
+            document.getElementById(prefix + '_w_cancel_add').onclick = () => {
+                hideOverlapWarning(prefix);
+            };
+        }
+
+        function updateCoveragePill(prefix) {
+            const el = document.getElementById(prefix + '_w_coverage');
+            if (!el) return;
+            google.script.run
+                .withSuccessHandler(res => {
+                    if (res && res.latest_end_date) {
+                        el.innerHTML = `• Allocations added till <b>${res.label}</b>`;
+                        el.style.display = 'inline-block';
+                    } else {
+                        el.textContent = '• No weekly allocations logged yet';
+                        el.style.display = 'inline-block';
+                    }
+                })
+                .withFailureHandler(_ => { })
+                .getMyAllocationCoverage();
+        }
+
+        function wireProjectedSelfPanel(prefix) {
+            const selMonth = document.getElementById(prefix + '_month');
+            const warnEl = document.getElementById(prefix + '_warn');
+            const clientSel = document.getElementById(prefix + '_client');
+            const displaySel = document.getElementById(prefix + '_display');
+            const summaryWrap = document.getElementById(prefix + '_summarywrap');
+            const section = document.getElementById(prefix + '_projected_section');
+
+            populateMonthSelect(selMonth, { scope: 'my', kind: 'projected', monthsBack: 6 })
+                .then(loadTable)
+                .catch(handleError);
+
+            fillClientSelect(clientSel).catch(handleError);
+
+            function applyDisplayMode(showSummary) {
+                const detailedWrap = section.querySelector('.alloc-tablewrap');
+                if (showSummary) {
+                    summaryWrap.style.display = 'block';
+                    if (detailedWrap) detailedWrap.style.display = 'none';
+                } else {
+                    summaryWrap.style.display = 'none';
+                    if (detailedWrap) detailedWrap.style.display = 'block';
+                }
+            }
+
+            function loadTable() {
+                const m = readMonth(selMonth);
+                showLoading();
+                google.script.run.withSuccessHandler(rows => {
+                    hideLoading();
+                    const tb = document.getElementById(prefix + '_body');
+                    tb.innerHTML = '';
+                    let total = 0;
+                    (rows || []).forEach(r => {
+                        total += Number(r.hours) || 0;
+                        const tr = document.createElement('tr');
+                        const actionTd = document.createElement('td');
+                        const removeBtn = document.createElement('button');
+                        removeBtn.className = 'linklike';
+                        removeBtn.textContent = 'Remove';
+                        removeBtn.onclick = () => { showLoading(); google.script.run.withSuccessHandler(() => { hideLoading(); loadTable(); }).withFailureHandler(e => { hideLoading(); handleError(e); }).deleteMyAllocation(r.id); };
+                        actionTd.appendChild(removeBtn);
+                        tr.appendChild(actionTd);
+                        ['client', 'category', 'hours', 'notes'].forEach(c => { const td = document.createElement('td'); td.textContent = r[c] ?? ''; tr.appendChild(td); });
+                        tb.appendChild(tr);
+                    });
+                    document.getElementById(prefix + '_tot').textContent = total.toFixed(2);
+                    document.getElementById(prefix + '_pct').textContent = (total / CAP * 100).toFixed(1);
+                    warnIfOver(warnEl, total);
+
+                    const wantSummary = displaySel && displaySel.value === 'summary';
+                    if (wantSummary) {
+                        summaryWrap.style.display = 'block';
+                        renderSummaryFromRows(rows, `${prefix}_summary_body`, `${prefix}_summary_tot`);
+                    }
+                    applyDisplayMode(wantSummary);
+                }).withFailureHandler(e => { hideLoading(); handleError(e); })
+                    .listMyAllocations({ month: m.iso, kind: 'projected' });
+            }
+
+            document.getElementById(prefix + '_add').onclick = async () => {
+                const m = readMonth(selMonth);
+                const payload = { month: m.iso, kind: 'projected', client: clientSel.value, category: document.getElementById(prefix + '_cat').value.trim(), hours: Number(document.getElementById(prefix + '_hours').value), notes: document.getElementById(prefix + '_notes').value.trim() };
+                showLoading();
+                google.script.run.withSuccessHandler(() => { hideLoading(); document.getElementById(prefix + '_notes').value = ''; loadTable(); })
+                    .withFailureHandler(e => { hideLoading(); handleError(e); })
+                    .addMonthlyAllocation(payload);
+            };
+            selMonth.onchange = loadTable;
+            if (displaySel) displaySel.onchange = loadTable;
+
+            loadTable();
+        }
+
+        function wireWeeklySelfPanel(prefix) {
+            const displaySel = document.getElementById(prefix + '_w_display');
+            const summaryWrap = document.getElementById(prefix + '_w_summarywrap');
+            const section = document.getElementById(prefix + '_weekly_section');
+
+            const monthSel = document.getElementById(prefix + '_w_month');
+            if (monthSel) setCurrentAndPreviousMonths(monthSel, 6);
+
+            fillClientSelect(document.getElementById(prefix + '_w_client')).catch(handleError);
+            setupOverlapHandlers(prefix);
+
+            const endEl = document.getElementById(prefix + '_w_end_date');
+            if (endEl && !endEl.value) endEl.value = todayIso();
+
+            function computeMonthIso() {
+                const start = document.getElementById(prefix + '_w_start_date').value;
+                if (start && /^\d{4}-\d{2}-\d{2}$/.test(start)) return start.slice(0, 7);
+
+                if (monthSel) {
+                    const m = readMonth(monthSel);
+                    if (m && m.iso) return m.iso;
+                }
+
+                const d = new Date();
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            }
+
+            function applyDisplayMode(showSummary) {
+                const allocWrap = section.querySelector('.alloc-tablewrap');
+                const eventsWrap = section.querySelector('.events-tablewrap');
+                if (showSummary) {
+                    summaryWrap.style.display = 'block';
+                    if (allocWrap) allocWrap.style.display = 'none';
+                } else {
+                    summaryWrap.style.display = 'none';
+                    if (allocWrap) allocWrap.style.display = 'block';
+                }
+                if (eventsWrap) eventsWrap.style.display = 'block';
+            }
+
+            function loadWeeklyTable() {
+                showLoading();
+                google.script.run.withSuccessHandler(rows => {
+                    hideLoading();
+                    const tb = document.getElementById(prefix + '_w_body');
+                    tb.innerHTML = '';
+                    let total = 0;
+                    (rows || []).forEach(r => {
+                        total += Number(r.hours) || 0;
+                        const tr = document.createElement('tr');
+
+                        const tdCheckbox = document.createElement('td');
+                        tdCheckbox.className = 'checkbox-cell';
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.className = prefix + '_w_alloc_checkbox';
+                        checkbox.dataset.id = r.id;
+                        tdCheckbox.appendChild(checkbox);
+                        tr.appendChild(tdCheckbox);
+
+                        const tdAction = document.createElement('td');
+                        const btnEdit = document.createElement('button');
+                        btnEdit.className = 'linklike';
+                        btnEdit.textContent = 'Edit';
+                        const btnRemove = document.createElement('button');
+                        btnRemove.className = 'linklike';
+                        btnRemove.style.marginLeft = '8px';
+                        btnRemove.textContent = 'Remove';
+                        btnRemove.onclick = () => { showLoading(); google.script.run.withSuccessHandler(() => { hideLoading(); loadWeeklyTable(); }).withFailureHandler(e => { hideLoading(); handleError(e); }).deleteMyAllocation(r.id); };
+                        tdAction.appendChild(btnEdit);
+                        tdAction.appendChild(btnRemove);
+                        tr.appendChild(tdAction);
+
+                        const cells = [r.week_label, r.client, r.category, r.hours, r.notes];
+                        cells.forEach(cellData => {
+                            const td = document.createElement('td');
+                            td.textContent = cellData || '';
+                            tr.appendChild(td);
+                        });
+
+                        btnEdit.onclick = async () => {
+                            const originalCells = { client: r.client, category: r.category, hours: r.hours, notes: r.notes };
+                            tr.cells[3].innerHTML = '';
+                            const selClient = document.createElement('select');
+                            tr.cells[3].appendChild(selClient);
+                            await fillClientSelect(selClient, originalCells.client);
+
+                            tr.cells[4].innerHTML = `<input type="text" value="${originalCells.category || ''}" style="width:100%">`;
+                            tr.cells[5].innerHTML = `<input type="number" step="0.25" min="0" value="${originalCells.hours}" style="width:80px">`;
+                            tr.cells[6].innerHTML = `<input type="text" value="${originalCells.notes || ''}" style="width:100%">`;
+
+                            tdAction.innerHTML = '';
+                            const btnSave = document.createElement('button'); btnSave.className = 'linklike'; btnSave.textContent = 'Save';
+                            const btnCancel = document.createElement('button'); btnCancel.className = 'linklike'; btnCancel.style.marginLeft = '8px'; btnCancel.textContent = 'Cancel';
+                            tdAction.appendChild(btnSave); tdAction.appendChild(btnCancel);
+
+                            btnSave.onclick = () => {
+                                showLoading();
+                                google.script.run.withSuccessHandler(() => { hideLoading(); loadWeeklyTable(); }).withFailureHandler(e => { hideLoading(); handleError(e); })
+                                    .updateMyAllocation({ id: r.id, client: selClient.value, category: tr.cells[4].querySelector('input').value.trim(), hours: Number(tr.cells[5].querySelector('input').value), notes: tr.cells[6].querySelector('input').value.trim() });
+                            };
+                            btnCancel.onclick = loadWeeklyTable;
+                        };
+                        tb.appendChild(tr);
+                    });
+
+                    document.getElementById(prefix + '_w_tot').textContent = total.toFixed(2);
+                    document.getElementById(prefix + '_w_pct').textContent = (total / CAP * 100).toFixed(1);
+
+                    const wantSummary = displaySel && displaySel.value === 'summary';
+                    if (wantSummary) {
+                        renderSummaryFromRows(rows, `${prefix}_w_summary_body`, `${prefix}_w_summary_tot`);
+                    }
+                    applyDisplayMode(wantSummary);
+
+                    const selectAllCheckbox = document.getElementById(prefix + '_w_select_all_allocations');
+                    if (selectAllCheckbox) {
+                        selectAllCheckbox.onchange = function () {
+                            const checkboxes = tb.querySelectorAll('.' + prefix + '_w_alloc_checkbox');
+                            checkboxes.forEach(cb => cb.checked = this.checked);
+                        };
+                    }
+
+                    const deleteSelectedBtn = document.getElementById(prefix + '_w_delete_selected_allocations');
+                    if (deleteSelectedBtn) {
+                        deleteSelectedBtn.onclick = function () {
+                            const selectedIds = [];
+                            const checkboxes = tb.querySelectorAll('.' + prefix + '_w_alloc_checkbox:checked');
+                            checkboxes.forEach(cb => selectedIds.push(cb.dataset.id));
+
+                            if (selectedIds.length === 0) { alert('Please select at least one allocation to delete.'); return; }
+                            if (!confirm(`Are you sure you want to delete ${selectedIds.length} selected allocation(s)?`)) return;
+
+                            showLoading();
+                            google.script.run
+                                .withSuccessHandler(() => { hideLoading(); loadWeeklyTable(); })
+                                .withFailureHandler(e => { hideLoading(); handleError(e); })
+                                .deleteMultipleAllocations(selectedIds);
+                        };
+                    }
+
+                    updateCoveragePill(prefix);
+                }).withFailureHandler(e => { hideLoading(); handleError(e); })
+                    .listMyAllocations({ month: computeMonthIso(), kind: 'actual' });
+            }
+
+            window[prefix + '_loadWeeklyTable'] = loadWeeklyTable;
+
+            document.getElementById(prefix + '_w_save_selected').onclick = async () => {
+                const startDate = document.getElementById(prefix + '_w_start_date').value;
+                const endDate = document.getElementById(prefix + '_w_end_date').value;
+                if (!startDate || !endDate) { alert('Please select both start and end dates.'); return; }
+
+                const body = document.getElementById(prefix + '_w_events_body');
+                const rows = Array.from(body.querySelectorAll('tr'));
+                const selectedRows = rows.filter(r => r.querySelector(`input.${prefix}_w_rowchk`)?.checked);
+
+                if (!selectedRows.length) { alert('No events selected. Please select at least one event to save.'); return; }
+
+                const payloads = [];
+                const results = { success: 0, failed: 0, errors: [] };
+
+                selectedRows.forEach((tr, index) => {
+                    const titleInput = tr.cells[1]?.querySelector('input');
+                    const hoursCell = tr.cells[4];
+                    const clientSel = tr.cells[5]?.querySelector('select');
+                    const title = (titleInput?.value || 'Untitled').trim();
+                    const hours = parseHoursCell(hoursCell?.textContent || '0');
+                    const isPers = isPersonalTitle(title);
+
+                    let chosenClient = clientSel?.value || '';
+                    const bdHash = extractBDFromHash(title);
+                    if (!isPers && bdHash) {
+                        chosenClient = bdHash;
+                        if (clientSel && Array.from(clientSel.options).every(o => o.value !== chosenClient)) {
+                            const o = document.createElement('option'); o.value = chosenClient; o.textContent = chosenClient; clientSel.appendChild(o);
+                        }
+                        if (clientSel) clientSel.value = chosenClient;
+                    }
+
+                    const client = isPers ? PERSONAL_CLIENT : chosenClient;
+
+                    if (hours > 0 && client) {
+                        payloads.push({
+                            month: computeMonthIso(),
+                            start_date: startDate,
+                            end_date: endDate,
+                            client,
+                            category: isPers ? 'Personal' : 'Meeting',
+                            hours,
+                            notes: title,
+                            rowIndex: index,
+                            force: true
+                        });
+
+                        const saveBtn = tr.cells[6]?.querySelector('button');
+                        if (saveBtn) {
+                            saveBtn.textContent = 'Saving...';
+                            saveBtn.disabled = true;
+                        }
+                    }
+                });
+
+                if (!payloads.length) { alert('Nothing to save.'); return; }
+
+                showLoading();
+
+                for (let i = 0; i < payloads.length; i++) {
+                    const p = payloads[i];
+                    const currentRow = selectedRows[p.rowIndex];
+                    try {
+                        await new Promise((resolve) => {
+                            google.script.run
+                                .withSuccessHandler(() => {
+                                    results.success++;
+                                    const saveBtn = currentRow.cells[6]?.querySelector('button');
+                                    if (saveBtn) {
+                                        saveBtn.textContent = 'Saved ✓';
+                                        saveBtn.style.backgroundColor = '#4CAF50';
+                                        saveBtn.style.color = 'white';
+                                        saveBtn.disabled = true;
+                                    }
+                                    resolve();
+                                })
+                                .withFailureHandler((error) => {
+                                    results.failed++;
+                                    results.errors.push({ event: p.notes, error: error.message });
+                                    const saveBtn = currentRow.cells[6]?.querySelector('button');
+                                    if (saveBtn) {
+                                        saveBtn.textContent = 'Duplicate Entry (Click Here)';
+                                        saveBtn.style.backgroundColor = '#f44336';
+                                        saveBtn.style.color = 'white';
+                                        saveBtn.disabled = false;
+                                    }
+                                    console.error('Failed to save event duplicate entry found:', p.notes, error);
+                                    resolve();
+                                })
+                                .addWeeklyAllocation(p);
+                        });
+                        await new Promise(r => setTimeout(r, 100));
+                    } catch (error) {
+                        results.failed++;
+                        results.errors.push({ event: p.notes, error: error.message });
+                        console.error('Unexpected error saving event:', p.notes, error);
+                    }
+                }
+
+                hideLoading();
+
+                if (results.failed > 0) {
+                    alert(`Saved ${results.success} out of ${payloads.length} events.\n\nFailed to save ${results.failed} events.`);
+                    console.log('Failed events details:', results.errors);
+                } else {
+                    alert(`Successfully saved all ${results.success} events!`);
+                }
+
+                loadWeeklyTable();
+            };
+
+            document.getElementById(prefix + '_w_delete_selected').onclick = () => {
+                const body = document.getElementById(prefix + '_w_events_body');
+                const rows = Array.from(body.querySelectorAll('tr'));
+                const toDelete = rows.filter(r => r.querySelector(`input.${prefix}_w_rowchk`)?.checked);
+                if (!toDelete.length) { alert('No rows selected.'); return; }
+                toDelete.forEach(r => r.remove());
+                const selAll = document.getElementById(prefix + '_w_select_all');
+                if (selAll) selAll.checked = false;
+            };
+
+            document.getElementById(prefix + '_w_add').onclick = () => {
+                const startDate = document.getElementById(prefix + '_w_start_date').value;
+                const endDate = document.getElementById(prefix + '_w_end_date').value;
+                if (!startDate || !endDate) { alert('Please select both start and end dates.'); return; }
+                const payload = {
+                    month: computeMonthIso(),
+                    start_date: startDate,
+                    end_date: endDate,
+                    client: document.getElementById(prefix + '_w_client').value,
+                    category: document.getElementById(prefix + '_w_cat').value.trim(),
+                    hours: Number(document.getElementById(prefix + '_w_hours').value),
+                    notes: document.getElementById(prefix + '_w_notes').value.trim()
+                };
+
+                showLoading();
+                google.script.run
+                    .withSuccessHandler(() => { hideLoading(); document.getElementById(prefix + '_w_notes').value = ''; loadWeeklyTable(); })
+                    .withFailureHandler(e => {
+                        hideLoading();
+                        if (e.message && e.message.includes('WARNING:')) showOverlapWarning(prefix, e.message, payload);
+                        else handleError(e);
+                    })
+                    .addWeeklyAllocation(payload);
+            };
+
+            document.getElementById(prefix + '_w_import').onclick = async () => {
+                const startDate = document.getElementById(prefix + '_w_start_date').value;
+                const endDate = document.getElementById(prefix + '_w_end_date').value;
+                if (!startDate || !endDate) { alert('Please select both start and end dates.'); return; }
+
+                showLoading();
+                google.script.run.withSuccessHandler(async events => {
+                    hideLoading();
+                    const body = document.getElementById(prefix + '_w_events_body');
+                    body.innerHTML = '';
+
+                    const { clients, all } = await loadClientsOnce();
+
+                    (events || []).forEach((ev) => {
+                        const tr = document.createElement('tr');
+
+                        const tdChk = document.createElement('td');
+                        tdChk.className = 'checkbox-cell';
+                        const chk = document.createElement('input');
+                        chk.type = 'checkbox';
+                        chk.className = `${prefix}_w_rowchk`;
+                        tdChk.appendChild(chk);
+                        tr.appendChild(tdChk);
+
+                        const tdTitle = document.createElement('td');
+                        const nameInput = document.createElement('input');
+                        nameInput.type = 'text';
+                        nameInput.value = ev.title || 'Untitled';
+                        tdTitle.appendChild(nameInput);
+                        tr.appendChild(tdTitle);
+
+                        ['start', 'end'].forEach(k => { const td = document.createElement('td'); td.textContent = ev[k] || ''; tr.appendChild(td); });
+
+                        const tdHours = document.createElement('td');
+                        tdHours.textContent = (Number(ev.hours) || 0).toFixed(2) + (ev.count > 1 ? ` (x${ev.count})` : '');
+                        tr.appendChild(tdHours);
+
+                        const tdClient = document.createElement('td');
+                        const selClient = document.createElement('select');
+                        tdClient.appendChild(selClient);
+
+                        // ✅ FIX: allow blank placeholder selection
+                        fillSelect(selClient, all, x => x, x => x);
+                        ensureClientPlaceholder(selClient);
+
+                        let clientChoice;
+                        if (isPersonalTitle(nameInput.value)) {
+                            clientChoice = PERSONAL_CLIENT;
+                        } else {
+                            clientChoice = chooseClientForEvent(
+                                { title: nameInput.value, attendees: ev.attendees || [], attendeeCount: Number(ev.attendeeCount || 0) || (ev.attendees ? ev.attendees.length : 0) },
+                                clients,
+                                all
+                            );
+                        }
+
+                        const normalizedChoice = normalizeClientForMatch(clientChoice || '');
+                        const isGenericBD = normalizedChoice === 'bd';
+
+                        const isKnownRealClient =
+                            !!clientChoice &&
+                            !isGenericBD &&
+                            clients.some(c => normalizeClientForMatch(c) === normalizedChoice);
+
+                        const unknownClient = !isKnownRealClient;
+
+                        if (!unknownClient) {
+                            selClient.value = clientChoice || (all[0] || '');
+                        } else {
+                            selClient.value = ''; // ✅ now selects placeholder properly
+
+                            const helper = document.createElement('div');
+                            helper.style.marginTop = '6px';
+                            helper.className = 'muted';
+
+                            const label = document.createElement('div');
+                            label.textContent = "Or add as a new BD client:";
+                            helper.appendChild(label);
+
+                            const row = document.createElement('div');
+                            row.style.marginTop = '4px';
+
+                            const prefixSpan = document.createElement('span');
+                            prefixSpan.textContent = 'BD - ';
+                            prefixSpan.style.fontWeight = '600';
+
+                            const newNameInput = document.createElement('input');
+                            newNameInput.type = 'text';
+                            newNameInput.placeholder = 'Client name';
+                            newNameInput.style.width = '140px';
+
+                            const suggestedBase = (nameInput.value.split(/\s+/)[0] || 'Client')
+                                .replace(/[:#]/g, '')
+                                .trim();
+                            newNameInput.value = suggestedBase;
+
+                            const addBtn = document.createElement('button');
+                            addBtn.textContent = 'Add BD client';
+                            addBtn.style.marginLeft = '6px';
+
+                            const addMsg = document.createElement('span');
+                            addMsg.className = 'muted';
+                            addMsg.style.marginLeft = '8px';
+
+                            row.appendChild(prefixSpan);
+                            row.appendChild(newNameInput);
+                            row.appendChild(addBtn);
+                            row.appendChild(addMsg);
+                            helper.appendChild(row);
+                            tdClient.appendChild(helper);
+
+                            addBtn.onclick = () => {
+                                const namePart = newNameInput.value.trim();
+                                if (!namePart) { alert('Enter a client name'); return; }
+                                const fullName = `BD - ${namePart}`;
+
+                                // 1. Add the Client first
+                                showLoading();
+                                google.script.run
+                                    .withSuccessHandler(res => {
+                                        // Client added successfully
+                                        addMsg.textContent = res.created ? 'Added' : 'Already exists';
+
+                                        // Update local cache and all dropdowns
+                                        CLIENTS_CACHE_PROMISE = null;
+                                        Array.from(document.querySelectorAll('select')).forEach(s => {
+                                            if (Array.from(s.options).every(o => o.value !== fullName)) {
+                                                const o = document.createElement('option');
+                                                o.value = fullName;
+                                                o.textContent = fullName;
+                                                s.appendChild(o);
+                                            }
+                                        });
+
+                                        // Update THIS row's dropdown
+                                        if (Array.from(selClient.options).every(o => o.value !== fullName)) {
+                                            const o = document.createElement('option');
+                                            o.value = fullName;
+                                            o.textContent = fullName;
+                                            selClient.appendChild(o);
+                                        }
+                                        selClient.value = fullName;
+
+                                        // Disable the "Add BD" button so they don't click it twice
+                                        addBtn.disabled = true;
+
+                                        // --- NEW LOGIC: IMMEDIATELY SAVE THE ALLOCATION ---
+
+                                        // Construct the payload (reusing data from the row)
+                                        const title = nameInput.value.trim();
+                                        const isPers = isPersonalTitle(title); // Should be false here usually, but good to check
+                                        const payload = {
+                                            month: computeMonthIso(),
+                                            start_date: startDate,
+                                            end_date: endDate,
+                                            client: fullName, // Use the new client name
+                                            category: isPers ? 'Personal' : 'Meeting',
+                                            hours: parseHoursCell(tdHours.textContent),
+                                            notes: title,
+                                            force: true // Force add since we just created the client
+                                        };
+
+                                        // Call the save function
+                                        google.script.run
+                                            .withSuccessHandler(() => {
+                                                hideLoading();
+                                                // Update the MAIN Save button on the row to show it's done
+                                                saveBtn.disabled = true;
+                                                saveBtn.textContent = 'Saved';
+                                                saveBtn.style.backgroundColor = '#4CAF50'; // Optional: Green visual cue
+                                                saveBtn.style.color = 'white';
+
+                                                // Refresh the table to show the new entry
+                                                loadWeeklyTable();
+                                            })
+                                            .withFailureHandler(e => {
+                                                hideLoading();
+                                                // If save fails, re-enable the add button so they can try again or see error
+                                                addBtn.disabled = false;
+                                                if (e.message && e.message.includes('WARNING:')) {
+                                                    showOverlapWarning(prefix, e.message, payload);
+                                                } else {
+                                                    handleError(e);
+                                                }
+                                            })
+                                            .addWeeklyAllocation(payload);
+
+                                    })
+                                    .withFailureHandler(e => {
+                                        // Failed to ADD CLIENT
+                                        hideLoading();
+                                        handleError(e);
+                                    })
+                                    .addClientAuto(fullName);
+                            };
+                        }
+
+                        tr.appendChild(tdClient);
+
+                        const tdAct = document.createElement('td');
+                        const saveBtn = document.createElement('button');
+                        saveBtn.textContent = 'Save';
+                        saveBtn.onclick = () => {
+                            const title = nameInput.value.trim();
+                            const isPers = isPersonalTitle(title);
+
+                            let chosen = selClient.value;
+
+                            const bdHash = extractBDFromHash(title);
+                            if (!isPers && bdHash) {
+                                chosen = bdHash;
+                                if (Array.from(selClient.options).every(o => o.value !== chosen)) {
+                                    const o = document.createElement('option');
+                                    o.value = chosen;
+                                    o.textContent = chosen;
+                                    selClient.appendChild(o);
+                                }
+                                selClient.value = chosen;
+                            }
+
+                            const client = isPers ? PERSONAL_CLIENT : chosen;
+                            if (!client) { alert('Select a client'); return; }
+
+                            const payload = {
+                                month: computeMonthIso(),
+                                start_date: startDate,
+                                end_date: endDate,
+                                client,
+                                category: isPers ? 'Personal' : 'Meeting',
+                                hours: parseHoursCell(tdHours.textContent),
+                                notes: title,
+                                force: true
+                            };
+
+                            showLoading();
+                            google.script.run
+                                .withSuccessHandler(() => { hideLoading(); saveBtn.disabled = true; saveBtn.textContent = 'Saved'; loadWeeklyTable(); })
+                                .withFailureHandler(e => {
+                                    hideLoading();
+                                    if (e.message && e.message.includes('WARNING:')) showOverlapWarning(prefix, e.message, payload);
+                                    else handleError(e);
+                                })
+                                .addWeeklyAllocation(payload);
+                        };
+                        tdAct.appendChild(saveBtn);
+                        tr.appendChild(tdAct);
+
+                        body.appendChild(tr);
+                    });
+
+                    const selAll = document.getElementById(prefix + '_w_select_all');
+                    if (selAll) {
+                        selAll.checked = false;
+                        selAll.onchange = () => {
+                            body.querySelectorAll(`input.${prefix}_w_rowchk`).forEach(ch => ch.checked = selAll.checked);
+                        };
+                    }
+
+                    const infoBox = document.getElementById(prefix + '_w_preimport_info');
+                    if (infoBox) {
+                        infoBox.style.display = 'none';
+                        infoBox.innerHTML = '';
+                        google.script.run
+                            .withSuccessHandler(entries => {
+                                if (!entries || !entries.length) return;
+                                const lines = entries.map(e =>
+                                    `<div class="overlap-entry">• ${e.client}: ${e.start_date} to ${e.end_date} (${e.hours}h) - "${e.notes}"</div>`
+                                ).join('');
+                                infoBox.innerHTML = `
+                  <h4>ℹ️ You already have allocations in this period</h4>
+                  ${lines}
+                  <p style="margin-top:8px;" class="muted">New saves will still go through unless they are exact duplicates (same client + same event).</p>
+                `;
+                                infoBox.style.display = 'block';
+                            })
+                            .withFailureHandler(_ => { })
+                            .listMyExistingAllocationsInRange(startDate, endDate);
+                    }
+                }).withFailureHandler(e => { hideLoading(); handleError(e); })
+                    .fetchMyCalendarEvents(`${startDate}-${endDate}`);
+            };
+
+            function parseHoursCell(txt) {
+                const text = String(txt || '').trim();
+                const multipleMatch = text.match(/^([0-9]+(?:\.[0-9]+)?)\s*\(x(\d+)\)$/);
+                if (multipleMatch) return Number(multipleMatch[1]);
+                const singleMatch = text.match(/^([0-9]+(?:\.[0-9]+)?)$/);
+                if (singleMatch) return Number(singleMatch[1]);
+                return 0;
+            }
+
+            ['_w_start_date', '_w_end_date'].forEach(suffix => {
+                const el = document.getElementById(prefix + suffix);
+                if (el) el.addEventListener('change', loadWeeklyTable);
+            });
+            if (monthSel) monthSel.addEventListener('change', loadWeeklyTable);
+            if (displaySel) displaySel.onchange = loadWeeklyTable;
+
+            loadWeeklyTable();
+        }
+
+        function bootSelfScreen(prefix) {
+            const tabProjected = document.getElementById(prefix + '_tab_projected');
+            const tabWeekly = document.getElementById(prefix + '_tab_weekly');
+            const sectionProjected = document.getElementById(prefix + '_projected_section');
+            const sectionWeekly = document.getElementById(prefix + '_weekly_section');
+
+            let weeklyInitialized = false;
+
+            function showProjected() {
+                tabProjected.classList.add('active');
+                tabWeekly.classList.remove('active');
+                sectionProjected.style.display = 'block';
+                sectionWeekly.style.display = 'none';
+            }
+            function showWeekly() {
+                tabProjected.classList.remove('active');
+                tabWeekly.classList.add('active');
+                sectionProjected.style.display = 'none';
+                sectionWeekly.style.display = 'block';
+                if (!weeklyInitialized) {
+                    wireWeeklySelfPanel(prefix);
+                    weeklyInitialized = true;
+                }
+            }
+
+            tabProjected.onclick = showProjected;
+            tabWeekly.onclick = showWeekly;
+
+            wireProjectedSelfPanel(prefix);
+            if (!weeklyInitialized) {
+                wireWeeklySelfPanel(prefix);
+                weeklyInitialized = true;
+            }
+            showWeekly();
+        }
+
+        function wireMembersPanel(monthId, memberId, kindId, btnId, headId, bodyId, footLabelId, totId, pctId, freeId) {
+            setCurrentAndPreviousMonths(document.getElementById(monthId), 6);
+
+            const displaySelId = (monthId.startsWith('m_') ? 'm_display' : 'c_display');
+            const displaySel = document.getElementById(displaySelId);
+            const summaryWrapId = (monthId.startsWith('m_') ? 'm_summarywrap' : 'c_summarywrap');
+            const summaryWrap = document.getElementById(summaryWrapId);
+            const summaryBodyId = (monthId.startsWith('m_') ? 'm_summary_body' : 'c_summary_body');
+            const summaryTotId = (monthId.startsWith('m_') ? 'm_summary_tot' : 'c_summary_tot');
+
+            let allMembers = [];
+
+            showLoading();
+            google.script.run.withSuccessHandler(members => {
+                hideLoading();
+                allMembers = (members || []).map(m => ({
+                    email: String(m.email || '').toLowerCase(),
+                    name: m.name || ''
+                }));
+
+                fillSelect(
+                    document.getElementById(memberId),
+                    members,
+                    m => m.name ? `${m.name} (${m.email})` : m.email,
+                    m => m.email
+                );
+
+                if (members.length) load();
+            }).withFailureHandler(e => { hideLoading(); handleError(e); })
+                .listMembersForViewer();
+
+            function setHead(kind) {
+                const thead = document.getElementById(headId);
+                if (kind === 'actual') {
+                    thead.innerHTML = '<tr><th>Period</th><th>Client</th><th>Category</th><th>Hours</th><th>Notes</th></tr>';
+                    document.getElementById(footLabelId).setAttribute('colspan', '3');
+                } else {
+                    thead.innerHTML = '<tr><th>Client</th><th>Category</th><th>Hours</th><th>Notes</th></tr>';
+                    document.getElementById(footLabelId).setAttribute('colspan', '2');
+                }
+            }
+
+            function applyDisplayMode(showSummary) {
+                const pane = document.getElementById(monthId).closest('.section');
+                const tableWrap = pane.querySelector('.alloc-tablewrap');
+                if (showSummary) {
+                    summaryWrap.style.display = 'block';
+                    if (tableWrap) tableWrap.style.display = 'none';
+                } else {
+                    summaryWrap.style.display = 'none';
+                    if (tableWrap) tableWrap.style.display = 'block';
+                }
+            }
+
+            function updateZeroHoursSummary(monthIso, kind) {
+                if (!allMembers.length) return;
+
+                const zeroWrapId = monthId.startsWith('m_') ? 'm_zero_hours' : 'c_zero_hours';
+                let wrap = document.getElementById(zeroWrapId);
+                if (!wrap) {
+                    const sectionEl = document.getElementById(monthId).closest('.section');
+                    wrap = document.createElement('div');
+                    wrap.id = zeroWrapId;
+                    wrap.className = 'summarywrap';
+                    wrap.style.marginTop = '10px';
+                    sectionEl.appendChild(wrap);
+                }
+
+                wrap.innerHTML = '<h4>Members with 0 hours</h4><p class="muted">Loading…</p>';
+
+                google.script.run
+                    .withSuccessHandler(rows => {
+                        const totals = new Map();
+                        (rows || []).forEach(r => {
+                            const email = String(r.email || '').toLowerCase();
+                            const h = Number(r.hours) || 0;
+                            totals.set(email, (totals.get(email) || 0) + h);
+                        });
+
+                        const zeroMembers = allMembers.filter(m => !totals.has(m.email));
+
+                        if (!zeroMembers.length) {
+                            wrap.innerHTML = `
+                <h4>Members with 0 hours</h4>
+                <p class="muted">Everyone has logged some hours for this month.</p>
+              `;
+                        } else {
+                            const listItems = zeroMembers.map(m => {
+                                const label = m.name ? `${m.name} (${m.email})` : m.email;
+                                return `<li>${label}</li>`;
+                            }).join('');
+                            wrap.innerHTML = `
+                <h4>Members with 0 hours</h4>
+                <ul>${listItems}</ul>
+              `;
+                        }
+                    })
+                    .withFailureHandler(e => {
+                        wrap.innerHTML = `
+              <h4>Members with 0 hours</h4>
+              <p class="error">${e.message || e}</p>
+            `;
+                    })
+                    .listTeamMonthlyAllocations({ month: monthIso, kind, member_email: '' });
+            }
+
+            function load() {
+                const monthObj = readMonth(document.getElementById(monthId));
+                const month = monthObj.iso;
+                const email = document.getElementById(memberId).value;
+                const kind = document.getElementById(kindId).value;
+                setHead(kind);
+
+                showLoading();
+                google.script.run.withSuccessHandler(rows => {
+                    hideLoading();
+                    const tb = document.getElementById(bodyId);
+                    let total = 0;
+                    tb.innerHTML = '';
+                    rows.forEach(r => {
+                        total += Number(r.hours) || 0;
+                        const tr = document.createElement('tr');
+                        if (kind === 'actual') {
+                            ['week_label', 'client', 'category', 'hours', 'notes'].forEach(k => {
+                                const td = document.createElement('td'); td.textContent = (r[k] || ''); tr.appendChild(td);
+                            });
+                        } else {
+                            ['client', 'category', 'hours', 'notes'].forEach(k => {
+                                const td = document.createElement('td'); td.textContent = (r[k] || ''); tr.appendChild(td);
+                            });
+                        }
+                        tb.appendChild(tr);
+                    });
+                    document.getElementById(totId).textContent = total.toFixed(2);
+                    document.getElementById(pctId).textContent = (total / 160 * 100).toFixed(1);
+
+                    if (document.getElementById(freeId)) {
+                        document.getElementById(freeId).textContent =
+                            (kind === 'projected')
+                                ? (rows.filter(r => (r.client || '').toUpperCase() === 'FREE_TIME')
+                                    .reduce((sum, r) => sum + (Number(r.hours) || 0), 0)).toFixed(2)
+                                : 'N/A';
+                    }
+
+                    const wantSummary = displaySel && displaySel.value === 'summary';
+                    if (wantSummary) {
+                        renderSummaryFromRows(rows, summaryBodyId, summaryTotId);
+                    }
+                    applyDisplayMode(wantSummary);
+
+                    updateZeroHoursSummary(month, kind);
+                }).withFailureHandler(e => { hideLoading(); handleError(e); })
+                    .listTeamMonthlyAllocations({ month, kind, member_email: email });
+            }
+
+            document.getElementById(btnId).onclick = load;
+            document.getElementById(monthId).onchange = load;
+            document.getElementById(memberId).onchange = load;
+            document.getElementById(kindId).onchange = load;
+            if (displaySel) displaySel.onchange = load;
+        }
+
+        function wireCoreClientsAdmin() {
+            const btn = document.getElementById('c_add_client');
+            const msg = document.getElementById('c_client_msg');
+            if (!btn) return;
+            btn.onclick = () => {
+                const n = document.getElementById('c_new_client').value.trim();
+                if (!n) return;
+                showLoading();
+                google.script.run.withSuccessHandler(res => {
+                    hideLoading();
+                    msg.textContent = res.created ? 'Client added.' : 'Client already exists.';
+                    document.getElementById('c_new_client').value = '';
+                    CLIENTS_CACHE_PROMISE = null;
+                }).withFailureHandler(err => { hideLoading(); msg.textContent = err.message || String(err); })
+                    .addClient(n);
+            };
+        }
+
+        function wireCoreClientsSummary() {
+            const selMonth = document.getElementById('c_clients_month');
+            const selKind = document.getElementById('c_clients_kind');
+            const tbody = document.querySelector('#c_clients_table tbody');
+            const totEl = document.getElementById('c_clients_total');
+
+            const clientSelect = document.getElementById('c_clients_client');
+            const rosterBody = document.getElementById('c_clients_roster_body');
+            const rosterTotal = document.getElementById('c_clients_roster_total');
+
+            let lastRows = [];
+
+            setCurrentAndPreviousMonths(selMonth, 6);
+
+            function loadSummary() {
+                const m = readMonth(selMonth);
+                const kind = selKind.value;
+
+                showLoading();
+                google.script.run.withSuccessHandler(rows => {
+                    hideLoading();
+                    lastRows = rows || [];
+
+                    const byClient = new Map();
+                    let grand = 0;
+                    lastRows.forEach(r => {
+                        const client = r.client || '(Unspecified)';
+                        const h = Number(r.hours) || 0; grand += h;
+                        byClient.set(client, (byClient.get(client) || 0) + h);
+                    });
+
+                    tbody.innerHTML = '';
+                    Array.from(byClient.entries()).sort((a, b) => a[0].localeCompare(b[0])).forEach(([client, hours]) => {
+                        const tr = document.createElement('tr');
+                        const td1 = document.createElement('td'); td1.textContent = client;
+                        const td2 = document.createElement('td'); td2.textContent = hours.toFixed(2);
+                        tr.appendChild(td1); tr.appendChild(td2); tbody.appendChild(tr);
+                    });
+                    totEl.textContent = grand.toFixed(2);
+
+                    const clientList = Array.from(byClient.keys()).sort((a, b) => a.localeCompare(b));
+                    fillSelect(clientSelect, clientList, x => x, x => x);
+
+                    renderRoster();
+                }).withFailureHandler(e => { hideLoading(); handleError(e); })
+                    .listTeamMonthlyAllocations({ month: m.iso, kind });
+            }
+
+            function renderRoster() {
+                const selected = clientSelect.value;
+
+                const perPerson = new Map();
+                let sum = 0;
+                lastRows.forEach(r => {
+                    if ((r.client || '(Unspecified)') !== selected) return;
+                    const email = (r.email || '').toLowerCase();
+                    const name = r.name || email;
+                    const h = Number(r.hours) || 0;
+                    sum += h;
+                    const cur = perPerson.get(email) || { name, email, hours: 0 };
+                    cur.hours += h;
+                    perPerson.set(email, cur);
+                });
+
+                rosterBody.innerHTML = '';
+                Array.from(perPerson.values())
+                    .sort((a, b) => (a.name || a.email).localeCompare(b.name || b.email))
+                    .forEach(p => {
+                        const tr = document.createElement('tr');
+                        const td1 = document.createElement('td'); td1.textContent = p.name || p.email;
+                        const td2 = document.createElement('td'); td2.textContent = p.email;
+                        const td3 = document.createElement('td'); td3.textContent = p.hours.toFixed(2);
+                        tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+                        rosterBody.appendChild(tr);
+                    });
+
+                rosterTotal.textContent = sum.toFixed(2);
+            }
+
+            document.getElementById('c_clients_load').onclick = loadSummary;
+            selMonth.onchange = loadSummary;
+            selKind.onchange = loadSummary;
+            document.getElementById('c_clients_roster_load').onclick = renderRoster;
+            clientSelect.onchange = renderRoster;
+
+            loadSummary();
+        }
+
+        function makeTabs(tabIds, paneIds) {
+            const tabs = tabIds.map(id => document.getElementById(id));
+            const panes = paneIds.map(id => document.getElementById(id));
+            tabs.forEach((t, idx) => { t.addEventListener('click', () => { tabs.forEach(x => x.classList.remove('active')); panes.forEach(x => x.classList.remove('active')); t.classList.add('active'); panes[idx].classList.add('active'); }); });
+        }
+
+        function bootApp(user) {
+            if (document.getElementById('screen-team').classList.contains('visible')) bootSelfScreen('t');
+            if (document.getElementById('screen-manager').classList.contains('visible')) {
+                makeTabs(['m_tab_self', 'm_tab_members'], ['m_pane_self', 'm_pane_members']);
+                bootSelfScreen('m_s');
+                wireMembersPanel('m_month', 'm_member', 'm_kind', 'm_load', 'm_head', 'm_body', 'm_foot_label', 'm_tot', 'm_pct', 'm_free');
+            }
+            if (document.getElementById('screen-core').classList.contains('visible')) {
+                makeTabs(['c_tab_self', 'c_tab_members', 'c_tab_clients', 'c_tab_master'], ['c_pane_self', 'c_pane_members', 'c_pane_clients', 'c_pane_master']);
+                bootSelfScreen('c_s');
+                wireMembersPanel('c_month', 'c_member', 'c_kind', 'c_load', 'c_head', 'c_body', 'c_foot_label', 'c_tot', 'c_pct', 'c_free');
+                wireCoreClientsAdmin();
+                wireCoreClientsSummary();
+                wireCoreMasterAllocations();
+            }
+
+            ['t_month', 'm_s_month', 'c_s_month', 'm_month', 'c_month', 'c_clients_month',
+                't_w_month', 'm_s_w_month', 'c_s_w_month'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) setCurrentAndPreviousMonths(el, 6);
+                });
+        }
+
+        (function removeProjectedOptions() {
+            try {
+                document.querySelectorAll('option').forEach(o => {
+                    const v = String(o.value || '').trim().toLowerCase();
+                    const t = String(o.textContent || '').trim().toLowerCase();
+                    if (v === 'projected' || t === 'projected') {
+                        const sel = o.parentElement;
+                        o.remove();
+                        if (sel && sel.tagName === 'SELECT') {
+                            if (!sel.value && sel.options.length) sel.selectedIndex = 0;
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error('removeProjectedOptions failed', e);
+            }
+        })();
+
+        window.onload = function () {
+            document.querySelectorAll('input[name="mode"]').forEach(r => r.addEventListener('change', e => setMode(e.target.value)));
+            document.getElementById('acceptTerms').addEventListener('change', () => { if (FLOW_MODE === 'signup') document.getElementById('primaryBtn').disabled = !document.getElementById('acceptTerms').checked; });
+            document.getElementById('primaryBtn').addEventListener('click', () => {
+                document.getElementById('error').textContent = '';
+                showLoading();
+                const runner = google.script.run.withSuccessHandler(user => { hideLoading(); showSignedIn(user); })
+                    .withFailureHandler(e => { hideLoading(); handleError(e); });
+                if (FLOW_MODE === 'signup') runner.signUp(document.getElementById('acceptTerms').checked);
+                else runner.login();
+            });
+            document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.setItem(SKIP_AUTO_KEY, '1'); showSignedOut(); });
+            autoResume();
+        };
+    </script>
+</body>
+
+</html>

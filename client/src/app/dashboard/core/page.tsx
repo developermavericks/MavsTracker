@@ -1,0 +1,250 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Settings, FileText, Briefcase, Download, Plus, Search, ShieldCheck, User as UserIcon } from 'lucide-react';
+import StatsCard from '@/components/StatsCard';
+import { apiFetch } from '@/lib/api';
+
+export default function CorePortal() {
+  const [activeTab, setActiveTab] = useState<'admin' | 'master' | 'clients'>('admin');
+  const [month, setMonth] = useState('2024-05');
+  const [clients, setClients] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [report, setReport] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'clients') fetchClients();
+    if (activeTab === 'admin') fetchUsers();
+    if (activeTab === 'master') fetchReport();
+  }, [activeTab, month]);
+
+  const fetchClients = async () => {
+    setLoading(true);
+    try {
+      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients`);
+      const data = await response.json();
+      setClients(data);
+    } catch (err) {
+      console.error('Failed to fetch clients:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/all`);
+      const data = await response.json();
+      setUsers(data);
+    } catch (err) {
+      console.error('Failed to fetch users:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchReport = async () => {
+    setLoading(true);
+    try {
+      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/master?month=${month}`);
+      const data = await response.json();
+      setReport(data);
+    } catch (err) {
+      console.error('Failed to fetch report:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExport = async () => {
+    const { data: { session } } = await (await import('@/lib/supabase')).supabase.auth.getSession();
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/api/reports/export?month=${month}&token=${session?.access_token}`;
+    window.open(url);
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Core Portal</h1>
+          <p className="text-slate-500 mt-1">Administrative tools and master reporting for core staff.</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <select 
+            value={month} 
+            onChange={(e) => setMonth(e.target.value)}
+            className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+          >
+            <option value="2024-05">May 2024</option>
+            <option value="2024-04">April 2024</option>
+          </select>
+          <div className="bg-orange-100 text-orange-700 px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-bold border border-orange-200">
+            <ShieldCheck className="w-4 h-4" />
+            Admin Access
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="border-b border-slate-100 px-6 py-2 flex items-center bg-slate-50/50">
+          <button 
+            onClick={() => setActiveTab('admin')}
+            className={`px-6 py-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === 'admin' ? 'border-orange-600 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+            Admin Config
+          </button>
+          <button 
+            onClick={() => setActiveTab('master')}
+            className={`px-6 py-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === 'master' ? 'border-orange-600 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            Master Report
+          </button>
+          <button 
+            onClick={() => setActiveTab('clients')}
+            className={`px-6 py-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === 'clients' ? 'border-orange-600 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <Briefcase className="w-4 h-4" />
+            Clients (Admin)
+          </button>
+        </div>
+
+        <div className="p-8">
+          {activeTab === 'admin' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <StatsCard label="Active Users" value={users.length.toString()} icon={Settings} color="bg-orange-600" />
+                <StatsCard label="System Health" value="Optimal" icon={ShieldCheck} color="bg-emerald-600" />
+              </div>
+              
+              <div className="overflow-x-auto border border-slate-100 rounded-2xl">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">User</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Email</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Role</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {loading ? (
+                       <tr><td colSpan={3} className="text-center py-10"><div className="animate-spin inline-block w-6 h-6 border-b-2 border-orange-600 rounded-full"></div></td></tr>
+                    ) : users.map(u => (
+                      <tr key={u.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-6 py-4 flex items-center gap-3">
+                          {u.picture ? <img src={u.picture} className="w-8 h-8 rounded-full" /> : <UserIcon className="w-8 h-8 p-1 bg-slate-100 rounded-full text-slate-400" />}
+                          <span className="text-sm font-bold text-slate-900">{u.name || 'Unknown'}</span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-slate-600">{u.email}</td>
+                        <td className="px-6 py-4 text-sm text-right">
+                          <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-1 rounded-md uppercase">{u.role}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'master' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-slate-900">Monthly Master Allocation Pivot ({month})</h3>
+                <button 
+                  onClick={handleExport}
+                  className="bg-blue-600 text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-all flex items-center gap-2 shadow-sm"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Excel
+                </button>
+              </div>
+              
+              <div className="overflow-x-auto border border-slate-100 rounded-2xl">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase sticky left-0 bg-slate-50 z-10">Member</th>
+                      {report?.clients.map((c: string) => (
+                        <th key={c} className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">{c}</th>
+                      ))}
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right font-black bg-slate-100">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {loading ? (
+                       <tr><td colSpan={10} className="text-center py-10"><div className="animate-spin inline-block w-6 h-6 border-b-2 border-orange-600 rounded-full"></div></td></tr>
+                    ) : report?.rows.map((row: any) => {
+                      const total = Object.values(row.allocations).reduce((acc: number, curr: any) => acc + (curr as number), 0);
+                      return (
+                        <tr key={row.email} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-6 py-4 text-sm font-bold text-slate-900 sticky left-0 bg-white group-hover:bg-slate-50 z-10">{row.name}</td>
+                          {report.clients.map((c: string) => (
+                            <td key={c} className="px-6 py-4 text-sm text-slate-600 font-mono text-right">
+                              {(row.allocations[c] || 0).toFixed(2)}
+                            </td>
+                          ))}
+                          <td className="px-6 py-4 text-sm font-black text-slate-900 font-mono text-right bg-slate-50">
+                            {total.toFixed(2)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'clients' && (
+            <div className="space-y-6">
+              <div className="flex gap-4">
+                <div className="relative flex-1">
+                  <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                  <input 
+                    type="text" 
+                    placeholder="Search clients..."
+                    className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all shadow-sm"
+                  />
+                </div>
+                <button className="bg-orange-600 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:bg-orange-700 transition-all flex items-center gap-2 shadow-lg shadow-orange-100">
+                  <Plus className="w-4 h-4" />
+                  New Client
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {loading ? (
+                  <div className="col-span-full text-center py-10"><div className="animate-spin inline-block w-6 h-6 border-b-2 border-orange-600 rounded-full"></div></div>
+                ) : clients.length === 0 ? (
+                  <p className="col-span-full text-center text-slate-400 py-10 italic">No clients found.</p>
+                ) : clients.map(client => (
+                  <div key={client.id} className="p-6 bg-white border border-slate-100 rounded-2xl flex items-center justify-between hover:border-orange-200 transition-all shadow-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 font-bold">
+                        {client.name[0]}
+                      </div>
+                      <span className="font-bold text-slate-900">{client.name}</span>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase ${client.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                      {client.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
