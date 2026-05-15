@@ -128,8 +128,7 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
             hours: event.hours,
             notes: event.notes || '', 
             start_date: event.start.split('T')[0],
-            end_date: event.end.split('T')[0],
-            source: 'calendar'
+            end_date: event.end.split('T')[0]
           }]);
         if (error) throw error;
       }
