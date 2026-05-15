@@ -87,7 +87,7 @@ export const getClientProjections = async (req: Request, res: Response) => {
 
     // 2. Get actual hours summarized by client and month
     const { data: actuals, error: actualsError } = await supabase
-      .from('weekly_allocations')
+      .from('allocations_weekly')
       .select('client_id, month, hours');
 
     if (actualsError) throw actualsError;
