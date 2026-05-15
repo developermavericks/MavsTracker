@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Target, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Target, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 
 export default function ClientTargetsCard({ month, actuals, title }: { month: string, actuals: any[], title?: string }) {
@@ -24,13 +24,6 @@ export default function ClientTargetsCard({ month, actuals, title }: { month: st
       setLoading(false);
     }
   };
-
-  // Group actuals by client name
-  const actualHoursMap: Record<string, number> = {};
-  actuals.forEach(a => {
-    const clientName = a.clients?.name || 'Unknown';
-    actualHoursMap[clientName] = (actualHoursMap[clientName] || 0) + (Number(a.hours) || 0);
-  });
 
   if (loading) return (
     <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-center">
@@ -56,41 +49,40 @@ export default function ClientTargetsCard({ month, actuals, title }: { month: st
       
       <div className="p-8 space-y-6">
         {projections.map(p => {
-          const clientName = p.clients?.name || 'Unknown';
-          const target = Number(p.target_hours) || 0;
-          const actual = actualHoursMap[clientName] || 0;
-          const percentage = Math.min(100, (actual / target) * 100) || 0;
-          const isComplete = actual >= target;
-
+          const percentage = Math.min(100, (p.actual_hours / p.target_hours) * 100);
+          
           return (
-            <div key={p.id} className="space-y-3">
-              <div className="flex items-center justify-between">
+            <div key={p.id} className="bg-slate-50 border border-slate-100 rounded-2xl p-5 group hover:bg-slate-100/50 transition-all duration-300">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-black text-slate-900">{clientName}</span>
-                  {isComplete ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  ) : (
-                    <AlertCircle className="w-4 h-4 text-orange-400" />
-                  )}
+                  <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 font-black text-lg">
+                    {p.clients?.name?.[0] || 'C'}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 group-hover:text-orange-600 transition-colors">{p.clients?.name || 'Unknown Client'}</h4>
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <Clock className="w-3 h-3 text-orange-400" />
+                      {p.actual_hours.toFixed(1)}h / {p.target_hours}h
+                    </div>
+                  </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-mono font-bold text-slate-400">{actual.toFixed(1)}h / </span>
-                  <span className="text-sm font-mono font-black text-slate-900">{target.toFixed(1)}h</span>
+                  <span className="text-lg font-black text-slate-900">{percentage.toFixed(0)}%</span>
                 </div>
               </div>
-              
-              <div className="h-3 bg-slate-100 rounded-full overflow-hidden flex">
+
+              {/* Progress Bar */}
+              <div className="h-2 bg-slate-200 rounded-full overflow-hidden mb-3">
                 <div 
-                  className={`h-full transition-all duration-1000 ease-out rounded-full ${isComplete ? 'bg-emerald-500' : 'bg-orange-500'}`}
+                  className={`h-full transition-all duration-1000 ease-out rounded-full ${percentage >= 100 ? 'bg-emerald-500' : 'bg-orange-600'}`}
                   style={{ width: `${percentage}%` }}
                 />
               </div>
               
-              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-tight">
-                <span className={isComplete ? 'text-emerald-600' : 'text-slate-400'}>
-                  {isComplete ? 'Target Achieved' : `${(target - actual).toFixed(1)}h remaining`}
+              <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.1em]">
+                <span className={percentage >= 100 ? "text-emerald-600" : "text-slate-400"}>
+                  {percentage >= 100 ? "Target Achieved" : `${(p.target_hours - p.actual_hours).toFixed(1)}h remaining`}
                 </span>
-                <span className="text-slate-900">{percentage.toFixed(0)}%</span>
               </div>
             </div>
           );
