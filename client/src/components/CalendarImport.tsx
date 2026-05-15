@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, Download, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { Calendar, Download, Check, AlertCircle, Loader2, Plus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { apiFetch } from '@/lib/api';
 
@@ -24,6 +24,8 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
   const [hasFetched, setHasFetched] = useState(false);
 
   const [clients, setClients] = useState<{id: string, name: string}[]>([]);
+  const [showNewClientInput, setShowNewClientInput] = useState<string | null>(null);
+  const [newClientName, setNewClientName] = useState('');
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
@@ -37,6 +39,28 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
       setClients(data);
     } catch (err) {
       console.error('Failed to fetch clients:', err);
+    }
+  };
+
+  const handleCreateClient = async (eventTitle: string) => {
+    if (!newClientName.trim()) return;
+    setLoading(true);
+    try {
+      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients`, {
+        method: 'POST',
+        body: JSON.stringify({ name: newClientName })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      
+      setClients(prev => [...prev, data]);
+      updateEventDetails(eventTitle, 'client_id', data.id);
+      setShowNewClientInput(null);
+      setNewClientName('');
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -217,14 +241,40 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Client</label>
                       <select 
                         value={event.client_id}
-                        onChange={(e) => updateEventDetails(event.title, 'client_id', e.target.value)}
+                        onChange={(e) => {
+                          if (e.target.value === 'ADD_NEW') {
+                            setShowNewClientInput(event.title);
+                          } else {
+                            updateEventDetails(event.title, 'client_id', e.target.value);
+                            setShowNewClientInput(null);
+                          }
+                        }}
                         className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
                       >
                         <option value="">Select Client</option>
                         {clients.map(c => (
                           <option key={c.id} value={c.id}>{c.name}</option>
                         ))}
+                        <option value="ADD_NEW">+ Add New Client...</option>
                       </select>
+                      {showNewClientInput === event.title && (
+                        <div className="flex gap-2 mt-2">
+                          <input 
+                            type="text"
+                            placeholder="New client name"
+                            value={newClientName}
+                            onChange={(e) => setNewClientName(e.target.value)}
+                            className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-[10px] focus:ring-2 focus:ring-blue-500 outline-none"
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => handleCreateClient(event.title)}
+                            className="bg-slate-100 p-1.5 rounded-lg hover:bg-slate-200 transition-all"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Category</label>

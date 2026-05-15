@@ -87,6 +87,28 @@ export default function TeamPortal() {
     }
   };
 
+  const handleDownload = async () => {
+    if (!user) return;
+    try {
+      const response = await apiFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/allocations/my/export?userId=${user.id}&month=${month}&kind=${activeTab}`
+      );
+      
+      if (!response.ok) throw new Error('Download failed');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Allocations_${month}_${activeTab}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -173,7 +195,10 @@ export default function TeamPortal() {
                 Summary
               </button>
             </div>
-            <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
+            <button 
+              onClick={handleDownload}
+              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
+            >
               <Download className="w-5 h-5" />
             </button>
           </div>

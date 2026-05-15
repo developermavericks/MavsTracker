@@ -37,3 +37,40 @@ export const exportMasterReportToExcel = async (month: string) => {
 
   return workbook;
 };
+
+export const exportUserAllocationsToExcel = async (userId: string, month: string, kind: 'projected' | 'weekly', data: any[]) => {
+  const workbook = new ExcelJS.Workbook();
+  const sheetName = kind === 'projected' ? 'Monthly Projected' : 'Weekly Actuals';
+  const worksheet = workbook.addWorksheet(sheetName);
+
+  // Set Columns
+  const columns = [
+    { header: 'Period', key: 'period', width: 25 },
+    { header: 'Client', key: 'client', width: 20 },
+    { header: 'Category', key: 'category', width: 15 },
+    { header: 'Hours', key: 'hours', width: 10 },
+    { header: 'Notes', key: 'notes', width: 40 }
+  ];
+  worksheet.columns = columns;
+
+  // Add Data
+  data.forEach(item => {
+    worksheet.addRow({
+      period: kind === 'weekly' ? `${item.start_date} - ${item.end_date}` : item.month,
+      client: item.clients?.name || 'N/A',
+      category: item.category,
+      hours: item.hours,
+      notes: item.notes
+    });
+  });
+
+  // Formatting
+  worksheet.getRow(1).font = { bold: true };
+  worksheet.getRow(1).fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFE0E0E0' }
+  };
+
+  return workbook;
+};

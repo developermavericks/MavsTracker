@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { calculateWeekCode } from '../utils/dateUtils';
+import { exportUserAllocationsToExcel } from '../services/excelService';
 
 export const getMyAllocations = async (req: Request, res: Response) => {
   const { userId, month, kind } = req.query;
@@ -174,6 +175,50 @@ export const updateAllocation = async (req: Request, res: Response) => {
 
     if (error) throw error;
     res.json(data[0]);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const exportMyAllocations = async (req: Request, res: Response) => {
+  const { userId, month, kind } = req.query;
+
+  if (!userId || !month) {
+    return res.status(400).json({ error: 'Missing userId or month' });
+  }
+
+  try {
+    let query;
+    if (kind === 'projected') {
+      query = supabase
+        .from('allocations_monthly')
+        .select('*, clients(name)')
+        .eq('user_id', userId)
+        .eq('month', month);
+    } else {
+      query = supabase
+        .from('allocations_weekly')
+        .select('*, clients(name)')
+        .eq('user_id', userId)
+        .eq('month', month);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    const workbook = await exportUserAllocationsToExcel(userId as string, month as string, kind as any, data || []);
+    
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=My_Allocations_${month}_${kind}.xlsx`
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
