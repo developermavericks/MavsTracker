@@ -15,13 +15,13 @@ export const getMyAllocations = async (req: Request, res: Response) => {
     if (kind === 'projected') {
       query = supabase
         .from('allocations_monthly')
-        .select('*, clients(name)')
+        .select('id, user_id, month, client_id, category, hours, notes, clients(name)')
         .eq('user_id', userId)
         .eq('month', month);
     } else {
       query = supabase
         .from('allocations_weekly')
-        .select('*, clients(name)')
+        .select('id, user_id, month, client_id, category, hours, notes, start_date, end_date, week_code, clients(name)')
         .eq('user_id', userId)
         .eq('month', month);
     }
@@ -100,7 +100,7 @@ export const addWeeklyAllocation = async (req: Request, res: Response) => {
     // 1. Fetch existing overlaps
     const { data: existing, error: checkError } = await supabase
       .from('allocations_weekly')
-      .select('*, clients(name)')
+      .select('id, user_id, month, client_id, category, hours, notes, start_date, end_date, week_code, clients(name)')
       .eq('user_id', user_id)
       .filter('start_date', 'lte', end_date)
       .filter('end_date', 'gte', start_date);
@@ -192,13 +192,13 @@ export const exportMyAllocations = async (req: Request, res: Response) => {
     if (kind === 'projected') {
       query = supabase
         .from('allocations_monthly')
-        .select('*, clients(name)')
+        .select('id, user_id, month, client_id, category, hours, notes, clients(name)')
         .eq('user_id', userId)
         .eq('month', month);
     } else {
       query = supabase
         .from('allocations_weekly')
-        .select('*, clients(name)')
+        .select('id, user_id, month, client_id, category, hours, notes, start_date, end_date, week_code, clients(name)')
         .eq('user_id', userId)
         .eq('month', month);
     }

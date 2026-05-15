@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { supabase } from '../config/supabase';
 import { getMasterReportData } from '../services/reportService';
 import { exportMasterReportToExcel } from '../services/excelService';
 
@@ -80,7 +81,7 @@ export const getMemberReport = async (req: Request, res: Response) => {
     const { data: allocations, error } = await supabase
       .from('allocations_weekly')
       .select(`
-        *,
+        id, user_id, month, client_id, category, hours, notes, start_date, end_date, week_code,
         clients(name),
         users!inner(email)
       `)
