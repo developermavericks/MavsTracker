@@ -11,6 +11,8 @@ interface CalendarEvent {
   count: number;
   start: string;
   end: string;
+  client_id?: string;
+  category?: string;
 }
 
 export default function CalendarImport({ userId, month, onSuccess }: { userId: string, month: string, onSuccess: () => void }) {
@@ -71,7 +73,19 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
       const data = await response.json();
       
       if (data.error) throw new Error(data.error);
-      setEvents(data);
+
+      // Find the 'Internal' client ID for default
+      const internalClient = clients.find(c => c.name.toLowerCase() === 'internal');
+      const defaultClientId = internalClient?.id || (clients.length > 0 ? clients[0].id : '');
+
+      // Initialize events with default client and category
+      const initializedEvents = data.map((ev: any) => ({
+        ...ev,
+        client_id: defaultClientId,
+        category: 'Meeting'
+      }));
+
+      setEvents(initializedEvents);
       setHasFetched(true);
     } catch (err: any) {
       alert(err.message);
@@ -85,17 +99,7 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
     try {
       const selected = events.filter(e => selectedEvents.has(e.title));
       
-      // Find the 'Internal' client ID
-      let internalClient = clients.find(c => c.name.toLowerCase() === 'internal');
-      
-      // Fallback: if no 'Internal' exists, use the first client available
-      if (!internalClient && clients.length > 0) {
-        internalClient = clients[0];
-      }
-
-      if (!internalClient) {
-        throw new Error("No clients found in database. Please add a client first.");
-      }
+      if (selected.length === 0) return;
 
       for (const event of selected) {
         const { error } = await supabase
@@ -103,8 +107,8 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
           .insert([{
             user_id: userId,
             month,
-            client_id: internalClient.id, // Using real UUID now
-            category: 'Meeting',
+            client_id: event.client_id, 
+            category: event.category,
             hours: event.hours,
             notes: `Imported from Calendar: ${event.title}`,
             start_date: event.start.split('T')[0],
@@ -131,6 +135,12 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
     setSelectedEvents(next);
   };
 
+  const updateEventDetails = (title: string, field: string, value: string) => {
+    setEvents(prev => prev.map(ev => 
+      ev.title === title ? { ...ev, [field]: value } : ev
+    ));
+  };
+
   return (
     <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
       <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-blue-50/30">
@@ -140,7 +150,7 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
           </div>
           <div>
             <h3 className="text-lg font-bold text-slate-900">Calendar Import</h3>
-            <p className="text-sm text-slate-500">Automatically pull meetings from your Google Calendar.</p>
+            <p className="text-sm text-slate-500">Assign clients and categories to your meetings before saving.</p>
           </div>
         </div>
         <button 
@@ -174,25 +184,53 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
               <div 
                 key={event.title}
                 onClick={() => toggleSelect(event.title)}
-                className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                className={`p-6 rounded-3xl border transition-all cursor-pointer flex flex-col gap-4 ${
                   selectedEvents.has(event.title) 
-                    ? 'border-blue-600 bg-blue-50' 
+                    ? 'border-blue-600 bg-blue-50/50' 
                     : 'border-slate-100 hover:border-slate-200'
                 }`}
               >
-                <div className="flex items-center gap-4">
-                  <div className={`p-2 rounded-lg ${selectedEvents.has(event.title) ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
-                    <Check className="w-4 h-4" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-lg ${selectedEvents.has(event.title) ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                      <Check className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900">{event.title}</h4>
+                      <p className="text-xs text-slate-500">{event.count} meetings • {event.hours.toFixed(2)}h total</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-slate-900">{event.title}</h4>
-                    <p className="text-xs text-slate-500">{event.count} meetings • {event.hours.toFixed(2)}h total</p>
+                  <div className="text-right">
+                    <span className="text-sm font-mono font-bold text-slate-900 bg-white px-3 py-1 rounded-lg border border-slate-100">{event.hours.toFixed(2)}h</span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Duration</span>
-                  <span className="text-sm font-mono font-bold text-slate-900">{event.hours.toFixed(2)}h</span>
-                </div>
+
+                {selectedEvents.has(event.title) && (
+                  <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200" onClick={(e) => e.stopPropagation()}>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Client</label>
+                      <select 
+                        value={event.client_id}
+                        onChange={(e) => updateEventDetails(event.title, 'client_id', e.target.value)}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                      >
+                        {clients.map(c => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Category</label>
+                      <input 
+                        type="text"
+                        value={event.category}
+                        onChange={(e) => updateEventDetails(event.title, 'category', e.target.value)}
+                        placeholder="e.g. Meeting"
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
             
