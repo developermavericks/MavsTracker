@@ -84,8 +84,8 @@ export default function ManagerPortal() {
 
   const totalMemberHours = memberAllocations.reduce((acc, curr) => acc + (curr.hours || 0), 0);
 
-  const activeMembers = members.filter(m => activeEmails.includes(m.email.toLowerCase()));
-  const inactiveMembers = members.filter(m => !activeEmails.includes(m.email.toLowerCase()));
+  const activeMembers = members.filter(m => activeEmails.includes(m.email.toLowerCase()) || !m.picture);
+  const inactiveMembers = members.filter(m => !activeEmails.includes(m.email.toLowerCase()) && m.picture);
 
   return (
     <div className="space-y-8">
