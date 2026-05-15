@@ -23,8 +23,6 @@ export default function AddEntryModal({
 }: AddEntryModalProps) {
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState<{ id: string, name: string }[]>([]);
-  const [showNewClientInput, setShowNewClientInput] = useState(false);
-  const [newClientName, setNewClientName] = useState('');
   const [formData, setFormData] = useState({
     client_id: '',
     category: '',
@@ -69,27 +67,6 @@ export default function AddEntryModal({
     }
   };
 
-  const handleCreateClient = async () => {
-    if (!newClientName.trim()) return;
-    setLoading(true);
-    try {
-      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients`, {
-        method: 'POST',
-        body: JSON.stringify({ name: newClientName })
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-      
-      setClients([...clients, data]);
-      setFormData({ ...formData, client_id: data.id });
-      setShowNewClientInput(false);
-      setNewClientName('');
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -99,33 +76,6 @@ export default function AddEntryModal({
 
     let currentClientId = formData.client_id;
 
-    // Auto-create client if user typed a new name
-    if (showNewClientInput && newClientName.trim()) {
-      try {
-        const clientRes = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients`, {
-          method: 'POST',
-          body: JSON.stringify({ name: newClientName })
-        });
-        
-        if (!clientRes.ok) {
-          const errorText = await clientRes.text();
-          try {
-            const errorJson = JSON.parse(errorText);
-            throw new Error(errorJson.error || 'Failed to create client');
-          } catch {
-            throw new Error(`Server Error: ${clientRes.status} during client creation`);
-          }
-        }
-        
-        const clientData = await clientRes.json();
-        currentClientId = clientData.id;
-        setClients(prev => [...prev, clientData]);
-      } catch (err: any) {
-        alert(`Client Creation Failed: ${err.message}`);
-        setLoading(false);
-        return;
-      }
-    }
 
     if (!currentClientId) {
       alert("Please select or enter a client name");
@@ -175,8 +125,6 @@ export default function AddEntryModal({
 
       onSuccess();
       onClose();
-      setShowNewClientInput(false);
-      setNewClientName('');
     } catch (err: any) {
       alert(`Save Failed: ${err.message}`);
     } finally {
@@ -201,15 +149,9 @@ export default function AddEntryModal({
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700">Client</label>
               <select 
-                value={formData.client_id || (showNewClientInput ? 'ADD_NEW' : '')}
+                value={formData.client_id}
                 onChange={(e) => {
-                  if (e.target.value === 'ADD_NEW') {
-                    setShowNewClientInput(true);
-                    setFormData({ ...formData, client_id: '' });
-                  } else {
-                    setFormData({ ...formData, client_id: e.target.value });
-                    setShowNewClientInput(false);
-                  }
+                  setFormData({ ...formData, client_id: e.target.value });
                 }}
                 className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
               >
@@ -217,33 +159,14 @@ export default function AddEntryModal({
                 {clients.map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
-                <option value="ADD_NEW">+ Add New Client...</option>
               </select>
-              {showNewClientInput && (
-                <div className="flex gap-2 mt-2">
-                  <input 
-                    type="text"
-                    placeholder="New client name"
-                    value={newClientName}
-                    onChange={(e) => setNewClientName(e.target.value)}
-                    className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                  />
-                  <button 
-                    type="button"
-                    onClick={handleCreateClient}
-                    className="bg-slate-100 p-2 rounded-xl hover:bg-slate-200 transition-all"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700">Category</label>
               <input 
                 type="text" 
                 required
-                placeholder="Billable / Meeting"
+                placeholder="Meeting / Internal / Billable"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"

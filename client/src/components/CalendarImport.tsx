@@ -25,8 +25,6 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
   const [hasFetched, setHasFetched] = useState(false);
 
   const [clients, setClients] = useState<{id: string, name: string}[]>([]);
-  const [showNewClientInput, setShowNewClientInput] = useState<string | null>(null);
-  const [newClientName, setNewClientName] = useState('');
   
   const [startDate, setStartDate] = useState(`${month}-01`);
   const [endDate, setEndDate] = useState(`${month}-31`);
@@ -51,27 +49,6 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
     }
   };
 
-  const handleCreateClient = async (eventTitle: string) => {
-    if (!newClientName.trim()) return;
-    setLoading(true);
-    try {
-      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients`, {
-        method: 'POST',
-        body: JSON.stringify({ name: newClientName })
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-      
-      setClients(prev => [...prev, data]);
-      updateEventDetails(eventTitle, 'client_id', data.id);
-      setShowNewClientInput(null);
-      setNewClientName('');
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLoginRefresh = async () => {
     await supabase.auth.signInWithOAuth({
@@ -115,7 +92,7 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
       const initializedEvents = data.map((ev: any) => ({
         ...ev,
         client_id: defaultClientId,
-        category: 'Meeting',
+        category: '', // Empty default
         notes: '' 
       }));
 
@@ -263,25 +240,17 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
                       <select 
                         value={event.client_id}
                         onChange={(e) => {
-                          if (e.target.value === 'ADD_NEW') setShowNewClientInput(event.title);
-                          else { updateEventDetails(event.title, 'client_id', e.target.value); setShowNewClientInput(null); }
+                          updateEventDetails(event.title, 'client_id', e.target.value);
                         }}
                         className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
                       >
                         <option value="">Select Client</option>
                         {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                        <option value="ADD_NEW">+ Add New Client...</option>
                       </select>
-                      {showNewClientInput === event.title && (
-                        <div className="flex gap-2 mt-2">
-                          <input type="text" placeholder="New name" value={newClientName} onChange={(e) => setNewClientName(e.target.value)} className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-[10px] outline-none" />
-                          <button type="button" onClick={() => handleCreateClient(event.title)} className="bg-slate-100 p-1.5 rounded-lg hover:bg-slate-200"><Plus className="w-3 h-3" /></button>
-                        </div>
-                      )}
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Category</label>
-                      <input type="text" value={event.category} onChange={(e) => updateEventDetails(event.title, 'category', e.target.value)} placeholder="Category" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none" />
+                      <input type="text" value={event.category} onChange={(e) => updateEventDetails(event.title, 'category', e.target.value)} placeholder="Meeting / Internal / Billable" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none" />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Notes (Optional)</label>
