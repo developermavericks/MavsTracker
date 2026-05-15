@@ -148,14 +148,26 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
               <h3 className="text-lg font-bold text-slate-900 tracking-tight">View Actual Hours</h3>
               <p className="text-xs text-slate-500 font-medium">Select a month to see performance across all clients.</p>
             </div>
-            <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
-               <Calendar className="w-4 h-4 text-slate-400 ml-2" />
-               <input 
-                 type="month"
-                 value={selectedMonth}
-                 onChange={(e) => setSelectedMonth(e.target.value)}
-                 className="bg-transparent border-none text-sm font-bold text-slate-900 focus:ring-0 outline-none pr-4"
-               />
+            <div className="flex bg-slate-50 border border-slate-100 rounded-2xl overflow-hidden">
+               <select 
+                 value={selectedMonth.split('-')[1]} 
+                 onChange={(e) => setSelectedMonth(`${selectedMonth.split('-')[0]}-${e.target.value}`)}
+                 className="pl-4 pr-2 py-2.5 text-sm font-bold bg-transparent border-none focus:ring-0 outline-none cursor-pointer"
+               >
+                 {['01','02','03','04','05','06','07','08','09','10','11','12'].map(m => (
+                   <option key={m} value={m}>{new Date(2024, parseInt(m)-1).toLocaleString('en-US', { month: 'long' })}</option>
+                 ))}
+               </select>
+               <div className="w-[1px] bg-slate-200 my-2" />
+               <select 
+                 value={selectedMonth.split('-')[0]} 
+                 onChange={(e) => setSelectedMonth(`${e.target.value}-${selectedMonth.split('-')[1]}`)}
+                 className="pl-2 pr-4 py-2.5 text-sm font-bold bg-transparent border-none focus:ring-0 outline-none cursor-pointer text-orange-600"
+               >
+                 {[2024, 2025, 2026, 2027].map(y => (
+                   <option key={y} value={y}>{y}</option>
+                 ))}
+               </select>
             </div>
           </div>
 
@@ -245,12 +257,27 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
                 </div>
                 <div className="space-y-3">
                   <label className="text-[10px] font-bold text-orange-100 uppercase tracking-[0.2em] ml-1">Target Month</label>
-                  <input 
-                    type="month"
-                    value={projMonth}
-                    onChange={(e) => setProjMonth(e.target.value)}
-                    className="w-full bg-white/10 border border-white/20 rounded-2xl px-5 py-3 text-sm focus:ring-4 focus:ring-white/10 outline-none transition-all font-bold backdrop-blur-md"
-                  />
+                  <div className="flex bg-white/10 border border-white/20 rounded-2xl overflow-hidden backdrop-blur-md">
+                    <select 
+                      value={projMonth.split('-')[1]} 
+                      onChange={(e) => setProjMonth(`${projMonth.split('-')[0]}-${e.target.value}`)}
+                      className="pl-5 pr-2 py-3.5 text-sm font-bold bg-transparent border-none focus:ring-0 outline-none cursor-pointer text-white"
+                    >
+                      {['01','02','03','04','05','06','07','08','09','10','11','12'].map(m => (
+                        <option key={m} value={m} className="text-slate-900">{new Date(2024, parseInt(m)-1).toLocaleString('en-US', { month: 'long' })}</option>
+                      ))}
+                    </select>
+                    <div className="w-[1px] bg-white/20 my-2" />
+                    <select 
+                      value={projMonth.split('-')[0]} 
+                      onChange={(e) => setProjMonth(`${e.target.value}-${projMonth.split('-')[1]}`)}
+                      className="pl-2 pr-5 py-3.5 text-sm font-bold bg-transparent border-none focus:ring-0 outline-none cursor-pointer text-orange-200"
+                    >
+                      {[2024, 2025, 2026, 2027].map(y => (
+                        <option key={y} value={y} className="text-slate-900">{y}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div className="space-y-3">
                   <label className="text-[10px] font-bold text-orange-100 uppercase tracking-[0.2em] ml-1">Estimated Hours</label>

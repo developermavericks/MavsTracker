@@ -118,15 +118,27 @@ export default function TeamPortal() {
           <p className="text-slate-500 mt-1 font-medium">Manage your time allocations and actuals.</p>
         </div>
         <div className="flex gap-3">
-          <select 
-            value={month} 
-            onChange={(e) => setMonth(e.target.value)}
-            className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-          >
-            <option value="2026-05">May 2026</option>
-            <option value="2026-04">April 2026</option>
-            <option value="2026-03">March 2026</option>
-          </select>
+          <div className="flex bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <select 
+              value={month.split('-')[1]} 
+              onChange={(e) => setMonth(`${month.split('-')[0]}-${e.target.value}`)}
+              className="pl-4 pr-2 py-2 text-sm font-bold bg-transparent border-none focus:ring-0 outline-none cursor-pointer"
+            >
+              {['01','02','03','04','05','06','07','08','09','10','11','12'].map(m => (
+                <option key={m} value={m}>{new Date(2024, parseInt(m)-1).toLocaleString('en-US', { month: 'long' })}</option>
+              ))}
+            </select>
+            <div className="w-[1px] bg-slate-100 my-2" />
+            <select 
+              value={month.split('-')[0]} 
+              onChange={(e) => setMonth(`${e.target.value}-${month.split('-')[1]}`)}
+              className="pl-2 pr-4 py-2 text-sm font-bold bg-transparent border-none focus:ring-0 outline-none cursor-pointer text-blue-600"
+            >
+              {[2024, 2025, 2026, 2027].map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
           <button 
             onClick={() => setIsModalOpen(true)}
             className="bg-blue-600 text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-all flex items-center gap-2 shadow-sm shadow-blue-200"

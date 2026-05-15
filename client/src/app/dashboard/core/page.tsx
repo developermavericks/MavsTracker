@@ -75,14 +75,27 @@ export default function CorePortal() {
           <p className="text-slate-500 mt-1">Administrative tools and master reporting for core staff.</p>
         </div>
         <div className="flex items-center gap-4">
-          <select 
-            value={month} 
-            onChange={(e) => setMonth(e.target.value)}
-            className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-orange-500 outline-none transition-all"
-          >
-            <option value="2024-05">May 2024</option>
-            <option value="2024-04">April 2024</option>
-          </select>
+          <div className="flex bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <select 
+              value={month.split('-')[1]} 
+              onChange={(e) => setMonth(`${month.split('-')[0]}-${e.target.value}`)}
+              className="px-4 py-2 text-sm font-bold bg-transparent border-none focus:ring-0 outline-none cursor-pointer"
+            >
+              {['01','02','03','04','05','06','07','08','09','10','11','12'].map(m => (
+                <option key={m} value={m}>{new Date(2024, parseInt(m)-1).toLocaleString('en-US', { month: 'long' })}</option>
+              ))}
+            </select>
+            <div className="w-[1px] bg-slate-100 my-2" />
+            <select 
+              value={month.split('-')[0]} 
+              onChange={(e) => setMonth(`${e.target.value}-${month.split('-')[1]}`)}
+              className="px-4 py-2 text-sm font-bold bg-transparent border-none focus:ring-0 outline-none cursor-pointer text-orange-600"
+            >
+              {[2024, 2025, 2026, 2027].map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </div>
           <div className="bg-orange-100 text-orange-700 px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-bold border border-orange-200">
             <ShieldCheck className="w-4 h-4" />
             Admin Access
