@@ -83,3 +83,37 @@ export const getClientProjections = async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const deleteClientProjection = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const { error } = await supabase
+      .from('client_projections')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const updateClientProjection = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { target_hours } = req.body;
+
+  try {
+    const { data, error } = await supabase
+      .from('client_projections')
+      .update({ target_hours })
+      .eq('id', id)
+      .select();
+
+    if (error) throw error;
+    res.json(data[0]);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};

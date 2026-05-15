@@ -209,7 +209,7 @@ export default function CorePortal() {
           )}
 
           {activeTab === 'clients' && (
-            <ClientAdmin month={month} />
+            <ClientAdmin initialMonth={month} />
           )}
         </div>
       </div>
