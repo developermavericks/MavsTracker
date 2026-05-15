@@ -92,7 +92,7 @@ export default function Sidebar() {
 
   const filteredItems = menuItems.filter(item => {
     if (item.name === 'Team Portal') return true;
-    if (item.name === 'Manager Portal' && userRole === 'manager') return true;
+    if (item.name === 'Manager Portal' && (userRole === 'manager' || userRole === 'core')) return true;
     if (item.name === 'Core Portal' && userRole === 'core') return true;
     return false;
   });
