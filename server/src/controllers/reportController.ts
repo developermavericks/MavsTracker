@@ -109,14 +109,17 @@ export const getMemberReport = async (req: Request, res: Response) => {
 export const getActiveEmails = async (req: Request, res: Response) => {
   const { month } = req.query;
   try {
-    // Get all user_ids who have logged time this month
-    const { data: logs, error } = await supabase
-      .from('allocations_weekly')
-      .select('user_id')
-      .eq('month', month);
+    // Get all user_ids who have logged time this month (both weekly and monthly)
+    const [weeklyLogs, monthlyLogs] = await Promise.all([
+      supabase.from('allocations_weekly').select('user_id').eq('month', month),
+      supabase.from('allocations_monthly').select('user_id').eq('month', month)
+    ]);
 
-    if (error) throw error;
-    const userIds = [...new Set((logs || []).map(l => l.user_id))];
+    if (weeklyLogs.error) throw weeklyLogs.error;
+    if (monthlyLogs.error) throw monthlyLogs.error;
+
+    const allLogs = [...(weeklyLogs.data || []), ...(monthlyLogs.data || [])];
+    const userIds = [...new Set(allLogs.map(l => l.user_id))];
 
     if (userIds.length === 0) return res.json([]);
 
