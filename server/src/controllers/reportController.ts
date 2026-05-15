@@ -76,10 +76,15 @@ export const getMemberReport = async (req: Request, res: Response) => {
   if (!email || !month) return res.status(400).json({ error: 'Missing email or month' });
 
   try {
+    // Join with users to filter by email
     const { data: allocations, error } = await supabase
       .from('allocations_weekly')
-      .select('*, clients(name)')
-      .eq('email', email)
+      .select(`
+        *,
+        clients(name),
+        users!inner(email)
+      `)
+      .eq('users.email', email)
       .eq('month', month);
 
     if (error) throw error;
@@ -94,11 +99,13 @@ export const getActiveEmails = async (req: Request, res: Response) => {
   try {
     const { data, error } = await supabase
       .from('allocations_weekly')
-      .select('email')
+      .select(`
+        users!inner(email)
+      `)
       .eq('month', month);
 
     if (error) throw error;
-    const emails = [...new Set((data || []).map(d => d.email))];
+    const emails = [...new Set((data || []).map((d: any) => d.users.email))];
     res.json(emails);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
