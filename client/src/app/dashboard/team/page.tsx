@@ -173,8 +173,8 @@ export default function TeamPortal() {
         />
       </div>
 
-      <div className={`${activeTab === 'weekly' ? 'block' : 'grid grid-cols-1 lg:grid-cols-3'} gap-8 items-start`}>
-        <div className={`${activeTab === 'weekly' ? 'w-full' : 'lg:col-span-2'} space-y-8`}>
+      <div className="space-y-8 animate-in fade-in duration-700">
+        <div className="w-full space-y-8">
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="border-b border-slate-100 px-6 py-4 flex items-center justify-between bg-slate-50/50">
           <div className="flex gap-6">
@@ -259,13 +259,6 @@ export default function TeamPortal() {
           </div>
         )}
         </div>
-
-        {/* Sidebar with Targets (Hidden on Actuals) */}
-        {activeTab === 'projected' && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-             <ClientTargetsCard month={month} actuals={data} />
-          </div>
-        )}
       </div>
 
       <AddEntryModal 
