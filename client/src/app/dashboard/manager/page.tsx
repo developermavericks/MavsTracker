@@ -197,8 +197,9 @@ export default function ManagerPortal() {
                 </div>
               ) : (
                 <div className="space-y-12">
-                  <div className="space-y-6">
-                    <div className="relative group max-w-md">
+                  {/* Search and Header */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="relative group flex-1 max-w-md">
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                       <input 
                         type="text"
@@ -206,40 +207,50 @@ export default function ManagerPortal() {
                         className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold outline-none focus:bg-white focus:ring-4 focus:ring-indigo-600/5 transition-all shadow-sm"
                       />
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {activeMembers.length === 0 ? (
-                        <div className="col-span-full py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center">
-                          <Users className="w-12 h-12 text-slate-200 mb-4" />
-                          <h4 className="text-lg font-bold text-slate-900">No Active Members Found</h4>
-                          <p className="text-sm text-slate-500 max-w-xs">Members you manage who have logged time will appear here.</p>
-                        </div>
-                      ) : activeMembers.map((member) => (
-                        <button 
-                          key={member.id}
-                          onClick={() => setSelectedMember(member)}
-                          className="group bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 transition-all text-left"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-xl font-black group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
-                              {member.name?.[0] || member.email[0]}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-black text-slate-900 group-hover:text-indigo-600 transition-colors truncate">{member.name || 'Unknown'}</h3>
-                              <p className="text-xs text-slate-400 font-bold truncate">{member.email}</p>
-                            </div>
-                            <ArrowLeft className="w-5 h-5 text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all rotate-180" />
-                          </div>
-                        </button>
-                      ))}
-                    </div>
                   </div>
 
-                  {/* Zero Working Members Section */}
-                  <div className="space-y-6 pt-6 border-t border-slate-100">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-black uppercase tracking-[0.2em] text-red-500 flex items-center gap-2">
+                  {/* Active Section */}
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                      <h3 className="text-sm font-black uppercase tracking-[0.2em] text-indigo-600 flex items-center gap-2">
                         <Users className="w-4 h-4" />
+                        Active Team ({activeMembers.length})
+                      </h3>
+                    </div>
+
+                    {activeMembers.length === 0 ? (
+                      <div className="py-12 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center">
+                        <p className="text-slate-400 text-sm font-bold italic">No active logs for this month yet</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {activeMembers.map((member) => (
+                          <button 
+                            key={member.id}
+                            onClick={() => setSelectedMember(member)}
+                            className="group bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 transition-all text-left"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-xl font-black group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                                {member.name?.[0] || member.email[0]}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-black text-slate-900 group-hover:text-indigo-600 transition-colors truncate">{member.name || 'Unknown'}</h3>
+                                <p className="text-xs text-slate-400 font-bold truncate">{member.email}</p>
+                              </div>
+                              <ArrowLeft className="w-5 h-5 text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all rotate-180" />
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Inactive Section */}
+                  <div className="space-y-6 pt-6">
+                    <div className="flex items-center justify-between border-b border-red-100 pb-4">
+                      <h3 className="text-sm font-black uppercase tracking-[0.2em] text-red-500 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4" />
                         Inactive Members (0.0H Logged)
                         {activeEmailsError && <span className="text-[10px] lowercase text-red-400 font-medium ml-2">({activeEmailsError})</span>}
                       </h3>
@@ -248,26 +259,32 @@ export default function ManagerPortal() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-80">
-                      {inactiveMembers.map((member) => (
-                        <button 
-                          key={member.id}
-                          onClick={() => setSelectedMember(member)}
-                          className="group bg-slate-50 p-6 rounded-[28px] border border-slate-200 border-dashed hover:bg-white hover:border-solid hover:border-red-200 hover:shadow-xl hover:shadow-red-900/5 hover:-translate-y-1 transition-all text-left"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-2xl bg-slate-200 flex items-center justify-center text-slate-400 text-xl font-black group-hover:bg-red-500 group-hover:text-white transition-all">
-                              {member.name?.[0] || member.email[0]}
+                    {inactiveMembers.length === 0 ? (
+                      <div className="py-12 bg-emerald-50 rounded-3xl border-2 border-dashed border-emerald-200 flex flex-col items-center justify-center text-center">
+                        <p className="text-emerald-600 text-sm font-bold uppercase tracking-widest">✓ All team members have logged time</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-80">
+                        {inactiveMembers.map((member) => (
+                          <button 
+                            key={member.id}
+                            onClick={() => setSelectedMember(member)}
+                            className="group bg-slate-50 p-6 rounded-[28px] border border-slate-200 border-dashed hover:bg-white hover:border-solid hover:border-red-200 hover:shadow-xl hover:shadow-red-900/5 hover:-translate-y-1 transition-all text-left"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-14 h-14 rounded-2xl bg-slate-200 flex items-center justify-center text-slate-400 text-xl font-black group-hover:bg-red-500 group-hover:text-white transition-all">
+                                {member.name?.[0] || member.email[0]}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-black text-slate-600 group-hover:text-red-600 transition-colors truncate">{member.name || 'Unknown'}</h3>
+                                <p className="text-xs text-slate-400 font-bold truncate">{member.email}</p>
+                              </div>
+                              <ArrowLeft className="w-5 h-5 text-slate-300 group-hover:text-red-600 group-hover:translate-x-1 transition-all rotate-180" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-black text-slate-600 group-hover:text-red-600 transition-colors truncate">{member.name || 'Unknown'}</h3>
-                              <p className="text-xs text-slate-400 font-bold truncate">{member.email}</p>
-                            </div>
-                            <ArrowLeft className="w-5 h-5 text-slate-300 group-hover:text-red-600 group-hover:translate-x-1 transition-all rotate-180" />
-                          </div>
-                        </button>
-                      ))}
-                    </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
