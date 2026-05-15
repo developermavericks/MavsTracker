@@ -15,6 +15,8 @@ export default function ManagerPortal() {
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
   const [members, setMembers] = useState<any[]>([]);
   const [activeEmails, setActiveEmails] = useState<string[]>([]);
+  const [activeEmailsLoading, setActiveEmailsLoading] = useState(false);
+  const [activeEmailsError, setActiveEmailsError] = useState<string | null>(null);
   const [selectedMember, setSelectedMember] = useState<any | null>(null);
   const [memberAllocations, setMemberAllocations] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
@@ -32,12 +34,21 @@ export default function ManagerPortal() {
   }, [month]);
 
   const fetchActiveEmails = async () => {
+    setActiveEmailsLoading(true);
+    setActiveEmailsError(null);
     try {
       const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/zero-hours?month=${month}`);
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || `Error ${response.status}`);
+      }
       const data = await response.json();
       setActiveEmails(data.map((e: string) => e.toLowerCase()));
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to fetch active emails:', err);
+      setActiveEmailsError(err.message);
+    } finally {
+      setActiveEmailsLoading(false);
     }
   };
 
@@ -185,52 +196,78 @@ export default function ManagerPortal() {
                   )}
                 </div>
               ) : (
-                <div className="space-y-6">
-                  <div className="relative group">
-                    <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-indigo-600 transition-colors" />
-                    <input 
-                      type="text" 
-                      placeholder="Search team members..."
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-medium focus:ring-4 focus:ring-indigo-500/10 focus:bg-white outline-none transition-all"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {members.length === 0 ? (
-                      <div className="col-span-full py-20 text-center space-y-4 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                        <Users className="w-12 h-12 text-slate-300 mx-auto" />
-                        <div>
-                          <p className="text-slate-900 font-bold">No Team Members Found</p>
-                          <p className="text-slate-500 text-sm">Members you manage will appear here once mapped.</p>
+                <div className="space-y-12">
+                  <div className="space-y-6">
+                    <div className="relative group max-w-md">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                      <input 
+                        type="text"
+                        placeholder="Search team members..."
+                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold outline-none focus:bg-white focus:ring-4 focus:ring-indigo-600/5 transition-all shadow-sm"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {activeMembers.length === 0 ? (
+                        <div className="col-span-full py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center">
+                          <Users className="w-12 h-12 text-slate-200 mb-4" />
+                          <h4 className="text-lg font-bold text-slate-900">No Active Members Found</h4>
+                          <p className="text-sm text-slate-500 max-w-xs">Members you manage who have logged time will appear here.</p>
                         </div>
-                      </div>
-                    ) : (
-                      members.map(member => (
+                      ) : activeMembers.map((member) => (
                         <button 
                           key={member.id}
                           onClick={() => setSelectedMember(member)}
-                          className="p-6 bg-white border border-slate-200 rounded-3xl hover:border-indigo-600 hover:shadow-2xl hover:shadow-indigo-100 transition-all text-left group relative overflow-hidden"
+                          className="group bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 transition-all text-left"
                         >
                           <div className="flex items-center gap-4">
-                            {member.picture ? (
-                              <img src={member.picture} className="w-14 h-14 rounded-2xl object-cover ring-4 ring-slate-50" />
-                            ) : (
-                              <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 font-black text-lg group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                                {member.name?.[0] || 'U'}
-                              </div>
-                            )}
-                            <div>
-                              <h4 className="font-black text-slate-900 group-hover:text-indigo-600 transition-colors">{member.name || 'Unknown'}</h4>
-                              <p className="text-xs text-slate-500 font-medium">{member.email}</p>
+                            <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-xl font-black group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                              {member.name?.[0] || member.email[0]}
                             </div>
-                          </div>
-                          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div className="bg-indigo-600 text-white p-1 rounded-lg">
-                              <ArrowLeft className="w-3 h-3 rotate-180" />
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-black text-slate-900 group-hover:text-indigo-600 transition-colors truncate">{member.name || 'Unknown'}</h3>
+                              <p className="text-xs text-slate-400 font-bold truncate">{member.email}</p>
                             </div>
+                            <ArrowLeft className="w-5 h-5 text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all rotate-180" />
                           </div>
                         </button>
-                      ))
-                    )}
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Zero Working Members Section */}
+                  <div className="space-y-6 pt-6 border-t border-slate-100">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-black uppercase tracking-[0.2em] text-red-500 flex items-center gap-2">
+                        <Users className="w-4 h-4" />
+                        Inactive Members (0.0H Logged)
+                        {activeEmailsError && <span className="text-[10px] lowercase text-red-400 font-medium ml-2">({activeEmailsError})</span>}
+                      </h3>
+                      <span className="bg-red-50 text-red-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
+                        {inactiveMembers.length} Outstanding
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-80">
+                      {inactiveMembers.map((member) => (
+                        <button 
+                          key={member.id}
+                          onClick={() => setSelectedMember(member)}
+                          className="group bg-slate-50 p-6 rounded-[28px] border border-slate-200 border-dashed hover:bg-white hover:border-solid hover:border-red-200 hover:shadow-xl hover:shadow-red-900/5 hover:-translate-y-1 transition-all text-left"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-2xl bg-slate-200 flex items-center justify-center text-slate-400 text-xl font-black group-hover:bg-red-500 group-hover:text-white transition-all">
+                              {member.name?.[0] || member.email[0]}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-black text-slate-600 group-hover:text-red-600 transition-colors truncate">{member.name || 'Unknown'}</h3>
+                              <p className="text-xs text-slate-400 font-bold truncate">{member.email}</p>
+                            </div>
+                            <ArrowLeft className="w-5 h-5 text-slate-300 group-hover:text-red-600 group-hover:translate-x-1 transition-all rotate-180" />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
