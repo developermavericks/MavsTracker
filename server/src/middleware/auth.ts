@@ -44,7 +44,6 @@ export const authenticate = async (req: AuthRequest, res: Response, Next: NextFu
       'smriti@themavericksindia.com',
       'gaurav@themavericksindia.com',
       'avinash@themavericksindia.com',
-      'satyam.singh@themavericksindia.com',
       'arunkumar@themavericksindia.com',
       'divyanshsharma@themavericksindia.com',
       'developerteam@themavericksindia.com'
@@ -66,7 +65,8 @@ export const authenticate = async (req: AuthRequest, res: Response, Next: NextFu
       'anil@themavericksindia.com',
       'viviqa@themavericksindia.com',
       'ananya@themavericksindia.com',
-      'kavita@themavericksindia.com'
+      'kavita@themavericksindia.com',
+      'satyam.singh@themavericksindia.com'
     ];
 
     let assignedRole = 'team';
