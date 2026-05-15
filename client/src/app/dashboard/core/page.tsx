@@ -202,15 +202,41 @@ export default function CorePortal() {
 
           {activeTab === 'master' && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-slate-900">Monthly Master Allocation Pivot ({month})</h3>
-                <button 
-                  onClick={handleExport}
-                  className="bg-blue-600 text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-all flex items-center gap-2 shadow-sm"
-                >
-                  <Download className="w-4 h-4" />
-                  Download Excel
-                </button>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">Monthly Master Allocation Pivot</h3>
+                  <p className="text-sm text-slate-500 font-medium">Viewing data for {new Date(month + '-02').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    <select 
+                      value={month.split('-')[1]} 
+                      onChange={(e) => setMonth(`${month.split('-')[0]}-${e.target.value}`)}
+                      className="px-3 py-1.5 text-xs font-black bg-transparent border-none focus:ring-0 outline-none cursor-pointer uppercase tracking-wider"
+                    >
+                      {['01','02','03','04','05','06','07','08','09','10','11','12'].map(m => (
+                        <option key={m} value={m}>{new Date(2024, parseInt(m)-1).toLocaleString('en-US', { month: 'short' })}</option>
+                      ))}
+                    </select>
+                    <div className="w-[1px] bg-slate-300 my-1.5" />
+                    <select 
+                      value={month.split('-')[0]} 
+                      onChange={(e) => setMonth(`${e.target.value}-${month.split('-')[1]}`)}
+                      className="px-3 py-1.5 text-xs font-black bg-transparent border-none focus:ring-0 outline-none cursor-pointer text-orange-600"
+                    >
+                      {[2024, 2025, 2026, 2027].map(y => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button 
+                    onClick={handleExport}
+                    className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-black hover:bg-orange-600 transition-all flex items-center gap-2 shadow-lg shadow-slate-200 uppercase tracking-widest"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export
+                  </button>
+                </div>
               </div>
               
               <div className="overflow-x-auto border border-slate-100 rounded-2xl">
