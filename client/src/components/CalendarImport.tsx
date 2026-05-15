@@ -21,9 +21,22 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
   const [user, setUser] = useState<any>(null);
   const [hasFetched, setHasFetched] = useState(false);
 
+  const [clients, setClients] = useState<{id: string, name: string}[]>([]);
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    fetchClients();
   }, []);
+
+  const fetchClients = async () => {
+    try {
+      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients`);
+      const data = await response.json();
+      setClients(data);
+    } catch (err) {
+      console.error('Failed to fetch clients:', err);
+    }
+  };
 
   const handleLoginRefresh = async () => {
     await supabase.auth.signInWithOAuth({
@@ -72,13 +85,25 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
     try {
       const selected = events.filter(e => selectedEvents.has(e.title));
       
+      // Find the 'Internal' client ID
+      let internalClient = clients.find(c => c.name.toLowerCase() === 'internal');
+      
+      // Fallback: if no 'Internal' exists, use the first client available
+      if (!internalClient && clients.length > 0) {
+        internalClient = clients[0];
+      }
+
+      if (!internalClient) {
+        throw new Error("No clients found in database. Please add a client first.");
+      }
+
       for (const event of selected) {
         const { error } = await supabase
           .from('allocations_weekly')
           .insert([{
             user_id: userId,
             month,
-            client_id: 'internal', // Default or user selection
+            client_id: internalClient.id, // Using real UUID now
             category: 'Meeting',
             hours: event.hours,
             notes: `Imported from Calendar: ${event.title}`,
@@ -91,6 +116,7 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
       setSelectedEvents(new Set());
       setEvents([]);
       setHasFetched(false);
+      alert(`Successfully saved ${selected.length} events!`);
     } catch (err: any) {
       alert(err.message);
     } finally {

@@ -10,8 +10,17 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 export const fetchCalendarEvents = async (accessToken: string, startDate: string, endDate: string) => {
-  oauth2Client.setCredentials({ access_token: accessToken });
-  const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+  // Create a fresh client for every request to prevent token cross-talk
+  const localOauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_REDIRECT_URI || 'https://mavs-tracker.vercel.app/auth/callback'
+  );
+  
+  localOauth2Client.setCredentials({ access_token: accessToken });
+  const calendar = google.calendar({ version: 'v3', auth: localOauth2Client });
+
+  console.log(`📅 Fetching events from ${startDate} to ${endDate}`);
 
   try {
     const response = await calendar.events.list({
@@ -23,16 +32,23 @@ export const fetchCalendarEvents = async (accessToken: string, startDate: string
     });
 
     const events = response.data.items || [];
+    console.log(`✅ Found ${events.length} raw events from Google`);
     
-    // Grouping logic (similar to Apps Script)
     const buckets: Record<string, any> = {};
 
     for (const ev of events) {
-      if (ev.start?.dateTime && ev.end?.dateTime) {
-        const start = new Date(ev.start.dateTime);
-        const end = new Date(ev.end.dateTime);
+      // Support both timed events (dateTime) and all-day events (date)
+      const startStr = ev.start?.dateTime || ev.start?.date;
+      const endStr = ev.end?.dateTime || ev.end?.date;
+
+      if (startStr && endStr) {
+        const start = new Date(startStr);
+        const end = new Date(endStr);
         const duration = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
         
+        // Skip events with 0 duration or invalid dates
+        if (isNaN(duration) || duration <= 0) continue;
+
         const title = ev.summary || 'Untitled';
         const key = title.toLowerCase().trim();
 
@@ -41,8 +57,8 @@ export const fetchCalendarEvents = async (accessToken: string, startDate: string
             title,
             hours: 0,
             count: 0,
-            start: ev.start.dateTime,
-            end: ev.end.dateTime,
+            start: startStr,
+            end: endStr,
           };
         }
         buckets[key].hours += duration;
@@ -50,9 +66,11 @@ export const fetchCalendarEvents = async (accessToken: string, startDate: string
       }
     }
 
-    return Object.values(buckets);
+    const result = Object.values(buckets);
+    console.log(`📊 Grouped into ${result.length} unique buckets`);
+    return result;
   } catch (error) {
-    console.error('Error fetching calendar events:', error);
+    console.error('❌ Error fetching calendar events:', error);
     throw error;
   }
 };
