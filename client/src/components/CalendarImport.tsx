@@ -76,7 +76,7 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
 
       // Find the 'Internal' client ID for default
       const internalClient = clients.find(c => c.name.toLowerCase() === 'internal');
-      const defaultClientId = internalClient?.id || (clients.length > 0 ? clients[0].id : '');
+      const defaultClientId = internalClient?.id || ''; // Start with empty if no Internal
 
       // Initialize events with default client and category
       const initializedEvents = data.map((ev: any) => ({
@@ -100,6 +100,12 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
       const selected = events.filter(e => selectedEvents.has(e.title));
       
       if (selected.length === 0) return;
+
+      // Validation check: Make sure all selected events have a client selected
+      const missingClient = selected.find(e => !e.client_id);
+      if (missingClient) {
+        throw new Error(`Please select a client for "${missingClient.title}" before saving.`);
+      }
 
       for (const event of selected) {
         const { error } = await supabase
@@ -214,6 +220,7 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
                         onChange={(e) => updateEventDetails(event.title, 'client_id', e.target.value)}
                         className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
                       >
+                        <option value="">Select Client</option>
                         {clients.map(c => (
                           <option key={c.id} value={c.id}>{c.name}</option>
                         ))}
