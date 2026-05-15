@@ -76,16 +76,25 @@ export const getMemberReport = async (req: Request, res: Response) => {
   const { email, month } = req.query;
   if (!email || !month) return res.status(400).json({ error: 'Missing email or month' });
 
+  const cleanEmail = (email as string).trim();
+
   try {
-    // Join with users to filter by email (case-insensitive)
+    // 1. Get User ID from email first
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .ilike('email', cleanEmail)
+      .single();
+
+    if (userError || !user) {
+      return res.json({ allocations: [] });
+    }
+
+    // 2. Get allocations for that specific user_id
     const { data: allocations, error } = await supabase
       .from('allocations_weekly')
-      .select(`
-        id, user_id, month, client_id, category, hours, notes, start_date, end_date, week_code, source,
-        clients(name),
-        users!inner(email)
-      `)
-      .ilike('users.email', email as string)
+      .select('id, user_id, month, client_id, category, hours, notes, start_date, end_date, week_code, source, clients(name)')
+      .eq('user_id', user.id)
       .eq('month', month);
 
     if (error) throw error;
@@ -98,15 +107,25 @@ export const getMemberReport = async (req: Request, res: Response) => {
 export const getActiveEmails = async (req: Request, res: Response) => {
   const { month } = req.query;
   try {
-    const { data, error } = await supabase
+    // Get all user_ids who have logged time this month
+    const { data: logs, error } = await supabase
       .from('allocations_weekly')
-      .select(`
-        users!inner(email)
-      `)
+      .select('user_id')
       .eq('month', month);
 
     if (error) throw error;
-    const emails = [...new Set((data || []).map((d: any) => d.users.email))];
+    const userIds = [...new Set((logs || []).map(l => l.user_id))];
+
+    if (userIds.length === 0) return res.json([]);
+
+    // Fetch emails for those user_ids
+    const { data: users, error: userError } = await supabase
+      .from('users')
+      .select('email')
+      .in('id', userIds);
+
+    if (userError) throw userError;
+    const emails = users.map(u => u.email);
     res.json(emails);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
