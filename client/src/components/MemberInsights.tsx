@@ -33,17 +33,30 @@ const MASTER_EMAILS = [
   "vibhuti@themavericksindia.com", "vishakha@themavericksindia.com"
 ];
 
-export default function MemberInsights({ month }: { month: string }) {
+export default function MemberInsights({ month: initialMonth }: { month: string }) {
+  const [internalMonth, setInternalMonth] = useState(initialMonth);
   const [selectedEmail, setSelectedEmail] = useState('');
   const [memberData, setMemberData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<any>(null);
 
+  // Parse internalMonth into year and month index
+  const currentYear = internalMonth.split('-')[0];
+  const currentMonth = internalMonth.split('-')[1];
+
+  const handleMonthChange = (newMonth: string) => {
+    setInternalMonth(`${currentYear}-${newMonth}`);
+  };
+
+  const handleYearChange = (newYear: string) => {
+    setInternalMonth(`${newYear}-${currentMonth}`);
+  };
+
   const fetchMemberReport = async () => {
     if (!selectedEmail) return;
     setLoading(true);
     try {
-      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/member?email=${selectedEmail}&month=${month}`);
+      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/member?email=${selectedEmail}&month=${internalMonth}`);
       const data = await response.json();
       setMemberData(data.allocations || []);
       setSummary(data.summary || null);
@@ -54,17 +67,17 @@ export default function MemberInsights({ month }: { month: string }) {
     }
   };
 
-  // Logic for Zero Hour Members (comparing master list with everyone who has hours in the system for this month)
+  // Logic for Zero Hour Members
   const [zeroHourMembers, setZeroHourMembers] = useState<string[]>([]);
   
   useEffect(() => {
     fetchZeroHourMembers();
-  }, [month]);
+  }, [internalMonth]);
 
   const fetchZeroHourMembers = async () => {
     try {
-      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/zero-hours?month=${month}`);
-      const activeEmails = await res.json(); // Array of emails who HAVE hours
+      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/zero-hours?month=${internalMonth}`);
+      const activeEmails = await res.json();
       const zeroList = MASTER_EMAILS.filter(email => !activeEmails.includes(email));
       setZeroHourMembers(zeroList);
     } catch (err) {
@@ -96,10 +109,29 @@ export default function MemberInsights({ month }: { month: string }) {
             </div>
           </div>
 
-          <div className="space-y-3">
-             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-1">Month</label>
-             <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white font-bold backdrop-blur-md">
-               {new Date(month + '-02').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          <div className="space-y-3 lg:col-span-1">
+             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-1">Reporting Period</label>
+             <div className="flex gap-2">
+                <select 
+                  value={currentMonth}
+                  onChange={(e) => handleMonthChange(e.target.value)}
+                  className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white font-bold outline-none focus:ring-4 focus:ring-orange-500/20 transition-all cursor-pointer appearance-none"
+                >
+                  {["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"].map(m => (
+                    <option key={m} value={m} className="text-slate-900">
+                      {new Date(`2024-${m}-02`).toLocaleDateString('en-US', { month: 'long' })}
+                    </option>
+                  ))}
+                </select>
+                <select 
+                  value={currentYear}
+                  onChange={(e) => handleYearChange(e.target.value)}
+                  className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white font-bold outline-none focus:ring-4 focus:ring-orange-500/20 transition-all cursor-pointer appearance-none"
+                >
+                  {[2024, 2025, 2026, 2027].map(y => (
+                    <option key={y} value={y.toString()} className="text-slate-900">{y}</option>
+                  ))}
+                </select>
              </div>
           </div>
 
