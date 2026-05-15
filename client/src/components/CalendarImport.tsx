@@ -13,6 +13,7 @@ interface CalendarEvent {
   end: string;
   client_id?: string;
   category?: string;
+  notes?: string;
 }
 
 export default function CalendarImport({ userId, month, onSuccess }: { userId: string, month: string, onSuccess: () => void }) {
@@ -108,13 +109,14 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
 
       // Find the 'Internal' client ID for default
       const internalClient = clients.find(c => c.name.toLowerCase() === 'internal');
-      const defaultClientId = internalClient?.id || ''; // Start with empty if no Internal
+      const defaultClientId = internalClient?.id || ''; 
 
-      // Initialize events with default client and category
+      // Initialize events
       const initializedEvents = data.map((ev: any) => ({
         ...ev,
         client_id: defaultClientId,
-        category: 'Meeting'
+        category: 'Meeting',
+        notes: ev.title 
       }));
 
       setEvents(initializedEvents);
@@ -133,7 +135,6 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
       
       if (selected.length === 0) return;
 
-      // Validation check: Make sure all selected events have a client selected
       const missingClient = selected.find(e => !e.client_id);
       if (missingClient) {
         throw new Error(`Please select a client for "${missingClient.title}" before saving.`);
@@ -148,9 +149,10 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
             client_id: event.client_id, 
             category: event.category,
             hours: event.hours,
-            notes: `Imported from Calendar: ${event.title}`,
+            notes: event.notes || '', 
             start_date: event.start.split('T')[0],
             end_date: event.end.split('T')[0],
+            source: 'calendar'
           }]);
         if (error) throw error;
       }
@@ -181,26 +183,26 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
 
   return (
     <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-      <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between bg-blue-50/30 gap-6">
+      <div className="p-8 border-b border-slate-100 flex flex-col lg:flex-row lg:items-end justify-between bg-blue-50/30 gap-6">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-blue-100 rounded-2xl">
             <Calendar className="w-6 h-6 text-blue-600" />
           </div>
           <div>
             <h3 className="text-lg font-bold text-slate-900">Calendar Import</h3>
-            <p className="text-sm text-slate-500">Pick a range to fetch meetings from your Google Calendar.</p>
+            <p className="text-sm text-slate-500">Fetch and customize your meetings.</p>
           </div>
         </div>
         
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex items-center gap-3">
             <div className="flex flex-col">
               <label className="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1">From</label>
               <input 
                 type="date" 
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none w-40"
               />
             </div>
             <div className="flex flex-col">
@@ -209,16 +211,16 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
                 type="date" 
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none w-40"
               />
             </div>
           </div>
           <button 
             onClick={handleFetch}
             disabled={loading}
-            className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 h-fit self-end"
+            className="bg-blue-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 h-[42px]"
           >
-            {loading ? 'Fetching...' : 'Fetch Events'}
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Fetch Events'}
           </button>
         </div>
       </div>
@@ -227,17 +229,9 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
         {events.length === 0 ? (
           <div className="py-12 flex flex-col items-center text-center">
             <div className="p-4 bg-slate-50 rounded-full mb-4">
-              {hasFetched ? (
-                <AlertCircle className="w-8 h-8 text-amber-500" />
-              ) : (
-                <Download className="w-8 h-8 text-slate-300" />
-              )}
+              {hasFetched ? <AlertCircle className="w-8 h-8 text-amber-500" /> : <Download className="w-8 h-8 text-slate-300" />}
             </div>
-            <p className="text-slate-500 max-w-xs">
-              {hasFetched 
-                ? `No calendar events found for ${month}. Try selecting a different month.` 
-                : "Click fetch to see your calendar events for this month."}
-            </p>
+            <p className="text-slate-500 max-w-xs">{hasFetched ? "No events found for these dates." : "Click fetch to see your calendar events."}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -245,11 +239,7 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
               <div 
                 key={event.title}
                 onClick={() => toggleSelect(event.title)}
-                className={`p-6 rounded-3xl border transition-all cursor-pointer flex flex-col gap-4 ${
-                  selectedEvents.has(event.title) 
-                    ? 'border-blue-600 bg-blue-50/50' 
-                    : 'border-slate-100 hover:border-slate-200'
-                }`}
+                className={`p-6 rounded-3xl border transition-all cursor-pointer flex flex-col gap-4 ${selectedEvents.has(event.title) ? 'border-blue-600 bg-blue-50/50' : 'border-slate-100 hover:border-slate-200'}`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -267,55 +257,35 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
                 </div>
 
                 {selectedEvents.has(event.title) && (
-                  <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200" onClick={(e) => e.stopPropagation()}>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-200" onClick={(e) => e.stopPropagation()}>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Client</label>
                       <select 
                         value={event.client_id}
                         onChange={(e) => {
-                          if (e.target.value === 'ADD_NEW') {
-                            setShowNewClientInput(event.title);
-                          } else {
-                            updateEventDetails(event.title, 'client_id', e.target.value);
-                            setShowNewClientInput(null);
-                          }
+                          if (e.target.value === 'ADD_NEW') setShowNewClientInput(event.title);
+                          else { updateEventDetails(event.title, 'client_id', e.target.value); setShowNewClientInput(null); }
                         }}
                         className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
                       >
                         <option value="">Select Client</option>
-                        {clients.map(c => (
-                          <option key={c.id} value={c.id}>{c.name}</option>
-                        ))}
+                        {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         <option value="ADD_NEW">+ Add New Client...</option>
                       </select>
                       {showNewClientInput === event.title && (
                         <div className="flex gap-2 mt-2">
-                          <input 
-                            type="text"
-                            placeholder="New client name"
-                            value={newClientName}
-                            onChange={(e) => setNewClientName(e.target.value)}
-                            className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-[10px] focus:ring-2 focus:ring-blue-500 outline-none"
-                          />
-                          <button 
-                            type="button"
-                            onClick={() => handleCreateClient(event.title)}
-                            className="bg-slate-100 p-1.5 rounded-lg hover:bg-slate-200 transition-all"
-                          >
-                            <Plus className="w-3 h-3" />
-                          </button>
+                          <input type="text" placeholder="New name" value={newClientName} onChange={(e) => setNewClientName(e.target.value)} className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-[10px] outline-none" />
+                          <button type="button" onClick={() => handleCreateClient(event.title)} className="bg-slate-100 p-1.5 rounded-lg hover:bg-slate-200"><Plus className="w-3 h-3" /></button>
                         </div>
                       )}
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Category</label>
-                      <input 
-                        type="text"
-                        value={event.category}
-                        onChange={(e) => updateEventDetails(event.title, 'category', e.target.value)}
-                        placeholder="e.g. Meeting"
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none"
-                      />
+                      <input type="text" value={event.category} onChange={(e) => updateEventDetails(event.title, 'category', e.target.value)} placeholder="Category" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Notes (Optional)</label>
+                      <input type="text" value={event.notes} onChange={(e) => updateEventDetails(event.title, 'notes', e.target.value)} placeholder="Notes" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none" />
                     </div>
                   </div>
                 )}
