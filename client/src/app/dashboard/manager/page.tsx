@@ -11,8 +11,10 @@ import AllocationsTable from '@/components/AllocationsTable';
 
 export default function ManagerPortal() {
   const [activeTab, setActiveTab] = useState<'self' | 'members'>('members');
+  const [reportKind, setReportKind] = useState<'weekly' | 'projected'>('weekly');
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
   const [members, setMembers] = useState<any[]>([]);
+  const [activeEmails, setActiveEmails] = useState<string[]>([]);
   const [selectedMember, setSelectedMember] = useState<any | null>(null);
   const [memberAllocations, setMemberAllocations] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
@@ -24,6 +26,20 @@ export default function ManagerPortal() {
       if (data.user) fetchMembers(data.user.id);
     });
   }, []);
+
+  useEffect(() => {
+    fetchActiveEmails();
+  }, [month]);
+
+  const fetchActiveEmails = async () => {
+    try {
+      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/zero-hours?month=${month}`);
+      const data = await response.json();
+      setActiveEmails(data.map((e: string) => e.toLowerCase()));
+    } catch (err) {
+      console.error('Failed to fetch active emails:', err);
+    }
+  };
 
   const fetchMembers = async (managerId: string) => {
     try {
@@ -40,9 +56,10 @@ export default function ManagerPortal() {
     try {
       const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/allocations?memberId=${memberId}&month=${month}`);
       const data = await response.json();
-      setMemberAllocations(data);
+      setMemberAllocations(data || []);
     } catch (err) {
       console.error('Failed to fetch member allocations:', err);
+      setMemberAllocations([]);
     } finally {
       setLoading(false);
     }
@@ -55,6 +72,9 @@ export default function ManagerPortal() {
   }, [selectedMember, month]);
 
   const totalMemberHours = memberAllocations.reduce((acc, curr) => acc + (curr.hours || 0), 0);
+
+  const activeMembers = members.filter(m => activeEmails.includes(m.email.toLowerCase()));
+  const inactiveMembers = members.filter(m => !activeEmails.includes(m.email.toLowerCase()));
 
   return (
     <div className="space-y-8">
@@ -95,7 +115,7 @@ export default function ManagerPortal() {
             }`}
           >
             <Users className="w-4 h-4" />
-            Team Members
+            Team Members ({activeMembers.length})
           </button>
           <button 
             onClick={() => setActiveTab('self')}
@@ -116,7 +136,7 @@ export default function ManagerPortal() {
               <p className="text-slate-500 max-w-sm mx-auto text-sm">Please use the Team Portal for logging your own time. This view will eventually show your personal summary.</p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-12">
               {selectedMember ? (
                 <div className="space-y-6 animate-in slide-in-from-right duration-300">
                   <div className="flex items-center justify-between">
@@ -127,8 +147,15 @@ export default function ManagerPortal() {
                       <ArrowLeft className="w-4 h-4" />
                       Back to Team
                     </button>
+                      <button 
+                        onClick={() => setReportKind('projected')}
+                        className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${reportKind === 'projected' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                      >
+                        Projected
+                      </button>
+                    </div>
                     <div className="bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider">
-                      Month Total: {totalMemberHours.toFixed(1)}h
+                      {reportKind === 'weekly' ? 'Actual' : 'Projected'} Total: {totalMemberHours.toFixed(1)}h
                     </div>
                   </div>
 
