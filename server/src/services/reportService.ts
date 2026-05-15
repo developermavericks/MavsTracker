@@ -73,3 +73,51 @@ export const getMasterReportData = async (month: string, options: any = {}) => {
     rows: Object.values(byMember).sort((a: any, b: any) => a.name.localeCompare(b.name)),
   };
 };
+
+export const getClientSummary = async (month: string, view: 'weekly' | 'projected' = 'weekly') => {
+  const table = view === 'weekly' ? 'allocations_weekly' : 'allocations_projected';
+  
+  const { data: allocations, error } = await supabase
+    .from(table)
+    .select('hours, clients(name)')
+    .eq('month', month);
+
+  if (error) throw error;
+
+  const summary: Record<string, number> = {};
+  allocations.forEach((r: any) => {
+    const clientName = r.clients?.name || 'Unknown';
+    summary[clientName] = (summary[clientName] || 0) + (Number(r.hours) || 0);
+  });
+
+  return Object.entries(summary)
+    .map(([name, hours]) => ({ name, hours }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+};
+
+export const getClientRoster = async (month: string, clientName: string, view: 'weekly' | 'projected' = 'weekly') => {
+  const table = view === 'weekly' ? 'allocations_weekly' : 'allocations_projected';
+  
+  const { data: allocations, error } = await supabase
+    .from(table)
+    .select('hours, users(name, email), clients(name)')
+    .eq('month', month);
+
+  if (error) throw error;
+
+  const roster: Record<string, any> = {};
+  allocations.forEach((r: any) => {
+    if (r.clients?.name !== clientName) return;
+
+    const email = r.users?.email || 'unknown';
+    const name = r.users?.name || 'Unknown';
+    const hours = Number(r.hours) || 0;
+
+    if (!roster[email]) {
+      roster[email] = { name, email, hours: 0 };
+    }
+    roster[email].hours += hours;
+  });
+
+  return Object.values(roster).sort((a: any, b: any) => a.name.localeCompare(b.name));
+};

@@ -9,5 +9,7 @@ router.use(requireRole(['core']));
 
 router.get('/master', getMasterReport);
 router.get('/export', exportReport);
+router.get('/clients-summary', require('../controllers/reportController').getClientSummary);
+router.get('/client-roster', require('../controllers/reportController').getClientRoster);
 
 export default router;

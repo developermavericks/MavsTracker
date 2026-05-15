@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { Settings, FileText, Briefcase, Download, Plus, Search, ShieldCheck, User as UserIcon } from 'lucide-react';
 import StatsCard from '@/components/StatsCard';
 import { apiFetch } from '@/lib/api';
+import ClientAdmin from '@/components/ClientAdmin';
 
 export default function CorePortal() {
   const [activeTab, setActiveTab] = useState<'admin' | 'master' | 'clients'>('admin');
@@ -208,42 +209,7 @@ export default function CorePortal() {
           )}
 
           {activeTab === 'clients' && (
-            <div className="space-y-6">
-              <div className="flex gap-4">
-                <div className="relative flex-1">
-                  <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                  <input 
-                    type="text" 
-                    placeholder="Search clients..."
-                    className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all shadow-sm"
-                  />
-                </div>
-                <button className="bg-orange-600 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:bg-orange-700 transition-all flex items-center gap-2 shadow-lg shadow-orange-100">
-                  <Plus className="w-4 h-4" />
-                  New Client
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {loading ? (
-                  <div className="col-span-full text-center py-10"><div className="animate-spin inline-block w-6 h-6 border-b-2 border-orange-600 rounded-full"></div></div>
-                ) : clients.length === 0 ? (
-                  <p className="col-span-full text-center text-slate-400 py-10 italic">No clients found.</p>
-                ) : clients.map(client => (
-                  <div key={client.id} className="p-6 bg-white border border-slate-100 rounded-2xl flex items-center justify-between hover:border-orange-200 transition-all shadow-sm">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-500 font-bold">
-                        {client.name[0]}
-                      </div>
-                      <span className="font-bold text-slate-900">{client.name}</span>
-                    </div>
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase ${client.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                      {client.is_active ? 'Active' : 'Inactive'}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ClientAdmin month={month} />
           )}
         </div>
       </div>

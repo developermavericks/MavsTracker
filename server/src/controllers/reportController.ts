@@ -42,3 +42,33 @@ export const exportReport = async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getClientSummary = async (req: Request, res: Response) => {
+  const { month, view = 'weekly' } = req.query;
+
+  if (!month) {
+    return res.status(400).json({ error: 'Missing month' });
+  }
+
+  try {
+    const data = await (require('../services/reportService').getClientSummary(month as string, view as any));
+    res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getClientRoster = async (req: Request, res: Response) => {
+  const { month, clientName, view = 'weekly' } = req.query;
+
+  if (!month || !clientName) {
+    return res.status(400).json({ error: 'Missing month or clientName' });
+  }
+
+  try {
+    const data = await (require('../services/reportService').getClientRoster(month as string, clientName as string, view as any));
+    res.json(data);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
