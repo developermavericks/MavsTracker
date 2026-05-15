@@ -26,11 +26,19 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
   const [clients, setClients] = useState<{id: string, name: string}[]>([]);
   const [showNewClientInput, setShowNewClientInput] = useState<string | null>(null);
   const [newClientName, setNewClientName] = useState('');
+  
+  const [startDate, setStartDate] = useState(`${month}-01`);
+  const [endDate, setEndDate] = useState(`${month}-31`);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
     fetchClients();
   }, []);
+
+  useEffect(() => {
+    setStartDate(`${month}-01`);
+    setEndDate(`${month}-31`);
+  }, [month]);
 
   const fetchClients = async () => {
     try {
@@ -91,7 +99,7 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
       }
 
       const response = await apiFetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/calendar/events?accessToken=${googleToken}&startDate=${month}-01&endDate=${month}-31`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/calendar/events?accessToken=${googleToken}&startDate=${startDate}&endDate=${endDate}`
       );
       
       const data = await response.json();
@@ -173,23 +181,46 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
 
   return (
     <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-      <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-blue-50/30">
+      <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between bg-blue-50/30 gap-6">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-blue-100 rounded-2xl">
             <Calendar className="w-6 h-6 text-blue-600" />
           </div>
           <div>
             <h3 className="text-lg font-bold text-slate-900">Calendar Import</h3>
-            <p className="text-sm text-slate-500">Assign clients and categories to your meetings before saving.</p>
+            <p className="text-sm text-slate-500">Pick a range to fetch meetings from your Google Calendar.</p>
           </div>
         </div>
-        <button 
-          onClick={handleFetch}
-          disabled={loading}
-          className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50"
-        >
-          {loading ? 'Fetching...' : 'Fetch Events'}
-        </button>
+        
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col">
+              <label className="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1">From</label>
+              <input 
+                type="date" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1">To</label>
+              <input 
+                type="date" 
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              />
+            </div>
+          </div>
+          <button 
+            onClick={handleFetch}
+            disabled={loading}
+            className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 h-fit self-end"
+          >
+            {loading ? 'Fetching...' : 'Fetch Events'}
+          </button>
+        </div>
       </div>
 
       <div className="p-8">
