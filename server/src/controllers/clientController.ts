@@ -71,14 +71,40 @@ export const setClientProjection = async (req: Request, res: Response) => {
 
 export const getClientProjections = async (req: Request, res: Response) => {
   const { month } = req.query;
-
   try {
-    let query = supabase.from('client_projections').select('*, clients(name)');
-    if (month) query = query.eq('month', month);
+    // 1. Get projections
+    let query = supabase
+      .from('client_projections')
+      .select('*, clients(name)');
+    
+    if (month) {
+      query = query.eq('month', month);
+    }
 
-    const { data, error } = await query;
+    const { data: projections, error } = await query.order('month', { ascending: false });
+
     if (error) throw error;
-    res.json(data);
+
+    // 2. Get actual hours summarized by client and month
+    const { data: actuals, error: actualsError } = await supabase
+      .from('weekly_allocations')
+      .select('client_id, month, hours');
+
+    if (actualsError) throw actualsError;
+
+    // 3. Merge them
+    const merged = projections.map(p => {
+      const actualHours = (actuals || [])
+        .filter(a => a.client_id === p.client_id && a.month === p.month)
+        .reduce((sum, curr) => sum + (Number(curr.hours) || 0), 0);
+      
+      return {
+        ...p,
+        actual_hours: actualHours
+      };
+    });
+
+    res.json(merged);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

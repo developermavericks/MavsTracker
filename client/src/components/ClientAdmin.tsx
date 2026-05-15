@@ -345,15 +345,33 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
                     <Calendar className="w-3 h-3" />
                     {new Date(p.month + '-02').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                   </div>
-                  <div className="flex items-end justify-between">
+                  <div className="flex items-end justify-between mb-4">
                     <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Target Hours</span>
-                      <span className="text-2xl font-mono font-black text-slate-900">{p.target_hours}</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Status</span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-mono font-black text-slate-900">{p.actual_hours.toFixed(1)}</span>
+                        <span className="text-xs font-bold text-slate-400">/ {p.target_hours}h</span>
+                      </div>
                     </div>
-                    <button className="bg-slate-50 text-slate-400 p-2.5 rounded-xl hover:bg-orange-100 hover:text-orange-600 transition-all opacity-0 group-hover:opacity-100">
-                      <Edit3 className="w-4 h-4" />
-                    </button>
+                    <div className="text-right">
+                      <span className="text-lg font-black text-orange-600">
+                        {Math.min(100, (p.actual_hours / p.target_hours) * 100).toFixed(0)}%
+                      </span>
+                    </div>
                   </div>
+
+                  {/* Progress Bar */}
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-4">
+                    <div 
+                      className="h-full bg-orange-600 transition-all duration-1000 ease-out rounded-full"
+                      style={{ width: `${Math.min(100, (p.actual_hours / p.target_hours) * 100)}%` }}
+                    />
+                  </div>
+
+                  <button className="w-full py-2 bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-orange-50 hover:text-orange-600 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2">
+                    <Edit3 className="w-3 h-3" />
+                    Edit Projection
+                  </button>
                 </div>
               ))}
             </div>
