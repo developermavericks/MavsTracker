@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, Briefcase, ChevronRight, Loader2, Search, Target, Calendar, Trash2, Edit3, X, ArrowRight } from 'lucide-react';
+import { Users, Briefcase, ChevronRight, Loader2, Search, Target, Calendar, Trash2, Edit3, X, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 
 export default function ClientAdmin({ initialMonth }: { initialMonth: string }) {
