@@ -58,14 +58,49 @@ export const setClientProjection = async (req: any, res: Response) => {
   }
 
   try {
-    const { data, error } = await supabase
-      .from('client_projections')
-      .upsert([{ id, client_id, month, target_hours, created_by }], { onConflict: 'client_id,month' })
-      .select();
+    let result;
+    
+    // 1. If we have an ID, update specifically
+    if (id) {
+      const { data, error } = await supabase
+        .from('client_projections')
+        .update({ target_hours, created_by })
+        .eq('id', id)
+        .select();
+      if (error) throw error;
+      result = data[0];
+    } 
+    // 2. Otherwise, try to find an existing one for this client/month
+    else {
+      const { data: existing } = await supabase
+        .from('client_projections')
+        .select('id')
+        .eq('client_id', client_id)
+        .eq('month', month)
+        .single();
 
-    if (error) throw error;
-    res.json(data[0]);
+      if (existing) {
+        const { data, error } = await supabase
+          .from('client_projections')
+          .update({ target_hours, created_by })
+          .eq('id', existing.id)
+          .select();
+        if (error) throw error;
+        result = data[0];
+      } else {
+        // 3. Completely new entry
+        const { data, error } = await supabase
+          .from('client_projections')
+          .insert([{ client_id, month, target_hours, created_by }])
+          .select();
+        if (error) throw error;
+        result = data[0];
+      }
+    }
+
+    res.json(result);
   } catch (error: any) {
+    console.error('Projection Save Error:', error);
     res.status(500).json({ error: error.message });
   }
 };
