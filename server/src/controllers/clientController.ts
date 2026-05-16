@@ -50,7 +50,7 @@ export const createClient = async (req: Request, res: Response) => {
 };
 
 export const setClientProjection = async (req: Request, res: Response) => {
-  const { client_id, month, target_hours } = req.body;
+  const { id, client_id, month, target_hours } = req.body;
 
   if (!client_id || !month || target_hours === undefined) {
     return res.status(400).json({ error: 'Missing client_id, month, or target_hours' });
@@ -59,7 +59,7 @@ export const setClientProjection = async (req: Request, res: Response) => {
   try {
     const { data, error } = await supabase
       .from('client_projections')
-      .upsert([{ client_id, month, target_hours }], { onConflict: 'client_id,month' })
+      .upsert([{ id, client_id, month, target_hours }], { onConflict: 'client_id,month' })
       .select();
 
     if (error) throw error;

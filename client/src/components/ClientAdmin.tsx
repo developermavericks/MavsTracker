@@ -24,6 +24,7 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
   const [projectionsList, setProjectionsList] = useState<any[]>([]);
   const [savingProj, setSavingProj] = useState(false);
   const [projLoading, setProjLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (activeSubTab === 'actuals') fetchSummary();
@@ -94,6 +95,7 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
       await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients/projections`, {
         method: 'POST',
         body: JSON.stringify({
+          id: editingId, // Pass ID if editing
           client_id: clientObj.id,
           month: projMonth,
           target_hours: parseFloat(projHours)
@@ -101,6 +103,7 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
       });
       
       setProjHours('');
+      setEditingId(null);
       fetchProjections();
     } catch (err: any) {
       console.error('Projection Save Error:', err);
@@ -108,6 +111,14 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
     } finally {
       setSavingProj(false);
     }
+  };
+
+  const startEdit = (p: any) => {
+    setEditingId(p.id);
+    setProjClient(p.clients.name);
+    setProjMonth(p.month);
+    setProjHours(p.target_hours.toString());
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteProjection = async (id: string) => {
@@ -240,9 +251,9 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-8">
                 <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
-                  <Target className="w-6 h-6" />
+                  {editingId ? <Edit3 className="w-6 h-6" /> : <Target className="w-6 h-6" />}
                 </div>
-                <h3 className="text-2xl font-bold">New Monthly Projection</h3>
+                <h3 className="text-2xl font-bold">{editingId ? 'Edit Projection' : 'New Monthly Projection'}</h3>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end">
@@ -300,9 +311,10 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
                         handleAddProjection();
                       }}
                       disabled={savingProj}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-orange-600 text-white p-2.5 rounded-xl hover:bg-orange-700 transition-all disabled:opacity-50"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-orange-600 text-white p-2.5 rounded-xl hover:bg-orange-700 transition-all disabled:opacity-50 flex items-center gap-2"
                     >
-                      {savingProj ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
+                      {savingProj ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingId ? <CheckCircle2 className="w-5 h-5" /> : <Plus className="w-5 h-5" />)}
+                      {editingId && !savingProj && <span className="text-xs font-bold pr-1">Update</span>}
                     </button>
                   </div>
                 </div>
@@ -368,7 +380,10 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
                     />
                   </div>
 
-                  <button className="w-full py-2 bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-orange-50 hover:text-orange-600 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2">
+                  <button 
+                    onClick={() => startEdit(p)}
+                    className="w-full py-2 bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-orange-50 hover:text-orange-600 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2"
+                  >
                     <Edit3 className="w-3 h-3" />
                     Edit Projection
                   </button>
