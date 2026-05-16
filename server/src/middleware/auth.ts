@@ -34,15 +34,54 @@ export const authenticate = async (req: AuthRequest, res: Response, Next: NextFu
       return res.status(403).json({ error: 'Access denied: Unauthorized domain' });
     }
 
-    // Check database for existing user and role
-    const { data: existingUser } = await supabase
+    // 1. First, check if a user exists with this ID
+    const { data: userById } = await supabase
       .from('users')
-      .select('id, role')
+      .select('*')
       .eq('id', user.id)
       .single();
 
+    let existingUser = userById;
+
+    // 2. If not found by ID, check by EMAIL (this handles placeholders)
     if (!existingUser) {
-      // For NEW users, insert with metadata
+      const { data: userByEmail } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single();
+      
+      if (userByEmail) {
+        console.log(`[AUTH] Linking placeholder account for ${email}`);
+        const oldId = userByEmail.id;
+        const newId = user.id;
+
+        // Update referencing tables to the new ID
+        await supabase.from('teams').update({ manager_id: newId }).eq('manager_id', oldId);
+        await supabase.from('teams').update({ member_id: newId }).eq('member_id', oldId);
+        await supabase.from('allocations_monthly').update({ user_id: newId }).eq('user_id', oldId);
+        await supabase.from('allocations_weekly').update({ user_id: newId }).eq('user_id', oldId);
+
+        // Finally update the user record itself with the new ID and metadata
+        const { data: updatedUser, error: updateError } = await supabase
+          .from('users')
+          .update({
+            id: newId,
+            name: user.user_metadata?.full_name || userByEmail.name || email.split('@')[0],
+            picture: user.user_metadata?.avatar_url || userByEmail.picture,
+            last_login: new Date().toISOString()
+          })
+          .eq('id', oldId)
+          .select()
+          .single();
+        
+        if (updateError) console.error('[AUTH] Linking error:', updateError);
+        existingUser = updatedUser;
+      }
+    }
+
+    if (!existingUser) {
+      // For completely NEW users not in our list
       await supabase.from('users').insert([{
         id: user.id,
         email: user.email,
@@ -53,7 +92,7 @@ export const authenticate = async (req: AuthRequest, res: Response, Next: NextFu
       }]);
       (req as any).user_role = 'team';
     } else {
-      // For EXISTING users, update metadata and last_login
+      // For EXISTING users already linked
       await supabase.from('users').update({
         name: user.user_metadata?.full_name || existingUser.name || user.email?.split('@')[0],
         picture: user.user_metadata?.avatar_url || existingUser.picture,
