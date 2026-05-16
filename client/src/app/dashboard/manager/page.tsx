@@ -34,12 +34,7 @@ export default function ManagerPortal() {
           const data = await res.json();
           const role = data.role || 'team';
           setUserRole(role);
-          
-          if (role === 'core') {
-            fetchAllMembers();
-          } else {
-            fetchMembers(user.id);
-          }
+          fetchMembers(user.id);
         } catch (err) {
           console.error('Failed to fetch role/members:', err);
           fetchMembers(user.id); // Fallback
@@ -79,16 +74,6 @@ export default function ManagerPortal() {
       setMembers(data);
     } catch (err) {
       console.error('Failed to fetch members:', err);
-    }
-  };
-
-  const fetchAllMembers = async () => {
-    try {
-      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/all`);
-      const data = await response.json();
-      setMembers(data);
-    } catch (err) {
-      console.error('Failed to fetch all members:', err);
     }
   };
 
