@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, User, ArrowLeft, Search, Calendar } from 'lucide-react';
+import { LayoutDashboard, Users, User, ArrowLeft, Search, Calendar, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { apiFetch } from '@/lib/api';
 import StatsCard from '@/components/StatsCard';
@@ -194,7 +194,6 @@ export default function ManagerPortal() {
                       >
                         Projected
                       </button>
-                    </div>
                     <div className="bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider">
                       {reportKind === 'weekly' ? 'Actual' : 'Projected'} Total: {totalMemberHours.toFixed(1)}h
                     </div>
