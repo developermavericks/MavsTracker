@@ -119,29 +119,29 @@ export default function ManagerPortal() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Manager Portal</h1>
           <p className="text-slate-500 mt-1">Oversee team performance and manage your own time.</p>
         </div>
-        <div className="flex bg-white border border-slate-200 rounded-xl shadow-sm relative z-20">
+        <div className="flex bg-white border border-slate-200 rounded-xl shadow-sm relative z-[100] overflow-visible">
           <select 
             value={month.split('-')[1]} 
             onChange={(e) => setMonth(`${month.split('-')[0]}-${e.target.value}`)}
-            className="px-4 py-2 text-sm font-bold bg-transparent border-none focus:ring-0 outline-none cursor-pointer text-slate-900 min-w-[110px]"
+            className="px-4 py-2 text-sm font-bold bg-white border-none focus:ring-0 outline-none cursor-pointer text-slate-900 min-w-[120px] rounded-l-xl"
           >
             {['01','02','03','04','05','06','07','08','09','10','11','12'].map(m => (
-              <option key={m} value={m} className="text-slate-900">{new Date(2024, parseInt(m)-1).toLocaleString('en-US', { month: 'long' })}</option>
+              <option key={m} value={m} className="bg-white text-slate-900">{new Date(2024, parseInt(m)-1).toLocaleString('en-US', { month: 'long' })}</option>
             ))}
           </select>
           <div className="w-[1px] bg-slate-100 my-2" />
           <select 
             value={month.split('-')[0]} 
             onChange={(e) => setMonth(`${e.target.value}-${month.split('-')[1]}`)}
-            className="px-4 py-2 text-sm font-bold bg-transparent border-none focus:ring-0 outline-none cursor-pointer text-indigo-600 min-w-[80px]"
+            className="px-4 py-2 text-sm font-bold bg-white border-none focus:ring-0 outline-none cursor-pointer text-indigo-600 min-w-[90px] rounded-r-xl"
           >
             {[2024, 2025, 2026, 2027].map(y => (
-              <option key={y} value={y} className="text-slate-900">{y}</option>
+              <option key={y} value={y} className="bg-white text-slate-900">{y}</option>
             ))}
           </select>
         </div>

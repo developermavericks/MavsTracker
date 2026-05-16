@@ -12,11 +12,10 @@
   --font-display: var(--font-outfit), var(--font-sans);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617;
-    --foreground: #f8fafc;
-  }
+/* Force light mode variables to prevent contrast issues with system dark mode */
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
 }
 
 body {
