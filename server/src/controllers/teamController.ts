@@ -51,13 +51,30 @@ export const getMemberAllocations = async (req: Request, res: Response) => {
 
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const { data, error } = await supabase
+    // Fetch users
+    const { data: users, error: usersError } = await supabase
       .from('users')
       .select('*')
       .order('name', { ascending: true });
 
-    if (error) throw error;
-    res.json(data);
+    if (usersError) throw usersError;
+
+    // Fetch all unique manager IDs from teams table
+    const { data: managers, error: managersError } = await supabase
+      .from('teams')
+      .select('manager_id');
+
+    if (managersError) throw managersError;
+
+    const managerIds = new Set(managers.map((m: any) => m.manager_id));
+
+    // Append is_manager flag
+    const usersWithManagerStatus = users.map((u: any) => ({
+      ...u,
+      is_manager: managerIds.has(u.id)
+    }));
+
+    res.json(usersWithManagerStatus);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

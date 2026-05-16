@@ -165,31 +165,61 @@ export default function CorePortal() {
                   <tbody className="divide-y divide-slate-100">
                     {loading ? (
                        <tr><td colSpan={4} className="text-center py-10"><div className="animate-spin inline-block w-6 h-6 border-b-2 border-orange-600 rounded-full"></div></td></tr>
-                    ) : users.map(u => (
-                      <tr key={u.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4 flex items-center gap-3">
-                          {u.picture ? <img src={u.picture} className="w-8 h-8 rounded-full" /> : <UserIcon className="w-8 h-8 p-1 bg-slate-100 rounded-full text-slate-400" />}
-                          <span className="text-sm font-bold text-slate-900">{u.name || 'Unknown'}</span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-slate-600">{u.email}</td>
-                        <td className="px-6 py-4 text-sm text-right">
-                          <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-1 rounded-md uppercase">{u.role}</span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <button 
-                            onClick={async () => {
-                              if (confirm(`Remove ${u.email}? This will revoke their access immediately.`)) {
-                                await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/users/${u.id}`, { method: 'DELETE' });
-                                fetchUsers();
-                              }
-                            }}
-                            className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    ) : users.map(u => {
+                      // Role priority: Core > Manager > Team
+                      let displayRole = u.role?.toUpperCase() || 'TEAM';
+                      if (u.role === 'core') displayRole = 'CORE';
+                      else if (u.is_manager) displayRole = 'MANAGER';
+                      else displayRole = 'TEAM';
+
+                      const roleColor = 
+                        displayRole === 'CORE' ? 'bg-orange-100 text-orange-700' :
+                        displayRole === 'MANAGER' ? 'bg-indigo-100 text-indigo-700' :
+                        'bg-slate-100 text-slate-600';
+
+                      // Avatar Color Logic
+                      const colors = ['bg-emerald-600', 'bg-blue-600', 'bg-indigo-600', 'bg-rose-600', 'bg-amber-600', 'bg-violet-600', 'bg-cyan-600'];
+                      const colorIndex = (u.email?.length || 0) % colors.length;
+                      const avatarColor = colors[colorIndex];
+                      const initial = (u.name?.[0] || u.email?.[0] || '?').toUpperCase();
+
+                      return (
+                        <tr key={u.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-6 py-4 flex items-center gap-3">
+                            {u.picture ? (
+                              <img src={u.picture} className="w-9 h-9 rounded-xl object-cover shadow-sm ring-2 ring-white" />
+                            ) : (
+                              <div className={`w-9 h-9 ${avatarColor} rounded-xl flex items-center justify-center text-white text-sm font-black shadow-sm ring-2 ring-white`}>
+                                {initial}
+                              </div>
+                            )}
+                            <div>
+                              <span className="text-sm font-bold text-slate-900 block leading-tight">{u.name || u.email.split('@')[0]}</span>
+                              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{u.email.split('@')[1]}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-600 font-medium">{u.email}</td>
+                          <td className="px-6 py-4 text-sm text-right">
+                            <span className={`${roleColor} text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest`}>
+                              {displayRole}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <button 
+                              onClick={async () => {
+                                if (confirm(`Remove ${u.email}? This will revoke their access immediately.`)) {
+                                  await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/users/${u.id}`, { method: 'DELETE' });
+                                  fetchUsers();
+                                }
+                              }}
+                              className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
