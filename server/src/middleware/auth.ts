@@ -42,16 +42,24 @@ export const authenticate = async (req: AuthRequest, res: Response, Next: NextFu
       .single();
 
     if (!existingUser) {
-      // For NEW users, default to 'team'
+      // For NEW users, insert with metadata
       await supabase.from('users').insert([{
         id: user.id,
         email: user.email,
         name: user.user_metadata?.full_name || user.email?.split('@')[0],
         picture: user.user_metadata?.avatar_url,
-        role: 'team' // New users start as team
+        role: 'team',
+        last_login: new Date().toISOString()
       }]);
       (req as any).user_role = 'team';
     } else {
+      // For EXISTING users, update metadata and last_login
+      await supabase.from('users').update({
+        name: user.user_metadata?.full_name || existingUser.name || user.email?.split('@')[0],
+        picture: user.user_metadata?.avatar_url || existingUser.picture,
+        last_login: new Date().toISOString()
+      }).eq('id', user.id);
+      
       (req as any).user_role = existingUser.role;
     }
     req.user = user;
