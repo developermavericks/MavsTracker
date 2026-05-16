@@ -78,11 +78,12 @@ export const requireRole = (allowedRoles: string[]) => {
         return res.status(403).json({ error: 'User role not found' });
       }
 
-      if (!allowedRoles.includes(userData.role)) {
+      // 'core' role has access to everything
+      if (userData.role === 'core' || allowedRoles.includes(userData.role)) {
+        next();
+      } else {
         return res.status(403).json({ error: 'Access denied: insufficient permissions' });
       }
-
-      next();
     } catch (error) {
       res.status(500).json({ error: 'Internal server error' });
     }

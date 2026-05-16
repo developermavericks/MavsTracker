@@ -14,4 +14,6 @@ router.get('/me', (req, res) => {
   res.json({ role: (req as any).user_role || 'team' });
 });
 
+router.delete('/users/:id', requireRole(['core']), deleteUser);
+
 export default router;

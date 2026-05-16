@@ -56,19 +56,23 @@ export default function Sidebar() {
     const fetchRole = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const { data: { user } } = await supabase.auth.getUser();
+        let role = 'team';
+
         const response = await apiFetch(`${apiUrl}/api/teams/me`);
         if (response.ok) {
           const data = await response.json();
-          setUserRole(data.role || 'team');
-        } else {
-          // Fallback to email list ONLY if API fails
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user?.email) {
-            const email = user.email.toLowerCase();
-            if (CORE_EMAILS.includes(email)) setUserRole('core');
-            else if (MANAGER_EMAILS.includes(email)) setUserRole('manager');
-          }
+          role = data.role || 'team';
         }
+
+        // Hardcoded overrides (useful for new users or list updates)
+        if (user?.email) {
+          const email = user.email.toLowerCase();
+          if (CORE_EMAILS.includes(email)) role = 'core';
+          else if (MANAGER_EMAILS.includes(email) && role === 'team') role = 'manager';
+        }
+
+        setUserRole(role);
       } catch (err) {
         console.error('Failed to fetch role:', err);
       } finally {

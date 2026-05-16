@@ -20,13 +20,33 @@ export default function ManagerPortal() {
   const [selectedMember, setSelectedMember] = useState<any | null>(null);
   const [memberAllocations, setMemberAllocations] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState('team');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-      if (data.user) fetchMembers(data.user.id);
-    });
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      
+      if (user) {
+        try {
+          const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/me`);
+          const data = await res.json();
+          const role = data.role || 'team';
+          setUserRole(role);
+          
+          if (role === 'core') {
+            fetchAllMembers();
+          } else {
+            fetchMembers(user.id);
+          }
+        } catch (err) {
+          console.error('Failed to fetch role/members:', err);
+          fetchMembers(user.id); // Fallback
+        }
+      }
+    };
+    init();
   }, []);
 
   useEffect(() => {
@@ -59,6 +79,16 @@ export default function ManagerPortal() {
       setMembers(data);
     } catch (err) {
       console.error('Failed to fetch members:', err);
+    }
+  };
+
+  const fetchAllMembers = async () => {
+    try {
+      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/all`);
+      const data = await response.json();
+      setMembers(data);
+    } catch (err) {
+      console.error('Failed to fetch all members:', err);
     }
   };
 
