@@ -88,12 +88,12 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
       const internalClient = clients.find(c => c.name.toLowerCase() === 'internal');
       const defaultClientId = internalClient?.id || ''; 
 
-      // Initialize events with default client, category, and empty notes
+      // Initialize events with default client, category, and event title as notes
       const initializedEvents = data.map((ev: any) => ({
         ...ev,
         client_id: defaultClientId,
         category: '', // Empty default
-        notes: '' 
+        notes: ev.title // Default notes to event title
       }));
 
       setEvents(initializedEvents);
@@ -225,7 +225,12 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
                     </div>
                     <div>
                       <h4 className="font-bold text-slate-900">{event.title}</h4>
-                      <p className="text-xs text-slate-500">{event.count} meetings • {event.hours.toFixed(2)}h total</p>
+                      <p className="text-xs text-slate-500">
+                        <span className="font-bold text-blue-600 mr-2">
+                          {new Date(event.start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                        • {event.count} {event.count === 1 ? 'meeting' : 'meetings'} • {event.hours.toFixed(2)}h total
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">

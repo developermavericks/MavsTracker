@@ -50,7 +50,8 @@ export const fetchCalendarEvents = async (accessToken: string, startDate: string
         if (isNaN(duration) || duration <= 0) continue;
 
         const title = ev.summary || 'Untitled';
-        const key = title.toLowerCase().trim();
+        const dateKey = start.toISOString().split('T')[0];
+        const key = `${title.toLowerCase().trim()}_${dateKey}`;
 
         if (!buckets[key]) {
           buckets[key] = {
