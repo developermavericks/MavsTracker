@@ -52,7 +52,7 @@ export default function SearchableSelect({ options, value, onChange, placeholder
       </div>
 
       {isOpen && (
-        <div className={`absolute z-[9999] top-full left-0 right-0 mt-1 bg-white !text-slate-900 border border-slate-200 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${dropdownClassName}`}>
+        <div className={`absolute z-[9999] top-full left-0 min-w-full w-max max-w-[90vw] mt-1 bg-white !text-slate-900 border border-slate-200 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${dropdownClassName}`}>
           <div className="p-2 border-b border-slate-100 flex items-center gap-2">
             <Search className="w-4 h-4 text-slate-400 ml-1" />
             <input 
@@ -76,7 +76,7 @@ export default function SearchableSelect({ options, value, onChange, placeholder
                     setIsOpen(false);
                     setSearch('');
                   }}
-                  className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${
+                  className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors whitespace-nowrap ${
                     opt.value === value 
                       ? 'bg-blue-50 text-blue-700 font-bold' 
                       : 'text-slate-700 font-bold hover:bg-slate-50'
