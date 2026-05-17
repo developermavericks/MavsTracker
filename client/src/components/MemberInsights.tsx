@@ -47,6 +47,10 @@ export default function MemberInsights({ month: initialMonth }: { month: string 
     fetchDbUsers();
   }, []);
 
+  useEffect(() => {
+    setInternalMonth(initialMonth);
+  }, [initialMonth]);
+
   const fetchDbUsers = async () => {
     try {
       const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/all`);
@@ -92,6 +96,12 @@ export default function MemberInsights({ month: initialMonth }: { month: string 
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (selectedEmail) {
+      fetchMemberReport();
+    }
+  }, [selectedEmail, internalMonth]);
 
   // Logic for Zero Hour Members
   const [zeroHourMembers, setZeroHourMembers] = useState<string[]>([]);
