@@ -401,7 +401,7 @@ export default function CorePortal() {
                       );
                     })}
                   </tbody>
-                  {!loading && processedReport?.rows?.length > 0 && (
+                  {!loading && processedReport && processedReport.rows.length > 0 && (
                     <tfoot className="bg-slate-900 shadow-xl border-t-2 border-slate-900">
                       <tr>
                         <td className="px-6 py-4 text-sm font-bold text-white sticky left-0 bg-slate-900 z-10 uppercase tracking-widest">Grand Total</td>
