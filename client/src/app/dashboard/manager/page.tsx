@@ -19,6 +19,8 @@ export default function ManagerPortal() {
   const [activeEmailsError, setActiveEmailsError] = useState<string | null>(null);
   const [selectedMember, setSelectedMember] = useState<any | null>(null);
   const [memberAllocations, setMemberAllocations] = useState<any[]>([]);
+  const [myAllocations, setMyAllocations] = useState<any[]>([]);
+  const [myLoading, setMyLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState('team');
   const [loading, setLoading] = useState(false);
@@ -80,7 +82,7 @@ export default function ManagerPortal() {
   const fetchMemberAllocations = async (memberId: string) => {
     setLoading(true);
     try {
-      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/allocations?memberId=${memberId}&month=${month}`);
+      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/allocations?memberId=${memberId}&month=${month}&kind=${reportKind}`);
       const data = await response.json();
       setMemberAllocations(data || []);
     } catch (err) {
@@ -95,9 +97,31 @@ export default function ManagerPortal() {
     if (selectedMember) {
       fetchMemberAllocations(selectedMember.id);
     }
-  }, [selectedMember, month]);
+  }, [selectedMember, month, reportKind]);
+
+  const fetchMyAllocations = async () => {
+    if (!user) return;
+    setMyLoading(true);
+    try {
+      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/allocations?memberId=${user.id}&month=${month}&kind=${reportKind}`);
+      const data = await response.json();
+      setMyAllocations(data || []);
+    } catch (err) {
+      console.error('Failed to fetch my allocations:', err);
+      setMyAllocations([]);
+    } finally {
+      setMyLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'self') {
+      fetchMyAllocations();
+    }
+  }, [activeTab, month, reportKind, user]);
 
   const totalMemberHours = memberAllocations.reduce((acc, curr) => acc + (curr.hours || 0), 0);
+  const totalMyHours = myAllocations.reduce((acc, curr) => acc + (curr.hours || 0), 0);
 
   const activeMembers = members.filter(m => activeEmails.includes(m.email.toLowerCase()));
   const inactiveMembers = members.filter(m => !activeEmails.includes(m.email.toLowerCase()));
@@ -156,10 +180,32 @@ export default function ManagerPortal() {
 
         <div className="p-8">
           {activeTab === 'self' ? (
-            <div className="space-y-6 text-center py-20 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-              <User className="w-12 h-12 text-slate-300 mx-auto" />
-              <h3 className="text-lg font-bold text-slate-900">Personal View Under Development</h3>
-              <p className="text-slate-500 max-w-sm mx-auto text-sm">Please use the Team Portal for logging your own time. This view will eventually show your personal summary.</p>
+            <div className="space-y-6 animate-in slide-in-from-right duration-300">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-slate-900">My Allocations</h2>
+                <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => setReportKind(reportKind === 'weekly' ? 'projected' : 'weekly')}
+                    className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${reportKind === 'projected' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'}`}
+                  >
+                    View: {reportKind === 'weekly' ? 'Actual' : 'Projected'}
+                  </button>
+                  <div className="bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider">
+                    Total: {totalMyHours.toFixed(1)}h
+                  </div>
+                </div>
+              </div>
+
+              {myLoading ? (
+                <div className="flex justify-center py-20">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest px-1">Detailed Logs - {new Date(month + '-02').toLocaleString('en-US', { month: 'long', year: 'numeric' })}</h4>
+                  <AllocationsTable data={myAllocations} type={reportKind} />
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-12">
@@ -205,7 +251,7 @@ export default function ManagerPortal() {
                   ) : (
                     <div className="space-y-4">
                       <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest px-1">Detailed Logs - {new Date(month + '-02').toLocaleString('en-US', { month: 'long', year: 'numeric' })}</h4>
-                      <AllocationsTable data={memberAllocations} type="weekly" />
+                      <AllocationsTable data={memberAllocations} type={reportKind} />
                     </div>
                   )}
                 </div>
