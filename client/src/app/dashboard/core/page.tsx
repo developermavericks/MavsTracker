@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Settings, FileText, Briefcase, Download, Plus, Search, ShieldCheck, User as UserIcon, Users, Trash2 } from 'lucide-react';
 import StatsCard from '@/components/StatsCard';
 import { apiFetch } from '@/lib/api';
@@ -16,6 +16,55 @@ export default function CorePortal() {
   const [users, setUsers] = useState<any[]>([]);
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [groupBD, setGroupBD] = useState(false);
+  const [groupInternal, setGroupInternal] = useState(false);
+
+  // Computed values for master report grouping
+  const processedReport = useMemo(() => {
+    if (!report) return null;
+
+    let columns = [...report.clients];
+    let rows = JSON.parse(JSON.stringify(report.rows));
+
+    const bdKeywords = ['bd', 'business development'];
+    const internalKeywords = ['internal'];
+
+    if (groupBD) {
+      const bdColumns = columns.filter(c => bdKeywords.some(kw => c.toLowerCase().includes(kw)));
+      if (bdColumns.length > 0) {
+        columns = columns.filter(c => !bdColumns.includes(c));
+        columns.push('Total BD');
+
+        rows.forEach((row: any) => {
+          let bdTotal = 0;
+          bdColumns.forEach(c => {
+            bdTotal += (row.allocations[c] || 0);
+            delete row.allocations[c];
+          });
+          if (bdTotal > 0) row.allocations['Total BD'] = bdTotal;
+        });
+      }
+    }
+
+    if (groupInternal) {
+      const intColumns = columns.filter(c => internalKeywords.some(kw => c.toLowerCase().includes(kw)));
+      if (intColumns.length > 0) {
+        columns = columns.filter(c => !intColumns.includes(c));
+        columns.push('Total Internal');
+
+        rows.forEach((row: any) => {
+          let intTotal = 0;
+          intColumns.forEach(c => {
+            intTotal += (row.allocations[c] || 0);
+            delete row.allocations[c];
+          });
+          if (intTotal > 0) row.allocations['Total Internal'] = intTotal;
+        });
+      }
+    }
+
+    return { columns, rows };
+  }, [report, groupBD, groupInternal]);
 
   useEffect(() => {
     if (activeTab === 'clients') fetchClients();
@@ -259,6 +308,37 @@ export default function CorePortal() {
                   <p className="text-sm text-slate-500 font-medium">Viewing data for {new Date(month + '-02').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 relative z-[100]">
+                  <div className="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <div className="relative flex items-center">
+                        <input 
+                          type="checkbox" 
+                          checked={groupBD} 
+                          onChange={(e) => setGroupBD(e.target.checked)}
+                          className="peer appearance-none w-4 h-4 border-2 border-slate-300 rounded focus:ring-2 focus:ring-orange-600 focus:ring-offset-1 checked:bg-orange-600 checked:border-orange-600 transition-all cursor-pointer"
+                        />
+                        <svg className="absolute w-4 h-4 pointer-events-none opacity-0 peer-checked:opacity-100 text-white stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      </div>
+                      <span className="text-xs font-bold text-slate-700 uppercase tracking-wider group-hover:text-orange-600 transition-colors">Group BD</span>
+                    </label>
+                    <div className="w-[1px] h-4 bg-slate-300" />
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <div className="relative flex items-center">
+                        <input 
+                          type="checkbox" 
+                          checked={groupInternal} 
+                          onChange={(e) => setGroupInternal(e.target.checked)}
+                          className="peer appearance-none w-4 h-4 border-2 border-slate-300 rounded focus:ring-2 focus:ring-orange-600 focus:ring-offset-1 checked:bg-orange-600 checked:border-orange-600 transition-all cursor-pointer"
+                        />
+                        <svg className="absolute w-4 h-4 pointer-events-none opacity-0 peer-checked:opacity-100 text-white stroke-current" viewBox="0 0 24 24" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      </div>
+                      <span className="text-xs font-bold text-slate-700 uppercase tracking-wider group-hover:text-orange-600 transition-colors">Group Internal</span>
+                    </label>
+                  </div>
                   <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 overflow-visible">
                     <select 
                       value={month.split('-')[1]} 
@@ -295,8 +375,8 @@ export default function CorePortal() {
                   <thead className="bg-slate-50">
                     <tr>
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase sticky left-0 bg-slate-50 z-10">Member</th>
-                      {report?.clients.map((c: string) => (
-                        <th key={c} className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">{c}</th>
+                      {processedReport?.columns.map((c: string) => (
+                        <th key={c} className={`px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right ${c.startsWith('Total ') ? 'text-orange-600 bg-orange-50/50' : ''}`}>{c}</th>
                       ))}
                       <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right font-black bg-slate-100">Total</th>
                     </tr>
@@ -304,13 +384,13 @@ export default function CorePortal() {
                   <tbody className="divide-y divide-slate-100">
                     {loading ? (
                        <tr><td colSpan={10} className="text-center py-10"><div className="animate-spin inline-block w-6 h-6 border-b-2 border-orange-600 rounded-full"></div></td></tr>
-                    ) : report?.rows.map((row: any) => {
+                    ) : processedReport?.rows.map((row: any) => {
                       const total = Object.values(row.allocations).reduce((acc: number, curr: any) => acc + (curr as number), 0);
                       return (
-                        <tr key={row.email} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-6 py-4 text-sm font-bold text-slate-900 sticky left-0 bg-white group-hover:bg-slate-50 z-10">{row.name}</td>
-                          {report.clients.map((c: string) => (
-                            <td key={c} className="px-6 py-4 text-sm text-slate-600 font-mono text-right">
+                        <tr key={row.email} className="hover:bg-slate-50 transition-colors group/row">
+                          <td className="px-6 py-4 text-sm font-bold text-slate-900 sticky left-0 bg-white group-hover/row:bg-slate-50 z-10">{row.name}</td>
+                          {processedReport.columns.map((c: string) => (
+                            <td key={c} className={`px-6 py-4 text-sm text-slate-600 font-mono text-right ${c.startsWith('Total ') ? 'font-black bg-orange-50/30 text-orange-900' : ''}`}>
                               {(row.allocations[c] || 0).toFixed(2)}
                             </td>
                           ))}
