@@ -24,6 +24,7 @@ export default function ManagerPortal() {
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState('team');
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const init = async () => {
@@ -123,8 +124,13 @@ export default function ManagerPortal() {
   const totalMemberHours = memberAllocations.reduce((acc, curr) => acc + (curr.hours || 0), 0);
   const totalMyHours = myAllocations.reduce((acc, curr) => acc + (curr.hours || 0), 0);
 
-  const activeMembers = members.filter(m => activeEmails.includes(m.email.toLowerCase()));
-  const inactiveMembers = members.filter(m => !activeEmails.includes(m.email.toLowerCase()));
+  const filteredMembers = members.filter(m => 
+    (m.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (m.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const activeMembers = filteredMembers.filter(m => activeEmails.includes(m.email.toLowerCase()));
+  const inactiveMembers = filteredMembers.filter(m => !activeEmails.includes(m.email.toLowerCase()));
 
   return (
     <div className="space-y-8">
@@ -263,6 +269,8 @@ export default function ManagerPortal() {
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                       <input 
                         type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search team members..."
                         className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-12 pr-4 py-3.5 text-sm font-bold outline-none focus:bg-white focus:ring-4 focus:ring-indigo-600/5 transition-all shadow-sm"
                       />
