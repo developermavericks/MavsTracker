@@ -168,7 +168,7 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
                  className="pl-4 pr-2 py-2.5 text-sm font-bold bg-transparent border-none focus:ring-0 outline-none cursor-pointer"
                >
                  {['01','02','03','04','05','06','07','08','09','10','11','12'].map(m => (
-                   <option key={m} value={m}>{new Date(2024, parseInt(m)-1).toLocaleString('en-US', { month: 'long' })}</option>
+                   <option key={m} value={m}>{new Date(2025, parseInt(m)-1).toLocaleString('en-US', { month: 'long' })}</option>
                  ))}
                </select>
                <div className="w-[1px] bg-slate-200 my-2" />
@@ -177,7 +177,7 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
                  onChange={(e) => setSelectedMonth(`${e.target.value}-${selectedMonth.split('-')[1]}`)}
                  className="pl-2 pr-4 py-2.5 text-sm font-bold bg-transparent border-none focus:ring-0 outline-none cursor-pointer text-orange-600"
                >
-                 {[2024, 2025, 2026, 2027].map(y => (
+                 {[2025, 2026, 2027, 2028, 2029, 2030].map(y => (
                    <option key={y} value={y}>{y}</option>
                  ))}
                </select>
@@ -277,7 +277,7 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
                       className="pl-5 pr-2 py-3.5 text-sm font-bold bg-transparent border-none focus:ring-0 outline-none cursor-pointer text-white"
                     >
                       {['01','02','03','04','05','06','07','08','09','10','11','12'].map(m => (
-                        <option key={m} value={m} className="text-slate-900">{new Date(2024, parseInt(m)-1).toLocaleString('en-US', { month: 'long' })}</option>
+                        <option key={m} value={m} className="text-slate-900">{new Date(2025, parseInt(m)-1).toLocaleString('en-US', { month: 'long' })}</option>
                       ))}
                     </select>
                     <div className="w-[1px] bg-white/20 my-2" />
@@ -286,7 +286,7 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
                       onChange={(e) => setProjMonth(`${e.target.value}-${projMonth.split('-')[1]}`)}
                       className="pl-2 pr-5 py-3.5 text-sm font-bold bg-transparent border-none focus:ring-0 outline-none cursor-pointer text-orange-200"
                     >
-                      {[2024, 2025, 2026, 2027].map(y => (
+                      {[2025, 2026, 2027, 2028, 2029, 2030].map(y => (
                         <option key={y} value={y} className="text-slate-900">{y}</option>
                       ))}
                     </select>

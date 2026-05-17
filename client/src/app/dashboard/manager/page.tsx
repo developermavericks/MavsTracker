@@ -146,7 +146,7 @@ export default function ManagerPortal() {
             className="px-4 py-2 text-sm font-bold bg-white border-none focus:ring-0 outline-none cursor-pointer text-slate-900 min-w-[120px] rounded-l-xl"
           >
             {['01','02','03','04','05','06','07','08','09','10','11','12'].map(m => (
-              <option key={m} value={m} className="bg-white text-slate-900">{new Date(2024, parseInt(m)-1).toLocaleString('en-US', { month: 'long' })}</option>
+              <option key={m} value={m} className="bg-white text-slate-900">{new Date(2025, parseInt(m)-1).toLocaleString('en-US', { month: 'long' })}</option>
             ))}
           </select>
           <div className="w-[1px] bg-slate-100 my-2" />
@@ -155,7 +155,7 @@ export default function ManagerPortal() {
             onChange={(e) => setMonth(`${e.target.value}-${month.split('-')[1]}`)}
             className="px-4 py-2 text-sm font-bold bg-white border-none focus:ring-0 outline-none cursor-pointer text-indigo-600 min-w-[90px] rounded-r-xl"
           >
-            {[2024, 2025, 2026, 2027].map(y => (
+            {[2025, 2026, 2027, 2028, 2029, 2030].map(y => (
               <option key={y} value={y} className="bg-white text-slate-900">{y}</option>
             ))}
           </select>

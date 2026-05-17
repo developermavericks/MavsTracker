@@ -149,7 +149,7 @@ export default function MemberInsights({ month: initialMonth }: { month: string 
                 >
                   {["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"].map(m => (
                     <option key={m} value={m} className="text-slate-900">
-                      {new Date(`2024-${m}-02`).toLocaleDateString('en-US', { month: 'long' })}
+                      {new Date(`2025-${m}-02`).toLocaleDateString('en-US', { month: 'long' })}
                     </option>
                   ))}
                 </select>
@@ -158,7 +158,7 @@ export default function MemberInsights({ month: initialMonth }: { month: string 
                   onChange={(e) => handleYearChange(e.target.value)}
                   className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3.5 text-sm text-white font-bold outline-none focus:ring-4 focus:ring-orange-500/20 transition-all cursor-pointer appearance-none"
                 >
-                  {[2024, 2025, 2026, 2027].map(y => (
+                  {[2025, 2026, 2027, 2028, 2029, 2030].map(y => (
                     <option key={y} value={y.toString()} className="text-slate-900">{y}</option>
                   ))}
                 </select>
