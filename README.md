@@ -107,7 +107,27 @@ The database has ironclad security policies active, preventing malicious or cros
     ```sql
     EXISTS (SELECT 1 FROM teams WHERE teams.manager_id = auth.uid() AND teams.member_id = allocations_weekly.user_id)
     ```
-*   **Core Access:** Core members/admins bypass restrictions and possess global read access over all client allocations and client settings.
+*   **Core Access:** Core members/admins possess global read access over all client allocations, database records, and settings.
+
+---
+
+## 💻 Operations & Roster Workflows
+
+MavsTracker is designed with role-based features optimized for corporate efficiency:
+
+### 👤 1. Core Members (Super Admins)
+*   **Roster Administration:** Add new team members, manage direct manager mappings, and assign database roles.
+*   **Client Management:** Add new clients and edit their active statuses.
+*   **Monthly Projections:** Edit client target efforts directly in the interface to align resource projections with monthly client budgets.
+
+### 👔 2. Managers
+*   **Roster Insights:** Access a consolidated list of team members currently mapped to them.
+*   **Productivity Reports:** Monitor weekly and monthly logged hours for all reporting resources.
+*   **Activity Auditing:** Identify active versus inactive resources in seconds to ensure all hours are locked in before reporting cycles end.
+
+### 🧑‍💻 3. Core Team Resources
+*   **Effort Logging:** Manually enter client, activity category, target hours, and specific notes in a clean UI.
+*   **Google Calendar Sync:** Hook into the calendar import workflow to instantly parse daily meetings into decimal hours, making logging seamless and accurate.
 
 ---
 
@@ -122,32 +142,15 @@ The calendar integration in MavsTracker goes far beyond basic event loading. It 
 
 ---
 
-## ⚙️ Environment Configurations
+## ⚙️ Environment Setup Guide
 
-Create your environment configuration files locally. These files are strictly locked out of Git for security:
+To get the application up and running locally, you must supply your own environment files which are kept entirely private from version control:
 
-### Server configuration: `server/.env`
-```ini
-PORT=5000
-NODE_ENV=production
-
-# Supabase Database Keys
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
-SUPABASE_ANON_KEY=your-supabase-anonymous-key
-
-# Google OAuth Integration
-GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-GOOGLE_REDIRECT_URI=https://mavs-tracker.vercel.app/auth/callback
-```
-
-### Client configuration: `client/.env.local`
-```ini
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anonymous-key
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
-```
+1.  **Server Environment:** Copy the template file provided in [server/.env.example](file:///d:/Time-Allocation-Project/Time-Allocation-Project/server/.env.example) to a new file named `server/.env` and replace the placeholder values with your live Supabase, JWT, and Google API keys.
+2.  **Client Environment:** Create a file named `client/.env.local` containing your public Supabase keys and API connection endpoint:
+    *   `NEXT_PUBLIC_SUPABASE_URL`
+    *   `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+    *   `NEXT_PUBLIC_API_URL`
 
 ---
 
@@ -160,7 +163,7 @@ Ensure you have **Node.js (v18+)** installed on your system.
 ```bash
 cd server
 npm install
-# Create an .env file inside server/ based on the Server Configuration guide above
+# Create your .env file inside server/ based on the Environment Setup Guide above
 npm run build
 npm start
 ```
@@ -169,7 +172,7 @@ npm start
 ```bash
 cd client
 npm install
-# Create an .env.local file inside client/ based on the Client Configuration guide above
+# Create your .env.local file inside client/ based on the Environment Setup Guide above
 npm run dev
 ```
 Open **`http://localhost:3000`** in your browser to view the application locally.
