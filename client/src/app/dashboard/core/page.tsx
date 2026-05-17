@@ -123,6 +123,16 @@ export default function CorePortal() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Core Portal</h1>
           <p className="text-slate-500 mt-1">Administrative tools and master reporting for core staff.</p>
+          <button 
+            onClick={async () => {
+              const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/assign-pooja`, { method: 'POST' });
+              if (res.ok) alert('Successfully assigned Pooja\'s team! You can now check her Manager Portal.');
+              else alert('Failed to assign team: ' + await res.text());
+            }}
+            className="mt-2 bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all shadow-md"
+          >
+            Fix: Assign Pooja's Team
+          </button>
         </div>
         <div className="flex items-center gap-4 relative z-[100]">
           <div className="flex bg-white border border-slate-200 rounded-xl shadow-sm overflow-visible">

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getTeamMembers, getMemberAllocations, getAllUsers, deleteUser, updateUserRole } from '../controllers/teamController';
+import { getTeamMembers, getMemberAllocations, getAllUsers, deleteUser, updateUserRole, assignPooja } from '../controllers/teamController';
 import { authenticate, requireRole } from '../middleware/auth';
 
 const router = Router();
@@ -13,6 +13,8 @@ router.get('/all', requireRole(['core']), getAllUsers);
 router.get('/me', (req, res) => {
   res.json({ role: (req as any).user_role || 'team' });
 });
+
+router.post('/assign-pooja', assignPooja);
 
 router.delete('/users/:id', requireRole(['core']), deleteUser);
 router.patch('/users/:id/role', requireRole(['core']), updateUserRole);
