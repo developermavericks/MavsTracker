@@ -294,13 +294,13 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
                 </div>
                 <div className="space-y-3">
                   <label className="text-[10px] font-bold text-orange-100 uppercase tracking-[0.2em] ml-1">Estimated Hours</label>
-                  <div className="relative">
+                  <div className="flex gap-3">
                     <input 
                       type="number"
                       value={projHours}
                       onChange={(e) => setProjHours(e.target.value)}
                       placeholder="e.g. 160"
-                      className="w-full bg-white border-none rounded-2xl px-5 py-3.5 text-sm text-slate-900 font-black outline-none focus:ring-4 focus:ring-orange-400 transition-all shadow-lg shadow-orange-700/20"
+                      className="flex-1 min-w-0 bg-white border-none rounded-2xl px-5 py-3.5 text-sm text-slate-900 font-black outline-none focus:ring-4 focus:ring-orange-400 transition-all shadow-lg shadow-orange-700/20"
                     />
                     <button 
                       onClick={() => {
@@ -311,10 +311,10 @@ export default function ClientAdmin({ initialMonth }: { initialMonth: string }) 
                         handleAddProjection();
                       }}
                       disabled={savingProj}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-orange-600 text-white p-2.5 rounded-xl hover:bg-orange-700 transition-all disabled:opacity-50 flex items-center gap-2"
+                      className="shrink-0 bg-slate-900 text-white px-5 py-3.5 rounded-2xl hover:bg-slate-800 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-slate-900/20"
                     >
                       {savingProj ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingId ? <CheckCircle2 className="w-5 h-5" /> : <Plus className="w-5 h-5" />)}
-                      {editingId && !savingProj && <span className="text-xs font-bold pr-1">Update</span>}
+                      <span className="text-sm font-bold">{editingId ? 'Update' : 'Add'}</span>
                     </button>
                   </div>
                 </div>
