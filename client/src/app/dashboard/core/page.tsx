@@ -401,6 +401,24 @@ export default function CorePortal() {
                       );
                     })}
                   </tbody>
+                  {!loading && processedReport?.rows?.length > 0 && (
+                    <tfoot className="bg-slate-900 shadow-xl border-t-2 border-slate-900">
+                      <tr>
+                        <td className="px-6 py-4 text-sm font-bold text-white sticky left-0 bg-slate-900 z-10 uppercase tracking-widest">Grand Total</td>
+                        {processedReport.columns.map((c: string) => {
+                          const colTotal = processedReport.rows.reduce((acc: number, row: any) => acc + (row.allocations[c] || 0), 0);
+                          return (
+                            <td key={c} className={`px-6 py-4 text-sm font-black font-mono text-right ${c.startsWith('Total ') ? 'text-orange-400 bg-slate-800' : 'text-slate-300'}`}>
+                              {colTotal.toFixed(2)}
+                            </td>
+                          );
+                        })}
+                        <td className="px-6 py-4 text-sm font-black font-mono text-right text-orange-400 bg-slate-800 border-l border-slate-700">
+                          {processedReport.rows.reduce((acc: number, row: any) => acc + Object.values(row.allocations).reduce((sum: number, val: any) => sum + (val as number), 0), 0).toFixed(2)}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  )}
                 </table>
               </div>
             </div>
