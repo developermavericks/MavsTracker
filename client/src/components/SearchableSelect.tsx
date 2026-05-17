@@ -43,12 +43,12 @@ export default function SearchableSelect({ options, value, onChange, placeholder
     <div ref={wrapperRef} className={`relative w-full ${className}`}>
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 flex justify-between items-center cursor-pointer hover:border-slate-300 transition-all ${triggerClassName}`}
+        className={`w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 flex justify-between items-center cursor-pointer hover:border-slate-300 transition-all min-w-0 ${triggerClassName}`}
       >
-        <span className={selectedOption ? "font-bold" : "text-slate-500 font-bold"}>
+        <span className={`truncate flex-1 text-left mr-2 ${selectedOption ? "font-bold" : "text-slate-500 font-bold"}`}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </div>
 
       {isOpen && (
