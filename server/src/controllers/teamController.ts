@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
-import { createClient } from '@supabase/supabase-js';
 
 export const getTeamMembers = async (req: Request, res: Response) => {
   const { managerId } = req.query;
@@ -107,42 +106,6 @@ export const updateUserRole = async (req: Request, res: Response) => {
     if (error) throw error;
     res.json({ success: true });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-export const assignPooja = async (req: Request, res: Response) => {
-  try {
-    const token = req.headers.authorization?.split(' ')[1];
-    
-    // We try to bypass using the auth client first
-    const authClient = token ? createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
-      global: { headers: { Authorization: `Bearer ${token}` } }
-    }) : supabase;
-
-    const { data: pooja } = await authClient.from('users').select('id').eq('email', 'pooja@themavericksindia.com').single();
-    if (!pooja) return res.status(404).json({ error: 'Pooja not found' });
-
-    const emails = ['arunkumar@themavericksindia.com', 'divyanshsharma@themavericksindia.com', 'satyam.singh@themavericksindia.com'];
-    const { data: members } = await authClient.from('users').select('id').in('email', emails);
-    if (!members) return res.status(404).json({ error: 'Members not found' });
-
-    const inserts = members.map((m: any) => ({ manager_id: pooja.id, member_id: m.id }));
-    
-    // Delete existing mappings
-    await authClient.from('teams').delete().in('member_id', members.map((m: any) => m.id));
-    
-    // Insert new mappings
-    const { error } = await authClient.from('teams').insert(inserts);
-    if (error) {
-      console.log("RLS failed with auth client, trying anon client as fallback");
-      const { error: anonError } = await supabase.from('teams').insert(inserts);
-      if (anonError) throw anonError;
-    }
-
-    res.json({ success: true, message: 'Mapped successfully' });
-  } catch (error: any) {
-    console.error('Assign error:', error);
     res.status(500).json({ error: error.message });
   }
 };
