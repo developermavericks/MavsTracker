@@ -114,6 +114,24 @@ export default function AllocationsTable({ data, type, displayMode = 'detailed',
             })
           )}
         </tbody>
+        {displayData.length > 0 && (
+          <tfoot className="bg-slate-50 border-t-2 border-slate-200">
+            <tr>
+              <td 
+                colSpan={displayMode === 'detailed' ? (type === 'weekly' ? 4 : 3) : 1} 
+                className="px-6 py-4 text-sm font-black text-slate-900 text-right"
+              >
+                GRAND TOTAL
+              </td>
+              <td className="px-6 py-4 text-sm font-black text-blue-600 text-right font-mono">
+                {displayData.reduce((acc, item) => acc + item.hours, 0).toFixed(2)}
+              </td>
+              {displayMode === 'detailed' && (
+                <td colSpan={2} className="px-6 py-4"></td>
+              )}
+            </tr>
+          </tfoot>
+        )}
       </table>
     </div>
   );
