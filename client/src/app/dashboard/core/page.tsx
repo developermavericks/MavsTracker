@@ -31,14 +31,21 @@ export default function CorePortal() {
   }, [users, exitSearch]);
 
   const handleExitDateChange = async (userId: string, date: string | null) => {
+    // Optimistic local state update for instant, seamless UX
+    setUsers(prevUsers => 
+      prevUsers.map(u => u.id === userId ? { ...u, exit_date: date } : u)
+    );
     try {
       await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/users/${userId}/exit-date`, {
         method: 'PATCH',
         body: JSON.stringify({ exitDate: date })
       });
-      fetchUsers();
+      // Silent background fetch, absolutely NO loading spinner to avoid date unmount
+      await fetchUsers(false);
     } catch (err) {
       console.error('Failed to update exit date:', err);
+      // Rollback on error
+      fetchUsers(true);
     }
   };
 
@@ -91,7 +98,7 @@ export default function CorePortal() {
 
   useEffect(() => {
     if (activeTab === 'clients') fetchClients();
-    if (activeTab === 'admin' || activeTab === 'members' || activeTab === 'exit-date') fetchUsers();
+    if (activeTab === 'admin' || activeTab === 'members' || activeTab === 'exit-date') fetchUsers(true);
     if (activeTab === 'master') fetchReport();
   }, [activeTab, month]);
 
@@ -108,8 +115,10 @@ export default function CorePortal() {
     }
   };
 
-  const fetchUsers = async () => {
-    setLoading(true);
+  const fetchUsers = async (showSpinner = false) => {
+    if (showSpinner || users.length === 0) {
+      setLoading(true);
+    }
     try {
       const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/all`);
       const data = await response.json();
@@ -257,14 +266,26 @@ export default function CorePortal() {
                         const roles: ('team' | 'manager' | 'core')[] = ['team', 'manager', 'core'];
                         const nextRole = roles[(roles.indexOf(currentRole as any) + 1) % roles.length];
                         
+                        // Optimistic role cycle update
+                        setUsers(prevUsers => 
+                          prevUsers.map(u => {
+                            if (u.id === userId) {
+                              const isManager = nextRole === 'manager';
+                              return { ...u, role: nextRole, is_manager: isManager };
+                            }
+                            return u;
+                          })
+                        );
+                        
                         try {
                           await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/users/${userId}/role`, {
                             method: 'PATCH',
                             body: JSON.stringify({ role: nextRole })
                           });
-                          fetchUsers();
+                          fetchUsers(false);
                         } catch (err) {
                           console.error('Failed to update role:', err);
+                          fetchUsers(true);
                         }
                       };
 

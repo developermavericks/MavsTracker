@@ -28,12 +28,12 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors relative overflow-x-hidden">
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-900 transition-colors relative overflow-hidden">
       {/* Sidebar container with smooth width/opacity transition */}
       <div 
         className={`transition-all duration-300 ease-in-out ${
           isSidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 pointer-events-none'
-        } flex-shrink-0 overflow-hidden h-screen sticky top-0 z-50`}
+        } flex-shrink-0 overflow-hidden h-full z-50`}
       >
         <div className="w-64 h-full">
           <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
@@ -41,7 +41,7 @@ export default function DashboardLayout({
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-8 overflow-y-auto relative transition-all duration-300">
+      <main className="flex-1 p-8 overflow-y-auto h-full relative transition-all duration-300">
         {/* Floating toggle button when sidebar is hidden */}
         {!isSidebarOpen && (
           <button
