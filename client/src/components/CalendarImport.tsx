@@ -25,6 +25,11 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
   const [selectedEvents, setSelectedEvents] = useState<Set<string>>(new Set());
   const [user, setUser] = useState<any>(null);
   const [hasFetched, setHasFetched] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(month);
+
+  useEffect(() => {
+    setSelectedMonth(month);
+  }, [month]);
 
   const [clients, setClients] = useState<{id: string, name: string}[]>([]);
   
@@ -71,7 +76,7 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
       }
 
       // Automatically compute start and end date for the entire month
-      const [yearStr, monthStr] = month.split('-');
+      const [yearStr, monthStr] = selectedMonth.split('-');
       const year = parseInt(yearStr);
       const monthIndex = parseInt(monthStr) - 1;
       
@@ -158,7 +163,7 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
           .from('allocations_weekly')
           .insert([{
             user_id: userId,
-            month,
+            month: selectedMonth,
             client_id: event.client_id, 
             category: event.category,
             hours: event.hours,
@@ -225,11 +230,14 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
         </div>
         
         <div className="flex flex-wrap items-center gap-4">
-          <div className="text-right">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Selected Period</span>
-            <span className="text-sm font-black text-slate-900 bg-white border border-slate-200 rounded-xl px-4 py-2 shadow-sm block">
-              {new Date(month + '-02').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            </span>
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1">Selected Period</span>
+            <input 
+              type="month" 
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-black text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none w-48 shadow-sm h-[38px] lg:h-[42px] cursor-pointer"
+            />
           </div>
           <button 
             onClick={handleFetch}
