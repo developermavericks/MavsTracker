@@ -10,7 +10,8 @@ export const getTeamMembers = async (req: Request, res: Response) => {
   }
 
   try {
-    const { data, error } = await supabase
+    // 1. Fetch this manager's members
+    const { data: memberRows, error: memberError } = await supabase
       .from('teams')
       .select(`
         member_id,
@@ -18,12 +19,23 @@ export const getTeamMembers = async (req: Request, res: Response) => {
       `)
       .eq('manager_id', managerId);
 
-    if (error) throw error;
+    if (memberError) throw memberError;
+
+    // 2. Fetch who manages this manager to prevent parent managers from showing as members
+    const { data: managerRows, error: managerError } = await supabase
+      .from('teams')
+      .select('manager_id')
+      .eq('member_id', managerId);
+
+    const parentManagerIds = new Set(
+      managerError || !managerRows ? [] : managerRows.map((r: any) => r.manager_id)
+    );
     
-    // Flatten and filter the response by active users
-    const members = data
+    // 3. Flatten, filter by active users, and exclude parent managers
+    const members = memberRows
       .map((item: any) => item.member)
-      .filter((m: any) => m && isActiveUser(m.email));
+      .filter((m: any) => m && isActiveUser(m.email) && !parentManagerIds.has(m.id));
+
     res.json(members);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
