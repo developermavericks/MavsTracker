@@ -89,16 +89,26 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
 
       // Find the 'Internal' client ID for default
       const internalClient = clients.find(c => c.name.toLowerCase() === 'internal');
-      const defaultClientId = internalClient?.id || ''; 
+      const fallbackClientId = internalClient?.id || ''; 
 
       // Initialize events with default client, category, and event title as notes
-      const initializedEvents = data.map((ev: any, index: number) => ({
-        ...ev,
-        id: `${ev.title}_${ev.start}_${index}`,
-        client_id: defaultClientId,
-        category: '', // Empty default
-        notes: ev.title // Default notes to event title
-      }));
+      const initializedEvents = data.map((ev: any, index: number) => {
+        // Look for a matching client by checking if client name is in the event title
+        const matchedClient = clients.find(c => {
+          const clientNameLower = c.name.toLowerCase().trim();
+          const titleLower = ev.title.toLowerCase();
+          if (clientNameLower.length <= 2) return false; // skip extremely short names to avoid false matches on common words
+          return titleLower.includes(clientNameLower);
+        });
+
+        return {
+          ...ev,
+          id: `${ev.title}_${ev.start}_${index}`,
+          client_id: matchedClient ? matchedClient.id : fallbackClientId,
+          category: '', // Empty default
+          notes: ev.title // Default notes to event title
+        };
+      });
 
       setEvents(initializedEvents);
       setHasFetched(true);
