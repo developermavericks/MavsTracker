@@ -26,10 +26,29 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
   const [user, setUser] = useState<any>(null);
   const [hasFetched, setHasFetched] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(month);
+  const [startDate, setStartDate] = useState(() => `${month}-01`);
+  const [endDate, setEndDate] = useState(() => {
+    const [yr, mn] = month.split('-');
+    const lastDay = new Date(parseInt(yr), parseInt(mn), 0).getDate();
+    return `${month}-${lastDay.toString().padStart(2, '0')}`;
+  });
 
   useEffect(() => {
-    setSelectedMonth(month);
+    handleMonthChange(month);
   }, [month]);
+
+  const handleMonthChange = (value: string) => {
+    setSelectedMonth(value);
+    if (value) {
+      const [yr, mn] = value.split('-');
+      const start = `${value}-01`;
+      const lastDay = new Date(parseInt(yr), parseInt(mn), 0).getDate();
+      const end = `${value}-${lastDay.toString().padStart(2, '0')}`;
+      
+      setStartDate(start);
+      setEndDate(end);
+    }
+  };
 
   const [clients, setClients] = useState<{id: string, name: string}[]>([]);
   
@@ -75,17 +94,8 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
         return;
       }
 
-      // Automatically compute start and end date for the entire month
-      const [yearStr, monthStr] = selectedMonth.split('-');
-      const year = parseInt(yearStr);
-      const monthIndex = parseInt(monthStr) - 1;
-      
-      const startStr = `${yearStr}-${monthStr}-01`;
-      const lastDay = new Date(year, monthIndex + 1, 0).getDate();
-      const endStr = `${yearStr}-${monthStr}-${lastDay.toString().padStart(2, '0')}`;
-
       const response = await apiFetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/calendar/events?accessToken=${googleToken}&startDate=${startStr}&endDate=${endStr}`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/calendar/events?accessToken=${googleToken}&startDate=${startDate}&endDate=${endDate}`
       );
       
       const data = await response.json();
@@ -229,16 +239,17 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
           </div>
         </div>
         
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-end gap-5">
+          {/* 1. Month/Year Split Dropdown */}
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1">Selected Period</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1">Selected Month</span>
             <div className="flex bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm h-[38px] lg:h-[42px] items-center">
                <select 
                  value={selectedMonth.split('-')[1]} 
                  onChange={(e) => {
                    const newMonth = e.target.value;
                    const year = selectedMonth.split('-')[0];
-                   setSelectedMonth(`${year}-${newMonth}`);
+                   handleMonthChange(`${year}-${newMonth}`);
                  }}
                  className="pl-4 pr-2 py-2 text-sm font-bold text-slate-900 bg-transparent border-none focus:ring-0 outline-none cursor-pointer"
                >
@@ -252,7 +263,7 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
                  onChange={(e) => {
                    const newYear = e.target.value;
                    const mon = selectedMonth.split('-')[1];
-                   setSelectedMonth(`${newYear}-${mon}`);
+                   handleMonthChange(`${newYear}-${mon}`);
                  }}
                  className="pl-2 pr-4 py-2 text-sm font-bold text-blue-600 bg-transparent border-none focus:ring-0 outline-none cursor-pointer"
                >
@@ -262,6 +273,33 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
                </select>
             </div>
           </div>
+
+          {/* 2. Custom Date Range Pickers (From / To) constrained to the selectedMonth */}
+          <div className="flex items-center gap-3">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1">From</span>
+              <input 
+                type="date" 
+                value={startDate}
+                min={`${selectedMonth}-01`}
+                max={`${selectedMonth}-${new Date(parseInt(selectedMonth.split('-')[0]), parseInt(selectedMonth.split('-')[1]), 0).getDate().toString().padStart(2, '0')}`}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none w-36 shadow-sm h-[38px] lg:h-[42px] cursor-pointer"
+              />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1">To</span>
+              <input 
+                type="date" 
+                value={endDate}
+                min={`${selectedMonth}-01`}
+                max={`${selectedMonth}-${new Date(parseInt(selectedMonth.split('-')[0]), parseInt(selectedMonth.split('-')[1]), 0).getDate().toString().padStart(2, '0')}`}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none w-36 shadow-sm h-[38px] lg:h-[42px] cursor-pointer"
+              />
+            </div>
+          </div>
+          
           <button 
             onClick={handleFetch}
             disabled={loading}
