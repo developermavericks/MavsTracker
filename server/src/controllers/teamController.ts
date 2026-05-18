@@ -125,3 +125,20 @@ export const updateUserRole = async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const updateUserExitDate = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { exitDate } = req.body; // Expecting 'YYYY-MM-DD' or null
+  try {
+    const { error } = await supabase
+      .from('users')
+      .update({ exit_date: exitDate || null })
+      .eq('id', id);
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+

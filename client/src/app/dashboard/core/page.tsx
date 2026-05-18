@@ -10,7 +10,7 @@ import ClientAdmin from '@/components/ClientAdmin';
 import MemberInsights from '@/components/MemberInsights';
 
 export default function CorePortal() {
-  const [activeTab, setActiveTab] = useState<'admin' | 'members' | 'master' | 'clients'>('admin');
+  const [activeTab, setActiveTab] = useState<'admin' | 'members' | 'master' | 'clients' | 'exit-date'>('admin');
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
   const [clients, setClients] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
@@ -18,6 +18,29 @@ export default function CorePortal() {
   const [loading, setLoading] = useState(false);
   const [groupBD, setGroupBD] = useState(false);
   const [groupInternal, setGroupInternal] = useState(false);
+  const [exitSearch, setExitSearch] = useState('');
+
+  const filteredExitUsers = useMemo(() => {
+    if (!users) return [];
+    return users.filter(u => {
+      const name = (u.name || '').toLowerCase();
+      const email = (u.email || '').toLowerCase();
+      const query = exitSearch.toLowerCase().trim();
+      return name.includes(query) || email.includes(query);
+    });
+  }, [users, exitSearch]);
+
+  const handleExitDateChange = async (userId: string, date: string | null) => {
+    try {
+      await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/users/${userId}/exit-date`, {
+        method: 'PATCH',
+        body: JSON.stringify({ exitDate: date })
+      });
+      fetchUsers();
+    } catch (err) {
+      console.error('Failed to update exit date:', err);
+    }
+  };
 
   // Computed values for master report grouping
   const processedReport = useMemo(() => {
@@ -68,7 +91,7 @@ export default function CorePortal() {
 
   useEffect(() => {
     if (activeTab === 'clients') fetchClients();
-    if (activeTab === 'admin' || activeTab === 'members') fetchUsers();
+    if (activeTab === 'admin' || activeTab === 'members' || activeTab === 'exit-date') fetchUsers();
     if (activeTab === 'master') fetchReport();
   }, [activeTab, month]);
 
@@ -190,6 +213,15 @@ export default function CorePortal() {
           >
             <FileText className="w-4 h-4" />
             Master Report
+          </button>
+          <button 
+            onClick={() => setActiveTab('exit-date')}
+            className={`px-6 py-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === 'exit-date' ? 'border-orange-600 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            <UserIcon className="w-4 h-4" />
+            Exit Dates
           </button>
         </div>
 
@@ -426,6 +458,100 @@ export default function CorePortal() {
 
           {activeTab === 'clients' && (
             <ClientAdmin selectedMonth={month} setSelectedMonth={setMonth} />
+          )}
+
+          {activeTab === 'exit-date' && (
+            <div className="space-y-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">Manage Employee Exit Dates</h3>
+                  <p className="text-sm text-slate-500 font-medium">Set exit dates for employees who have left or are leaving. Exited employees are excluded from subsequent monthly reports.</p>
+                </div>
+                {/* Search Bar */}
+                <div className="flex items-center gap-3 w-full md:max-w-xs bg-slate-50 border border-slate-200 rounded-xl px-4 py-2">
+                  <Search className="w-4 h-4 text-slate-400" />
+                  <input 
+                    type="text"
+                    placeholder="Search employees..."
+                    value={exitSearch}
+                    onChange={(e) => setExitSearch(e.target.value)}
+                    className="bg-transparent border-none outline-none text-xs w-full focus:ring-0 text-slate-900"
+                  />
+                </div>
+              </div>
+
+              <div className="overflow-x-auto border border-slate-100 rounded-2xl">
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Employee</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Email</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Status</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Exit Date</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {loading ? (
+                       <tr><td colSpan={5} className="text-center py-10"><div className="animate-spin inline-block w-6 h-6 border-b-2 border-orange-600 rounded-full"></div></td></tr>
+                    ) : filteredExitUsers.length === 0 ? (
+                       <tr><td colSpan={5} className="text-center py-10 text-slate-400 font-medium">No employees found.</td></tr>
+                    ) : filteredExitUsers.map(u => {
+                      const initial = (u.name?.[0] || u.email?.[0] || '?').toUpperCase();
+                      const hasLoggedIn = !!(u.last_login || u.picture || u.sub);
+                      const colors = ['bg-emerald-600', 'bg-blue-600', 'bg-indigo-600', 'bg-rose-600', 'bg-amber-600', 'bg-violet-600', 'bg-cyan-600'];
+                      const colorIndex = (u.email?.length || 0) % colors.length;
+                      const avatarColor = hasLoggedIn ? colors[colorIndex] : 'bg-slate-200';
+                      const initialColor = hasLoggedIn ? 'text-white' : 'text-slate-400';
+
+                      return (
+                        <tr key={u.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-6 py-4 flex items-center gap-3">
+                            {u.picture ? (
+                              <img src={u.picture} className="w-9 h-9 rounded-xl object-cover shadow-sm ring-2 ring-white" />
+                            ) : (
+                              <div className={`w-9 h-9 ${avatarColor} rounded-xl flex items-center justify-center ${initialColor} text-sm font-black shadow-sm ring-2 ring-white`}>
+                                {initial}
+                              </div>
+                            )}
+                            <div>
+                              <span className="text-sm font-bold text-slate-900 block leading-tight">{u.name || u.email.split('@')[0]}</span>
+                              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{u.email.split('@')[1]}</span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-600 font-medium">{u.email}</td>
+                          <td className="px-6 py-4 text-sm">
+                            {u.exit_date ? (
+                              <span className="bg-rose-100 text-rose-700 text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">Exited</span>
+                            ) : (
+                              <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider">Active</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-sm">
+                            <input 
+                              type="date"
+                              value={u.exit_date ? u.exit_date.substring(0, 10) : ''}
+                              onChange={(e) => handleExitDateChange(u.id, e.target.value)}
+                              className="px-3 py-1.5 text-xs font-bold text-slate-700 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-600 outline-none bg-white cursor-pointer"
+                            />
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            {u.exit_date && (
+                              <button 
+                                onClick={() => handleExitDateChange(u.id, null)}
+                                className="text-xs font-black text-slate-500 hover:text-orange-600 bg-slate-100 hover:bg-orange-50 px-3 py-1.5 rounded-lg uppercase tracking-widest transition-all cursor-pointer"
+                              >
+                                Reactivate
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
         </div>
       </div>

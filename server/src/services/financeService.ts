@@ -94,6 +94,12 @@ export const getCoreMasterAllocations = async (opts: {
   allUsers.forEach((u: any) => {
     if (!u.email) return;
 
+    // Exclude if exit date is set and prior to this month
+    if (u.exit_date) {
+      const exitMonth = u.exit_date.substring(0, 7);
+      if (exitMonth < month) return;
+    }
+
     // Safe read for salary (if column doesn't exist yet, fall back to 0)
     const sal = u.salary !== undefined ? Number(u.salary) : 0;
 
@@ -114,6 +120,12 @@ export const getCoreMasterAllocations = async (opts: {
   allocations.forEach((r: any) => {
     const u = r.users;
     if (!u) return;
+
+    // Exclude if exit date is set and prior to this month
+    if (u.exit_date) {
+      const exitMonth = u.exit_date.substring(0, 7);
+      if (exitMonth < month) return;
+    }
 
     const firstMonth = firstMonthByUser[u.id] || null;
     if (!firstMonth || firstMonth > month) return;

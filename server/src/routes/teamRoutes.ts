@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getTeamMembers, getMemberAllocations, getAllUsers, deleteUser, updateUserRole } from '../controllers/teamController';
+import { getTeamMembers, getMemberAllocations, getAllUsers, deleteUser, updateUserRole, updateUserExitDate } from '../controllers/teamController';
 import { authenticate, requireRole } from '../middleware/auth';
 
 const router = Router();
@@ -16,5 +16,7 @@ router.get('/me', (req, res) => {
 
 router.delete('/users/:id', requireRole(['core']), deleteUser);
 router.patch('/users/:id/role', requireRole(['core']), updateUserRole);
+router.patch('/users/:id/exit-date', requireRole(['core']), updateUserExitDate);
 
 export default router;
+

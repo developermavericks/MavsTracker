@@ -28,7 +28,7 @@ export const getMasterReportData = async (month: string, options: any = {}) => {
   while (true) {
     const { data, error: fetchError } = await supabase
       .from('allocations_weekly')
-      .select('*, users(name, email), clients(name, core_owner)')
+      .select('*, users(name, email, exit_date), clients(name, core_owner)')
       .eq('month', month)
       .range(page * pageSize, (page + 1) * pageSize - 1);
     
@@ -45,13 +45,20 @@ export const getMasterReportData = async (month: string, options: any = {}) => {
   // Fetch all registered users from database
   const { data: dbUsers, error: uError } = await supabase
     .from('users')
-    .select('name, email');
+    .select('name, email, exit_date');
   if (uError) throw uError;
 
   // Pre-populate all registered users to ensure 100% visibility
   if (dbUsers) {
     dbUsers.forEach(u => {
       if (!u.email) return;
+
+      // Exclude if exit date is set and prior to this month
+      if (u.exit_date) {
+        const exitMonth = u.exit_date.substring(0, 7);
+        if (exitMonth < month) return;
+      }
+
       const normEmail = u.email.toLowerCase();
       byMember[normEmail] = {
         name: u.name || normEmail.split('@')[0],
@@ -63,7 +70,16 @@ export const getMasterReportData = async (month: string, options: any = {}) => {
   }
 
   allocations.forEach((r: any) => {
-    const email = r.users.email.toLowerCase();
+    const email = r.users?.email?.toLowerCase();
+    if (!email) return;
+
+    // Exclude if exit date is set and prior to this month
+    const exitDate = r.users?.exit_date;
+    if (exitDate) {
+      const exitMonth = exitDate.substring(0, 7);
+      if (exitMonth < month) return;
+    }
+
     const name = r.users.name;
     let client = normalizeClientForMaster(r.clients.name, groupBd);
 
@@ -114,7 +130,7 @@ export const getClientSummary = async (month: string, view: 'weekly' | 'projecte
   while (true) {
     const { data, error: fetchError } = await supabase
       .from(table)
-      .select('hours, clients(name), users(email)')
+      .select('hours, clients(name), users(email, exit_date)')
       .eq('month', month)
       .range(page * pageSize, (page + 1) * pageSize - 1);
     
@@ -129,6 +145,14 @@ export const getClientSummary = async (month: string, view: 'weekly' | 'projecte
   allocations.forEach((r: any) => {
     const email = r.users?.email;
     if (!isActiveUser(email)) return;
+
+    // Exclude if exit date is set and prior to this month
+    const exitDate = r.users?.exit_date;
+    if (exitDate) {
+      const exitMonth = exitDate.substring(0, 7);
+      if (exitMonth < month) return;
+    }
+
     const clientName = r.clients?.name || 'Unknown';
     summary[clientName] = (summary[clientName] || 0) + (Number(r.hours) || 0);
   });
@@ -147,7 +171,7 @@ export const getClientRoster = async (month: string, clientName: string, view: '
   while (true) {
     const { data, error: fetchError } = await supabase
       .from(table)
-      .select('hours, users(name, email), clients(name)')
+      .select('hours, users(name, email, exit_date), clients(name)')
       .eq('month', month)
       .range(page * pageSize, (page + 1) * pageSize - 1);
     
@@ -164,6 +188,14 @@ export const getClientRoster = async (month: string, clientName: string, view: '
 
     const email = r.users?.email || 'unknown';
     if (!isActiveUser(email)) return;
+
+    // Exclude if exit date is set and prior to this month
+    const exitDate = r.users?.exit_date;
+    if (exitDate) {
+      const exitMonth = exitDate.substring(0, 7);
+      if (exitMonth < month) return;
+    }
+
     const name = r.users?.name || 'Unknown';
     const hours = Number(r.hours) || 0;
 
