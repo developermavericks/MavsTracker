@@ -24,7 +24,6 @@ export default function CorePortal() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newEmployeeName, setNewEmployeeName] = useState('');
   const [newEmployeeEmail, setNewEmployeeEmail] = useState('');
-  const [newEmployeeJoinDate, setNewEmployeeJoinDate] = useState(new Date().toISOString().substring(0, 10));
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
 
@@ -78,7 +77,7 @@ export default function CorePortal() {
         body: JSON.stringify({
           name: newEmployeeName.trim(),
           email: newEmployeeEmail.trim().toLowerCase(),
-          joiningDate: newEmployeeJoinDate
+          joiningDate: '2025-11-01'
         })
       });
       
@@ -91,7 +90,6 @@ export default function CorePortal() {
       setFormSuccess('Employee added successfully!');
       setNewEmployeeName('');
       setNewEmployeeEmail('');
-      setNewEmployeeJoinDate(new Date().toISOString().substring(0, 10));
       setShowAddForm(false);
       fetchUsers(false);
     } catch (err) {
@@ -281,7 +279,7 @@ export default function CorePortal() {
             }`}
           >
             <UserIcon className="w-4 h-4" />
-            Exit Dates
+            Exit & Joining
           </button>
         </div>
 
@@ -545,8 +543,8 @@ export default function CorePortal() {
             <div className="space-y-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">Manage Employee Exit Dates</h3>
-                  <p className="text-sm text-slate-500 font-medium">Set exit dates for employees who have left or are leaving. Exited employees are excluded from subsequent monthly reports.</p>
+                  <h3 className="text-xl font-bold text-slate-900">Manage Employee Exit & Joining</h3>
+                  <p className="text-sm text-slate-500 font-medium">Set exit dates or record new employees who have joined. Exited employees are excluded from subsequent monthly reports.</p>
                 </div>
                 {/* Search Bar & Add Button */}
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
@@ -602,7 +600,7 @@ export default function CorePortal() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Full Name</label>
                       <input 
@@ -621,15 +619,6 @@ export default function CorePortal() {
                         value={newEmployeeEmail}
                         onChange={(e) => setNewEmployeeEmail(e.target.value)}
                         className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none bg-white font-medium text-slate-800"
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Joining Date</label>
-                      <input 
-                        type="date"
-                        value={newEmployeeJoinDate}
-                        onChange={(e) => setNewEmployeeJoinDate(e.target.value)}
-                        className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none bg-white font-bold text-slate-700 cursor-pointer"
                       />
                     </div>
                   </div>

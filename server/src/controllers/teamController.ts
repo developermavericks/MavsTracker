@@ -155,7 +155,7 @@ export const createUser = async (req: Request, res: Response) => {
       .insert([{
         name: name || email.split('@')[0],
         email: email.trim().toLowerCase(),
-        joining_date: joiningDate || new Date().toISOString().substring(0, 10),
+        joining_date: joiningDate || '2025-11-01',
         role: 'team'
       }])
       .select();
