@@ -98,6 +98,10 @@ export const getCoreMasterAllocations = async (opts: {
   allUsers.forEach((u: any) => {
     if (!u.email) return;
 
+    // Exclude if joining month is in the future relative to the target report month
+    const joinMonth = u.joining_date ? u.joining_date.substring(0, 7) : '2025-11';
+    if (joinMonth > month) return;
+
     // Exclude if exit date is set and their last active month is prior to this month
     if (u.exit_date) {
       const effExitMonth = byUserId[u.id] || '2025-10';
@@ -124,6 +128,10 @@ export const getCoreMasterAllocations = async (opts: {
   allocations.forEach((r: any) => {
     const u = r.users;
     if (!u) return;
+
+    // Exclude if joining month is in the future
+    const joinMonth = u.joining_date ? u.joining_date.substring(0, 7) : '2025-11';
+    if (joinMonth > month) return;
 
     // Exclude if exit date is set and their last active month is prior to this month
     if (u.exit_date) {

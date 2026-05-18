@@ -142,3 +142,34 @@ export const updateUserExitDate = async (req: Request, res: Response) => {
   }
 };
 
+export const createUser = async (req: Request, res: Response) => {
+  const { name, email, joiningDate } = req.body;
+  
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+  
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .insert([{
+        name: name || email.split('@')[0],
+        email: email.trim().toLowerCase(),
+        joining_date: joiningDate || new Date().toISOString().substring(0, 10),
+        role: 'team'
+      }])
+      .select();
+      
+    if (error) {
+      if (error.code === '23505') {
+        return res.status(400).json({ error: 'User with this email already exists.' });
+      }
+      throw error;
+    }
+    
+    res.status(201).json(data[0]);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+

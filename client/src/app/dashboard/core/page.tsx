@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Settings, FileText, Briefcase, Download, Plus, Search, ShieldCheck, User as UserIcon, Users, Trash2 } from 'lucide-react';
+import { Settings, FileText, Briefcase, Download, Plus, Search, ShieldCheck, User as UserIcon, Users, Trash2, UserPlus, Calendar, RefreshCw } from 'lucide-react';
 import StatsCard from '@/components/StatsCard';
 import { apiFetch } from '@/lib/api';
 import ClientAdmin from '@/components/ClientAdmin';
@@ -19,6 +19,14 @@ export default function CorePortal() {
   const [groupBD, setGroupBD] = useState(false);
   const [groupInternal, setGroupInternal] = useState(false);
   const [exitSearch, setExitSearch] = useState('');
+
+  // Form states for adding a new employee
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newEmployeeName, setNewEmployeeName] = useState('');
+  const [newEmployeeEmail, setNewEmployeeEmail] = useState('');
+  const [newEmployeeJoinDate, setNewEmployeeJoinDate] = useState(new Date().toISOString().substring(0, 10));
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState('');
 
   const filteredExitUsers = useMemo(() => {
     if (!users) return [];
@@ -51,6 +59,44 @@ export default function CorePortal() {
       console.error('Failed to update exit date:', err);
       // Rollback on error
       fetchUsers(true);
+    }
+  };
+
+  const handleAddEmployee = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+    setFormSuccess('');
+    
+    if (!newEmployeeEmail.trim()) {
+      setFormError('Email is required.');
+      return;
+    }
+    
+    try {
+      const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/users`, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: newEmployeeName.trim(),
+          email: newEmployeeEmail.trim().toLowerCase(),
+          joiningDate: newEmployeeJoinDate
+        })
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        setFormError(data.error || 'Failed to add employee.');
+        return;
+      }
+      
+      setFormSuccess('Employee added successfully!');
+      setNewEmployeeName('');
+      setNewEmployeeEmail('');
+      setNewEmployeeJoinDate(new Date().toISOString().substring(0, 10));
+      setShowAddForm(false);
+      fetchUsers(false);
+    } catch (err) {
+      console.error('Error adding employee:', err);
+      setFormError('Failed to connect to server.');
     }
   };
 
@@ -318,7 +364,16 @@ export default function CorePortal() {
                               </div>
                             )}
                             <div>
-                              <span className="text-sm font-bold text-slate-900 block leading-tight">{u.name || u.email.split('@')[0]}</span>
+                              <span className={`text-sm leading-tight block ${
+                                hasLoggedIn 
+                                  ? 'font-bold text-slate-900' 
+                                  : 'font-medium text-slate-400 italic flex items-center gap-1.5'
+                              }`}>
+                                {u.name || u.email.split('@')[0]}
+                                {!hasLoggedIn && (
+                                  <span className="text-[8px] bg-slate-100 text-slate-500 font-black px-1.5 py-0.5 rounded uppercase tracking-wider normal-case not-italic">Pending</span>
+                                )}
+                              </span>
                               <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{u.email.split('@')[1]}</span>
                             </div>
                           </td>
@@ -493,18 +548,102 @@ export default function CorePortal() {
                   <h3 className="text-xl font-bold text-slate-900">Manage Employee Exit Dates</h3>
                   <p className="text-sm text-slate-500 font-medium">Set exit dates for employees who have left or are leaving. Exited employees are excluded from subsequent monthly reports.</p>
                 </div>
-                {/* Search Bar */}
-                <div className="flex items-center gap-3 w-full md:max-w-xs bg-slate-50 border border-slate-200 rounded-xl px-4 py-2">
-                  <Search className="w-4 h-4 text-slate-400" />
-                  <input 
-                    type="text"
-                    placeholder="Search employees..."
-                    value={exitSearch}
-                    onChange={(e) => setExitSearch(e.target.value)}
-                    className="bg-transparent border-none outline-none text-xs w-full focus:ring-0 text-slate-900"
-                  />
+                {/* Search Bar & Add Button */}
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                  <div className="flex items-center gap-3 w-full md:max-w-xs bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 flex-1">
+                    <Search className="w-4 h-4 text-slate-400" />
+                    <input 
+                      type="text"
+                      placeholder="Search employees..."
+                      value={exitSearch}
+                      onChange={(e) => setExitSearch(e.target.value)}
+                      className="bg-transparent border-none outline-none text-xs w-full focus:ring-0 text-slate-900"
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowAddForm(!showAddForm);
+                      setFormError('');
+                      setFormSuccess('');
+                    }}
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-md shadow-orange-100 uppercase tracking-wider cursor-pointer"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    Add Employee
+                  </button>
                 </div>
               </div>
+
+              {/* Add New Employee Form */}
+              {showAddForm && (
+                <form onSubmit={handleAddEmployee} className="bg-slate-50 border border-slate-200/60 p-6 rounded-2xl space-y-4 max-w-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                    <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                      <UserPlus className="w-4 h-4 text-orange-600" />
+                      Add New Employee record
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddForm(false)}
+                      className="text-xs font-bold text-slate-400 hover:text-slate-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  
+                  {formError && (
+                    <div className="bg-red-50 text-red-700 text-xs font-bold p-3 rounded-lg border border-red-100">
+                      {formError}
+                    </div>
+                  )}
+                  {formSuccess && (
+                    <div className="bg-emerald-50 text-emerald-700 text-xs font-bold p-3 rounded-lg border border-emerald-100">
+                      {formSuccess}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Full Name</label>
+                      <input 
+                        type="text"
+                        placeholder="e.g. Udbhav Singh"
+                        value={newEmployeeName}
+                        onChange={(e) => setNewEmployeeName(e.target.value)}
+                        className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none bg-white font-medium text-slate-800"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Email Address</label>
+                      <input 
+                        type="email"
+                        placeholder="email@themavericksindia.com"
+                        value={newEmployeeEmail}
+                        onChange={(e) => setNewEmployeeEmail(e.target.value)}
+                        className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none bg-white font-medium text-slate-800"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Joining Date</label>
+                      <input 
+                        type="date"
+                        value={newEmployeeJoinDate}
+                        onChange={(e) => setNewEmployeeJoinDate(e.target.value)}
+                        className="w-full px-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-600 focus:border-transparent outline-none bg-white font-bold text-slate-700 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-2">
+                    <button
+                      type="submit"
+                      className="bg-slate-900 hover:bg-orange-600 text-white px-5 py-2 rounded-xl text-xs font-black transition-all shadow-md shadow-slate-100 uppercase tracking-widest cursor-pointer"
+                    >
+                      Save Record
+                    </button>
+                  </div>
+                </form>
+              )}
 
               <div className="overflow-x-auto border border-slate-100 rounded-2xl">
                 <table className="w-full text-left border-collapse">
