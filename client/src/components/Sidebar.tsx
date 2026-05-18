@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { apiFetch } from '@/lib/api';
 
 const menuItems = [
-  { name: 'Team Portal', icon: Users, href: '/dashboard/team', color: 'text-emerald-600' },
+  { name: 'My Allocations', icon: Users, href: '/dashboard/team', color: 'text-emerald-600' },
   { name: 'Core Portal', icon: Settings, href: '/dashboard/core', color: 'text-orange-600' },
   { name: 'Manager Portal', icon: LayoutDashboard, href: '/dashboard/manager', color: 'text-indigo-600' },
 ];
@@ -112,7 +112,7 @@ export default function Sidebar() {
   };
 
   const filteredItems = menuItems.filter(item => {
-    if (item.name === 'Team Portal') return true;
+    if (item.name === 'My Allocations') return true;
     if (item.name === 'Manager Portal' && (userRole === 'manager' || userRole === 'core')) return true;
     if (item.name === 'Core Portal' && userRole === 'core') return true;
     return false;

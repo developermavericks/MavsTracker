@@ -114,7 +114,7 @@ export default function TeamPortal() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-display font-black text-slate-900 tracking-tight">Team Portal</h1>
+          <h1 className="text-4xl font-display font-black text-slate-900 tracking-tight">My Allocations</h1>
           <p className="text-slate-500 mt-1 font-medium">Manage your time allocations and actuals.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3 relative z-[100]">
