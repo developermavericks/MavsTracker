@@ -90,16 +90,9 @@ export const getCoreMasterAllocations = async (opts: {
 
   const byMember = new Map<string, any>();
 
-  // Pre-populate registered users who have started their allocations
+  // Pre-populate all active registered users
   allUsers.forEach((u: any) => {
     if (!isActiveUser(u.email)) return;
-    const firstMonth = firstMonthByUser[u.id] || null;
-    
-    // User has never submitted allocation data
-    if (!firstMonth) return;
-
-    // Selected month is before their first timesheet submission
-    if (firstMonth > month) return;
 
     // Safe read for salary (if column doesn't exist yet, fall back to 0)
     const sal = u.salary !== undefined ? Number(u.salary) : 0;
@@ -112,7 +105,7 @@ export const getCoreMasterAllocations = async (opts: {
       allocations: {},
       totalHours: 0,
       isRegistered: true,
-      firstAllocationMonth: firstMonth
+      firstAllocationMonth: firstMonthByUser[u.id] || null
     });
   });
 
