@@ -11,6 +11,7 @@ const menuItems = [
   { name: 'My Allocations', icon: Users, href: '/dashboard/team', color: 'text-emerald-600' },
   { name: 'Core Portal', icon: Settings, href: '/dashboard/core', color: 'text-orange-600' },
   { name: 'Manager Portal', icon: LayoutDashboard, href: '/dashboard/manager', color: 'text-indigo-600' },
+  { name: 'Finance Portal', icon: LayoutDashboard, href: '/dashboard/finance', color: 'text-blue-600' },
 ];
 
 const CORE_EMAILS = [
@@ -113,6 +114,7 @@ export default function Sidebar() {
 
   const filteredItems = menuItems.filter(item => {
     if (item.name === 'My Allocations') return true;
+    if (item.name === 'Finance Portal') return true; // Let everyone inspect for now
     if (item.name === 'Manager Portal' && (userRole === 'manager' || userRole === 'core')) return true;
     if (item.name === 'Core Portal' && userRole === 'core') return true;
     return false;

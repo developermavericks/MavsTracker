@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <base target="_top" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Time Allocation (Finance)</title>
+  <style>
+    :root {
+      --bg: #f7f7fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #2563eb;
+      --primary-weak: #eef2ff;
+      --danger: #b00020;
+      --warning: #f59e0b;
+      --table-head: #f9fafb;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .06);
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial;
+      color: var(--text);
+      background: var(--bg);
+      margin: 0;
+      padding: 28px;
+      line-height: 1.35;
+    }
+
+    h2 {
+      margin: 0 0 10px 0;
+      font-weight: 600;
+      letter-spacing: -.01em;
+    }
+
+    .card {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 18px 18px 22px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border-top: 4px solid var(--primary);
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .right {
+      margin-left: auto;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .error {
+      color: var(--danger);
+      margin-top: 6px;
+      min-height: 1.2em;
+    }
+
+    #profile {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 6px 0;
+    }
+
+    #profile img {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--primary-weak);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid rgba(37, 99, 235, .4);
+    }
+
+    button {
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      transition: box-shadow .15s ease, background .15s ease, transform .02s ease;
+      font-size: 0.9rem;
+    }
+
+    button:hover {
+      background: #fafafa;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, .08);
+    }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(0.96);
+    }
+
+    .row label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: .86rem;
+      color: var(--muted);
+    }
+
+    select {
+      appearance: none;
+      height: 38px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      color: var(--text);
+      min-width: 180px;
+      font-size: 0.9rem;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+    }
+
+    .section {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      margin-top: 12px;
+      background: #fff;
+    }
+
+    .screens {
+      margin-top: 12px;
+      display: none;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+      gap: 16px;
+    }
+
+    .tab {
+      padding: 8px 4px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+
+    .tab:hover {
+      color: var(--text);
+    }
+
+    .tab.active {
+      border-bottom-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .tablewrap {
+      overflow: auto;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--table-head);
+      font-weight: 600;
+      color: #374151;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      padding: 10px;
+      text-align: left;
+    }
+
+    thead th:nth-child(1),
+    tbody td:nth-child(1),
+    thead th:nth-child(2),
+    tbody td:nth-child(2),
+    thead th:nth-child(3),
+    tbody td:nth-child(3) {
+      position: sticky;
+      z-index: 2;
+      background: #fff;
+    }
+
+    thead th:nth-child(1) {
+      left: 0;
+      background: var(--table-head);
+    }
+
+    thead th:nth-child(2) {
+      left: 160px;
+      background: var(--table-head);
+    }
+
+    thead th:nth-child(3) {
+      left: 360px;
+      background: var(--table-head);
+      border-right: 2px solid var(--border);
+    }
+
+    tbody td:nth-child(1) {
+      left: 0;
+    }
+
+    tbody td:nth-child(2) {
+      left: 160px;
+    }
+
+    tbody td:nth-child(3) {
+      left: 360px;
+      border-right: 2px solid var(--border);
+    }
+
+    th,
+    td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+      white-space: nowrap;
+    }
+
+    tbody tr:hover td {
+      background: #fafafa;
+    }
+
+    #loading {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, .55);
+      backdrop-filter: blur(2px);
+      z-index: 9999;
+    }
+
+    #loading .box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    #loading .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e5e7eb;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <div class="headline-bar" style="display:flex; justify-content:space-between;">
+      <h2>Finance Portal</h2>
+    </div>
+
+    <div id="profile" class="row">
+      <img id="avatar" alt="Profile picture">
+      <div>
+        <div id="name" style="font-weight:600"></div>
+        <div id="email" class="muted"></div>
+      </div>
+      <div class="right row">
+        <span id="roleBadge" class="badge">Finance</span>
+        <button id="logoutBtn" aria-label="Logout">Logout</button>
+      </div>
+    </div>
+
+    <div id="auth">
+      <p style="margin-bottom:12px;">Welcome to the Restricted Finance App. Please sign in.</p>
+      <button id="primaryBtn" class="btn-primary">Sign In</button>
+      <div id="error" class="error" role="alert" aria-live="polite"></div>
+    </div>
+
+    <div class="screens" id="screens">
+      <div class="section">
+        <div class="tabs">
+          <div id="tab_hours" class="tab active">Hours View</div>
+          <div id="tab_percent" class="tab">Percentage View</div>
+          <div id="tab_salary" class="tab">Allocated Salary View</div>
+        </div>
+        <div class="row">
+          <label>Month <select id="c_master_month"></select></label>
+          <label><input type="checkbox" id="c_master_group_bd" checked> Group BD</label>
+          <label><input type="checkbox" id="c_master_group_leave" checked> Group LEAVE</label>
+          <label><input type="checkbox" id="c_master_group_internal" checked> Group Internal</label>
+          <button id="c_master_load">Refresh Data</button>
+          <button id="c_master_download" class="btn-primary" style="margin-left:auto;">Download Finance Excel</button>
+        </div>
+
+        <div class="tablewrap" style="margin-top:16px; max-height:65vh;">
+          <table id="c_master_table">
+            <thead id="c_master_head"></thead>
+            <tbody id="c_master_body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading" aria-live="polite">
+    <div class="box">
+      <div class="spinner"></div>
+      <div style="color:#374151;font-size:0.92rem;">Retrieving Restricted Data…</div>
+    </div>
+  </div>
+
+  <script>
+    let currentViewMode = 'hours';
+    let lastMasterData = null;
+
+    function showLoading() {
+      document.getElementById('loading').style.display = 'flex';
+    }
+
+    function hideLoading() {
+      document.getElementById('loading').style.display = 'none';
+    }
+
+    function handleError(err) {
+      const msg = (err && err.message) ? err.message : String(err);
+      document.getElementById('error').textContent = msg;
+    }
+
+    function monthLabelFromIso(iso) {
+      const [y, m] = String(iso).split('-').map(Number);
+      const dt = new Date(y, (m || 1) - 1, 1);
+      return dt.toLocaleString('en-GB', { month: 'long', year: 'numeric' });
+    }
+
+    function setMonthOptions(selectEl, monthIsos) {
+      selectEl.innerHTML = '';
+      (monthIsos || []).forEach(iso => {
+        const o = document.createElement('option');
+        o.value = iso;
+        o.textContent = monthLabelFromIso(iso);
+        o.dataset.iso = iso;
+        selectEl.appendChild(o);
+      });
+      if (selectEl.options.length) selectEl.selectedIndex = 0;
+    }
+
+    function downloadBase64File(base64, filename, mimeType) {
+      const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+      const blob = new Blob([bytes], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function wireApp() {
+      const selMonth = document.getElementById('c_master_month');
+      const chkBd = document.getElementById('c_master_group_bd');
+      const chkLeave = document.getElementById('c_master_group_leave');
+      const chkInternal = document.getElementById('c_master_group_internal');
+
+      const tabHours = document.getElementById('tab_hours');
+      const tabPercent = document.getElementById('tab_percent');
+      const tabSalary = document.getElementById('tab_salary');
+
+      tabHours.onclick = () => {
+        if (currentViewMode === 'hours') return;
+        currentViewMode = 'hours';
+        tabHours.classList.add('active');
+        tabPercent.classList.remove('active');
+        tabSalary.classList.remove('active');
+        if (lastMasterData) renderMaster(lastMasterData);
+      };
+
+      tabPercent.onclick = () => {
+        if (currentViewMode === 'percent') return;
+        currentViewMode = 'percent';
+        tabPercent.classList.add('active');
+        tabHours.classList.remove('active');
+        tabSalary.classList.remove('active');
+        if (lastMasterData) renderMaster(lastMasterData);
+      };
+
+      tabSalary.onclick = () => {
+        if (currentViewMode === 'salary') return;
+        currentViewMode = 'salary';
+        tabSalary.classList.add('active');
+        tabHours.classList.remove('active');
+        tabPercent.classList.remove('active');
+        if (lastMasterData) renderMaster(lastMasterData);
+      };
+
+      showLoading();
+      google.script.run
+        .withSuccessHandler(isos => {
+          hideLoading();
+          setMonthOptions(selMonth, isos || []);
+          loadMaster();
+        })
+        .withFailureHandler(e => {
+          hideLoading();
+          handleError(e);
+        })
+        .listAvailableMonths();
+
+      function renderMaster(data) {
+        const head = document.getElementById('c_master_head');
+        const body = document.getElementById('c_master_body');
+        head.innerHTML = '';
+        body.innerHTML = '';
+
+        const clients = data.clients || [];
+        const selectedMonth = selMonth.value;
+
+        /*
+          JOIN MONTH LOGIC
+
+          This hides:
+          1. Unregistered users.
+          2. Registered users before their first allocation month.
+
+          Backend should send either:
+          r.firstAllocationMonth = "2025-10"
+          or
+          r.joinMonth = "2025-10"
+
+          The value should come from the earliest month found in the
+          time allocation sheet's "month" column for that user's email.
+        */
+        const rows = (data.rows || []).filter(r => {
+          if (!r.isRegistered) return false;
+
+          const firstAllocationMonth = r.firstAllocationMonth || r.joinMonth || null;
+
+          if (!firstAllocationMonth) return true;
+
+          return firstAllocationMonth <= selectedMonth;
+        });
+
+        const trCore = document.createElement('tr');
+
+        const thMember1 = document.createElement('th');
+        thMember1.style.borderBottom = 'none';
+
+        const thEmail1 = document.createElement('th');
+        thEmail1.style.borderBottom = 'none';
+
+        const thSal1 = document.createElement('th');
+        thSal1.style.borderBottom = 'none';
+
+        trCore.appendChild(thMember1);
+        trCore.appendChild(thEmail1);
+        trCore.appendChild(thSal1);
+
+        const groups = [];
+        if (clients.length > 0) {
+          let lastCore = clients[0].core || '(Unassigned)';
+          let count = 1;
+          for (let i = 1; i < clients.length; i++) {
+            const c = clients[i].core || '(Unassigned)';
+            if (c === lastCore) {
+              count++;
+            } else {
+              groups.push({ name: lastCore, count });
+              lastCore = c;
+              count = 1;
+            }
+          }
+          groups.push({ name: lastCore, count });
+        }
+
+        groups.forEach(g => {
+          const th = document.createElement('th');
+          th.textContent = g.name;
+          th.colSpan = g.count;
+          th.style.textAlign = 'center';
+          th.style.backgroundColor = '#f3f4f6';
+          th.style.borderBottom = '1px solid #d1d5db';
+          trCore.appendChild(th);
+        });
+        head.appendChild(trCore);
+
+        const trClient = document.createElement('tr');
+
+        const thMember2 = document.createElement('th');
+        thMember2.textContent = 'Member';
+
+        const thEmail2 = document.createElement('th');
+        thEmail2.textContent = 'Email';
+
+        const thSal2 = document.createElement('th');
+        thSal2.textContent = 'Salary';
+
+        trClient.appendChild(thMember2);
+        trClient.appendChild(thEmail2);
+        trClient.appendChild(thSal2);
+
+        clients.forEach(c => {
+          const th = document.createElement('th');
+          th.textContent = c.name;
+          trClient.appendChild(th);
+        });
+        head.appendChild(trClient);
+
+        const trBudget = document.createElement('tr');
+
+        const tdMemBud = document.createElement('th');
+        tdMemBud.textContent = '';
+
+        const tdEmailBud = document.createElement('th');
+        tdEmailBud.textContent = '';
+
+        const tdSalBud = document.createElement('th');
+        tdSalBud.textContent = 'Budget';
+        tdSalBud.style.textAlign = 'right';
+
+        trBudget.appendChild(tdMemBud);
+        trBudget.appendChild(tdEmailBud);
+        trBudget.appendChild(tdSalBud);
+
+        clients.forEach(c => {
+          const th = document.createElement('th');
+
+          if (c.budget !== null && c.budget !== undefined) {
+            th.textContent = "₹" + Number(c.budget).toLocaleString('en-IN', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            });
+          } else {
+            th.textContent = '-';
+          }
+
+          th.style.textAlign = 'right';
+          th.style.backgroundColor = '#ecfdf5';
+          trBudget.appendChild(th);
+        });
+        head.appendChild(trBudget);
+
+        let totalSalary = 0;
+        let globalTotalHours = 0;
+        const clientTotals = {};
+        clients.forEach(c => clientTotals[c.name] = { hours: 0, sal: 0 });
+
+        rows.forEach(r => {
+          if (r.salary) totalSalary += Number(r.salary) || 0;
+          if (r.totalHours) globalTotalHours += r.totalHours;
+
+          const tr = document.createElement('tr');
+
+          const tdM = document.createElement('td');
+          tdM.textContent = r.name || r.email;
+          tdM.style.minWidth = '140px';
+
+          if (r.totalHours === 0) {
+            tdM.style.color = '#ef4444';
+            tdM.style.fontWeight = '600';
+          }
+
+          tr.appendChild(tdM);
+
+          const tdE = document.createElement('td');
+          tdE.textContent = r.email;
+          tdE.style.minWidth = '180px';
+          tdE.style.color = '#6b7280';
+          tr.appendChild(tdE);
+
+          const tdS = document.createElement('td');
+          if (r.salary !== null && r.salary !== undefined) {
+            tdS.textContent = "₹" + Number(r.salary).toLocaleString('en-IN', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            });
+          } else {
+            tdS.textContent = '-';
+          }
+
+          tdS.style.textAlign = 'right';
+          tdS.style.fontWeight = '600';
+          tdS.style.color = '#047857';
+          tr.appendChild(tdS);
+
+          clients.forEach(c => {
+            const td = document.createElement('td');
+            const v = Number((r.allocations && r.allocations[c.name]) || 0);
+
+            clientTotals[c.name].hours += v;
+
+            if (r.totalHours > 0 && r.salary > 0) {
+              clientTotals[c.name].sal += (v / r.totalHours) * r.salary;
+            }
+
+            if (currentViewMode === 'percent') {
+              if (r.totalHours && r.totalHours > 0) {
+                const p = (v / r.totalHours) * 100;
+                td.textContent = p > 0 ? p.toFixed(1) + '%' : '';
+              } else {
+                td.textContent = '';
+              }
+            } else if (currentViewMode === 'salary') {
+              if (r.totalHours && r.totalHours > 0 && r.salary > 0) {
+                const allocSal = (v / r.totalHours) * r.salary;
+                td.textContent = allocSal > 0 ? "₹" + allocSal.toLocaleString('en-IN', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                }) : '';
+              } else {
+                td.textContent = '';
+              }
+            } else {
+              td.textContent = v ? v.toFixed(2) : '';
+            }
+
+            td.style.textAlign = 'right';
+            td.style.color = '#4b5563';
+            tr.appendChild(td);
+          });
+
+          body.appendChild(tr);
+        });
+
+        const trTotal = document.createElement('tr');
+        trTotal.style.fontWeight = 'bold';
+        trTotal.style.backgroundColor = '#f9fafb';
+        trTotal.style.borderTop = '2px solid var(--border)';
+
+        const tdTotalM = document.createElement('td');
+        tdTotalM.textContent = 'TOTAL';
+        trTotal.appendChild(tdTotalM);
+
+        const tdTotalE = document.createElement('td');
+        tdTotalE.textContent = '';
+        trTotal.appendChild(tdTotalE);
+
+        const tdTotalS = document.createElement('td');
+        tdTotalS.textContent = totalSalary > 0 ? "₹" + totalSalary.toLocaleString('en-IN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }) : '-';
+        tdTotalS.style.textAlign = 'right';
+        trTotal.appendChild(tdTotalS);
+
+        clients.forEach(c => {
+          const td = document.createElement('td');
+          td.style.textAlign = 'right';
+
+          const ct = clientTotals[c.name];
+
+          if (currentViewMode === 'percent') {
+            const p = globalTotalHours > 0 ? (ct.hours / globalTotalHours) * 100 : 0;
+            td.textContent = p > 0 ? p.toFixed(1) + '%' : '0.0%';
+          } else if (currentViewMode === 'salary') {
+            td.textContent = ct.sal > 0 ? "₹" + ct.sal.toLocaleString('en-IN', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            }) : '-';
+          } else {
+            td.textContent = ct.hours ? ct.hours.toFixed(2) : '0.00';
+          }
+
+          trTotal.appendChild(td);
+        });
+
+        body.appendChild(trTotal);
+      }
+
+      function loadMaster() {
+        const m = selMonth.value;
+        if (!m) return;
+
+        showLoading();
+
+        google.script.run
+          .withSuccessHandler(res => {
+            hideLoading();
+            lastMasterData = res;
+            renderMaster(res);
+          })
+          .withFailureHandler(e => {
+            hideLoading();
+            handleError(e);
+          })
+          .getCoreMasterAllocations({
+            month: m,
+            group_bd: chkBd.checked,
+            group_leave: chkLeave.checked,
+            group_internal: chkInternal.checked
+          });
+      }
+
+      document.getElementById('c_master_load').onclick = loadMaster;
+      selMonth.onchange = loadMaster;
+      chkBd.onchange = loadMaster;
+      chkLeave.onchange = loadMaster;
+      chkInternal.onchange = loadMaster;
+
+      document.getElementById('c_master_download').onclick = () => {
+        const m = selMonth.value;
+        if (!m) return;
+
+        showLoading();
+
+        google.script.run
+          .withSuccessHandler(res => {
+            hideLoading();
+            downloadBase64File(res.base64, res.filename, res.mimeType);
+          })
+          .withFailureHandler(e => {
+            hideLoading();
+            handleError(e);
+          })
+          .exportCoreMasterAllocationsXlsx({
+            month: m,
+            group_bd: chkBd.checked,
+            group_leave: chkLeave.checked,
+            group_internal: chkInternal.checked,
+            view_type: currentViewMode
+          });
+      };
+    }
+
+    function showSignedIn(user) {
+      document.getElementById('auth').style.display = 'none';
+      document.getElementById('profile').style.display = 'flex';
+      document.getElementById('name').textContent = user.name || '(No name)';
+      document.getElementById('email').textContent = user.email || '';
+      document.getElementById('avatar').src = user.picture || '';
+      document.getElementById('screens').style.display = 'block';
+      wireApp();
+    }
+
+    function handleLoginBtn() {
+      showLoading();
+
+      google.script.run
+        .withSuccessHandler(res => {
+          hideLoading();
+          if (res && res.status === 'OK') {
+            showSignedIn(res.user);
+          } else {
+            handleError(res.message || "Access denied.");
+          }
+        })
+        .withFailureHandler(e => {
+          hideLoading();
+          handleError(e);
+        })
+        .getSession();
+    }
+
+    document.getElementById('primaryBtn').onclick = handleLoginBtn;
+
+    document.getElementById('logoutBtn').onclick = () => {
+      document.getElementById('screens').style.display = 'none';
+      document.getElementById('profile').style.display = 'none';
+      document.getElementById('auth').style.display = 'block';
+      document.getElementById('error').textContent = '';
+    };
+
+    handleLoginBtn();
+  </script>
+</body>
+
+</html>
