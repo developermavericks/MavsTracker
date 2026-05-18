@@ -1,5 +1,5 @@
 'use client';
-
+// Trigger Vercel frontend rebuild
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useMemo } from 'react';
