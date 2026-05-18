@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
+import { isActiveUser } from '../config/activeUsers';
 
 export const getTeamMembers = async (req: Request, res: Response) => {
   const { managerId } = req.query;
@@ -19,8 +20,10 @@ export const getTeamMembers = async (req: Request, res: Response) => {
 
     if (error) throw error;
     
-    // Flatten the response
-    const members = data.map((item: any) => item.member);
+    // Flatten and filter the response by active users
+    const members = data
+      .map((item: any) => item.member)
+      .filter((m: any) => m && isActiveUser(m.email));
     res.json(members);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -68,11 +71,13 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
     const managerIds = new Set(managers.map((m: any) => m.manager_id));
 
-    // Append is_manager flag
-    const usersWithManagerStatus = users.map((u: any) => ({
-      ...u,
-      is_manager: managerIds.has(u.id)
-    }));
+    // Filter active users and append is_manager flag
+    const usersWithManagerStatus = users
+      .filter((u: any) => isActiveUser(u.email))
+      .map((u: any) => ({
+        ...u,
+        is_manager: managerIds.has(u.id)
+      }));
 
     res.json(usersWithManagerStatus);
   } catch (error: any) {

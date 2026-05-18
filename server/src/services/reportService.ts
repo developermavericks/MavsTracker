@@ -1,4 +1,5 @@
 import { supabase } from '../config/supabase';
+import { isActiveUser } from '../config/activeUsers';
 
 const normalizeClientForMaster = (client: string, groupBd: boolean) => {
   const s = String(client || '').trim();
@@ -43,6 +44,7 @@ export const getMasterReportData = async (month: string, options: any = {}) => {
 
   allocations.forEach((r: any) => {
     const email = r.users.email.toLowerCase();
+    if (!isActiveUser(email)) return;
     const name = r.users.name;
     let client = normalizeClientForMaster(r.clients.name, groupBd);
 
@@ -93,7 +95,7 @@ export const getClientSummary = async (month: string, view: 'weekly' | 'projecte
   while (true) {
     const { data, error: fetchError } = await supabase
       .from(table)
-      .select('hours, clients(name)')
+      .select('hours, clients(name), users(email)')
       .eq('month', month)
       .range(page * pageSize, (page + 1) * pageSize - 1);
     
@@ -106,6 +108,8 @@ export const getClientSummary = async (month: string, view: 'weekly' | 'projecte
 
   const summary: Record<string, number> = {};
   allocations.forEach((r: any) => {
+    const email = r.users?.email;
+    if (!isActiveUser(email)) return;
     const clientName = r.clients?.name || 'Unknown';
     summary[clientName] = (summary[clientName] || 0) + (Number(r.hours) || 0);
   });
@@ -140,6 +144,7 @@ export const getClientRoster = async (month: string, clientName: string, view: '
     if (r.clients?.name !== clientName) return;
 
     const email = r.users?.email || 'unknown';
+    if (!isActiveUser(email)) return;
     const name = r.users?.name || 'Unknown';
     const hours = Number(r.hours) || 0;
 

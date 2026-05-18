@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
+import { isActiveUser } from '../config/activeUsers';
 import { getMasterReportData } from '../services/reportService';
 import { exportMasterReportToExcel } from '../services/excelService';
 
@@ -148,7 +149,7 @@ export const getActiveEmails = async (req: Request, res: Response) => {
       .in('id', userIds);
 
     if (userError) throw userError;
-    const emails = users.map(u => u.email);
+    const emails = users.map(u => u.email).filter(isActiveUser);
     res.json(emails);
   } catch (error: any) {
     res.status(500).json({ error: error.message });

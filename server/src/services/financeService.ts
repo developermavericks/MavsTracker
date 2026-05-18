@@ -1,5 +1,6 @@
 import { supabase } from '../config/supabase';
 import ExcelJS from 'exceljs';
+import { isActiveUser } from '../config/activeUsers';
 
 const normalizeClientForMaster = (client: string, groupBd: boolean) => {
   const s = String(client || '').trim();
@@ -91,6 +92,7 @@ export const getCoreMasterAllocations = async (opts: {
 
   // Pre-populate registered users who have started their allocations
   allUsers.forEach((u: any) => {
+    if (!isActiveUser(u.email)) return;
     const firstMonth = firstMonthByUser[u.id] || null;
     
     // User has never submitted allocation data
@@ -118,7 +120,7 @@ export const getCoreMasterAllocations = async (opts: {
 
   allocations.forEach((r: any) => {
     const u = r.users;
-    if (!u) return;
+    if (!u || !isActiveUser(u.email)) return;
 
     const firstMonth = firstMonthByUser[u.id] || null;
     if (!firstMonth || firstMonth > month) return;
