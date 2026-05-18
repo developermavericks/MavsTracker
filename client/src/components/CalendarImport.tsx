@@ -28,18 +28,10 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
 
   const [clients, setClients] = useState<{id: string, name: string}[]>([]);
   
-  const [startDate, setStartDate] = useState(`${month}-01`);
-  const [endDate, setEndDate] = useState(`${month}-31`);
-
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
     fetchClients();
   }, []);
-
-  useEffect(() => {
-    setStartDate(`${month}-01`);
-    setEndDate(`${month}-31`);
-  }, [month]);
 
   const fetchClients = async () => {
     try {
@@ -78,8 +70,17 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
         return;
       }
 
+      // Automatically compute start and end date for the entire month
+      const [yearStr, monthStr] = month.split('-');
+      const year = parseInt(yearStr);
+      const monthIndex = parseInt(monthStr) - 1;
+      
+      const startStr = `${yearStr}-${monthStr}-01`;
+      const lastDay = new Date(year, monthIndex + 1, 0).getDate();
+      const endStr = `${yearStr}-${monthStr}-${lastDay.toString().padStart(2, '0')}`;
+
       const response = await apiFetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/calendar/events?accessToken=${googleToken}&startDate=${startDate}&endDate=${endDate}`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/calendar/events?accessToken=${googleToken}&startDate=${startStr}&endDate=${endStr}`
       );
       
       const data = await response.json();
@@ -174,31 +175,17 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
           </div>
         </div>
         
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col">
-              <label className="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1">From</label>
-              <input 
-                type="date" 
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none w-40"
-              />
-            </div>
-            <div className="flex flex-col">
-              <label className="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1">To</label>
-              <input 
-                type="date" 
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none w-40"
-              />
-            </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="text-right">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Selected Period</span>
+            <span className="text-sm font-black text-slate-900 bg-white border border-slate-200 rounded-xl px-4 py-2 shadow-sm block">
+              {new Date(month + '-02').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+            </span>
           </div>
           <button 
             onClick={handleFetch}
             disabled={loading}
-            className="bg-blue-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 h-[42px]"
+            className="bg-blue-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 h-[38px] lg:h-[42px]"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Fetch Events'}
           </button>
@@ -211,7 +198,7 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
             <div className="p-4 bg-slate-50 rounded-full mb-4">
               {hasFetched ? <AlertCircle className="w-8 h-8 text-amber-500" /> : <Download className="w-8 h-8 text-slate-300" />}
             </div>
-            <p className="text-slate-500 max-w-xs">{hasFetched ? "No events found for these dates." : "Click fetch to see your calendar events."}</p>
+            <p className="text-slate-500 max-w-xs">{hasFetched ? "No events found for this month." : "Click fetch to see your calendar events."}</p>
           </div>
         ) : (
           <div className="space-y-4">
