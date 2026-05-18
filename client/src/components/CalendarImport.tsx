@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, Download, Check, AlertCircle, Loader2, Plus } from 'lucide-react';
+import { Calendar, Download, Check, AlertCircle, Loader2, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { apiFetch } from '@/lib/api';
 import SearchableSelect from '@/components/SearchableSelect';
@@ -194,6 +194,23 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
     ));
   };
 
+  const toggleSelectAll = () => {
+    if (selectedEvents.size === events.length) {
+      setSelectedEvents(new Set());
+    } else {
+      setSelectedEvents(new Set(events.map(e => e.id)));
+    }
+  };
+
+  const dismissEvent = (id: string) => {
+    setEvents(prev => prev.filter(ev => ev.id !== id));
+    setSelectedEvents(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  };
+
   return (
     <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
       <div className="p-8 border-b border-slate-100 flex flex-col lg:flex-row lg:items-end justify-between bg-blue-50/30 gap-6">
@@ -234,6 +251,36 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Select/Deselect and Ignore Controls */}
+            <div className="flex items-center justify-between pb-3">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={toggleSelectAll}
+                  className="text-xs font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/70 px-4 py-2 rounded-xl transition-all border border-blue-100 flex items-center gap-1.5"
+                >
+                  {selectedEvents.size === events.length ? 'Deselect All' : 'Select All'}
+                </button>
+                <span className="text-xs font-semibold text-slate-400">
+                  {selectedEvents.size} of {events.length} events selected
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm('Are you sure you want to dismiss all selected events?')) {
+                     const selectedIds = new Set(selectedEvents);
+                     setEvents(prev => prev.filter(ev => !selectedIds.has(ev.id)));
+                     setSelectedEvents(new Set());
+                  }
+                }}
+                disabled={selectedEvents.size === 0}
+                className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100/70 px-4 py-2 rounded-xl transition-all border border-red-100 disabled:opacity-50 flex items-center gap-1.5"
+              >
+                Dismiss Selected
+              </button>
+            </div>
+
             {events.map((event) => (
               <div 
                 key={event.id}
@@ -255,8 +302,16 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
                     <span className="text-sm font-mono font-bold text-slate-900 bg-white px-3 py-1 rounded-lg border border-slate-100">{event.hours.toFixed(2)}h</span>
+                    <button
+                      type="button"
+                      onClick={() => dismissEvent(event.id)}
+                      className="p-2 text-slate-400 hover:text-red-500 bg-slate-50 hover:bg-red-50 rounded-xl transition-all border border-slate-100 hover:border-red-100"
+                      title="Dismiss Event"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
 
