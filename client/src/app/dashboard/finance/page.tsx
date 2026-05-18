@@ -192,10 +192,10 @@ export default function FinancePortal() {
         <div>
           <h1 className="text-3xl font-display font-black text-slate-900 dark:text-white flex items-center gap-2">
             <IndianRupee className="w-8 h-8 text-blue-600" />
-            Finance Allocation Portal
+            Finance Portal
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
-            Analyze time-cost mappings, percentage overheads, payroll calculations, and download clean reports.
+            Analyze allocations, costs, payroll, and export clean reports.
           </p>
         </div>
 
