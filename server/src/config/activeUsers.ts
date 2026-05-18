@@ -8,6 +8,8 @@ const ACTIVE_EMAILS = new Set([
   'udita@themavericksindia.com',
   'gaurav@themavericksindia.com',
   'ananya@themavericksindia.com',
+  'ananya.gulati@themavericksindia.com',
+  'ananya.k@themavericksindia.com',
   'akshay@themavericksindia.com',
   'kashish@themavericksindia.com',
   'laveena@themavericksindia.com',
