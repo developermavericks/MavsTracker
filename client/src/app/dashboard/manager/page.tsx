@@ -124,10 +124,18 @@ export default function ManagerPortal() {
   const totalMemberHours = memberAllocations.reduce((acc, curr) => acc + (curr.hours || 0), 0);
   const totalMyHours = myAllocations.reduce((acc, curr) => acc + (curr.hours || 0), 0);
 
-  const filteredMembers = members.filter(m => 
-    (m.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (m.email || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredMembers = members.filter(m => {
+    const matchesSearch = (m.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (m.email || '').toLowerCase().includes(searchQuery.toLowerCase());
+    if (!matchesSearch) return false;
+
+    // Filter historically by exit date relative to selected reporting month
+    if (m.exit_date) {
+      const exitMonth = m.exit_date.substring(0, 7);
+      if (exitMonth < month) return false;
+    }
+    return true;
+  });
 
   const activeMembers = filteredMembers.filter(m => activeEmails.includes(m.email.toLowerCase()));
   const inactiveMembers = filteredMembers.filter(m => !activeEmails.includes(m.email.toLowerCase()));

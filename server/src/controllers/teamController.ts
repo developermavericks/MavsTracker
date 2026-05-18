@@ -15,7 +15,7 @@ export const getTeamMembers = async (req: Request, res: Response) => {
       .from('teams')
       .select(`
         member_id,
-        member:users!member_id(id, name, email, picture)
+        member:users!member_id(id, name, email, picture, exit_date)
       `)
       .eq('manager_id', managerId);
 

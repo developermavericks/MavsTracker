@@ -13,7 +13,7 @@ export default function MemberInsights({ month: initialMonth }: { month: string 
   const [memberData, setMemberData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<any>(null);
-  const [dbUsers, setDbUsers] = useState<string[]>([]);
+  const [dbUsers, setDbUsers] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function MemberInsights({ month: initialMonth }: { month: string 
       const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/teams/all`);
       const users = await res.json();
       if (Array.isArray(users)) {
-        setDbUsers(users.filter((u: any) => u.is_active).map((u: any) => u.email.toLowerCase()));
+        setDbUsers(users);
       }
     } catch (err) {
       console.error('Failed to fetch DB users:', err);
@@ -89,7 +89,18 @@ export default function MemberInsights({ month: initialMonth }: { month: string 
     try {
       const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reports/zero-hours?month=${internalMonth}`);
       const activeEmails = await res.json();
-      const zeroList = dbUsers.filter(email => !activeEmails.includes(email));
+      const zeroList = dbUsers
+        .filter((u: any) => {
+          if (!u.is_active) return false;
+          if (u.exit_date) {
+            const exitMonth = u.exit_date.substring(0, 7);
+            if (exitMonth < internalMonth) return false;
+          }
+          return true;
+        })
+        .map((u: any) => u.email.toLowerCase())
+        .filter(email => !activeEmails.includes(email));
+
       setZeroHourMembers(zeroList);
     } catch (err) {
       console.error('Failed to fetch zero hour members:', err);
@@ -106,10 +117,20 @@ export default function MemberInsights({ month: initialMonth }: { month: string 
           <div className="space-y-3">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-1">Select Member</label>
               <SearchableSelect 
-                options={[...dbUsers].sort().map(email => ({ 
-                  value: email, 
-                  label: email
-                }))}
+                options={dbUsers
+                  .filter((u: any) => {
+                    if (!u.is_active) return false;
+                    if (u.exit_date) {
+                      const exitMonth = u.exit_date.substring(0, 7);
+                      if (exitMonth < internalMonth) return false;
+                    }
+                    return true;
+                  })
+                  .sort((a, b) => (a.email || '').localeCompare(b.email || ''))
+                  .map((u: any) => ({ 
+                    value: u.email.toLowerCase(), 
+                    label: u.email.toLowerCase()
+                  }))}
                 value={selectedEmail}
                 onChange={(val) => setSelectedEmail(val)}
                 placeholder="Choose a member..."
