@@ -84,3 +84,7 @@ export const isActiveUser = (email: string | null | undefined): boolean => {
   if (!email) return false;
   return ACTIVE_EMAILS.has(email.trim().toLowerCase());
 };
+
+export const getActiveEmailsList = (): string[] => {
+  return Array.from(ACTIVE_EMAILS);
+};

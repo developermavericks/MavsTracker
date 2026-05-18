@@ -1,6 +1,6 @@
 import { supabase } from '../config/supabase';
 import ExcelJS from 'exceljs';
-import { isActiveUser } from '../config/activeUsers';
+import { isActiveUser, getActiveEmailsList } from '../config/activeUsers';
 
 const normalizeClientForMaster = (client: string, groupBd: boolean) => {
   const s = String(client || '').trim();
@@ -107,6 +107,25 @@ export const getCoreMasterAllocations = async (opts: {
       isRegistered: true,
       firstAllocationMonth: firstMonthByUser[u.id] || null
     });
+  });
+
+  // Ensure EVERY single email in ACTIVE_EMAILS has a row, even if they aren't registered/in DB yet!
+  const existingEmails = new Set(Array.from(byMember.values()).map(u => u.email.toLowerCase()));
+  getActiveEmailsList().forEach(email => {
+    const normEmail = email.toLowerCase();
+    if (!existingEmails.has(normEmail)) {
+      const dummyId = `unregistered_${normEmail}`;
+      byMember.set(dummyId, {
+        id: dummyId,
+        email: normEmail,
+        name: normEmail.split('@')[0],
+        salary: 0,
+        allocations: {},
+        totalHours: 0,
+        isRegistered: false,
+        firstAllocationMonth: null
+      });
+    }
   });
 
   const clientObjs = new Map<string, any>();

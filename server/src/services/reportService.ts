@@ -1,5 +1,5 @@
 import { supabase } from '../config/supabase';
-import { isActiveUser } from '../config/activeUsers';
+import { isActiveUser, getActiveEmailsList } from '../config/activeUsers';
 
 const normalizeClientForMaster = (client: string, groupBd: boolean) => {
   const s = String(client || '').trim();
@@ -41,6 +41,17 @@ export const getMasterReportData = async (month: string, options: any = {}) => {
 
   const byMember: Record<string, any> = {};
   const clientSet = new Set<string>();
+
+  // Pre-populate all active emails to ensure 100% of active employees appear
+  getActiveEmailsList().forEach(email => {
+    const normEmail = email.toLowerCase();
+    byMember[normEmail] = {
+      name: normEmail.split('@')[0],
+      email: normEmail,
+      allocations: {},
+      totalHours: 0
+    };
+  });
 
   allocations.forEach((r: any) => {
     const email = r.users.email.toLowerCase();
