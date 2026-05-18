@@ -33,13 +33,22 @@ export const getCoreMasterAllocations = async (opts: {
     throw new Error('Month must be YYYY-MM.');
   }
 
-  // 1. Fetch first allocation month for every user to handle Join Month Logic
-  const { data: allWeeklyLogs, error: logsError } = await supabase
-    .from('allocations_weekly')
-    .select('user_id, month')
-    .limit(50000);
-  
-  if (logsError) throw logsError;
+  // 1. Fetch first allocation month for every user to handle Join Month Logic (paginated)
+  let allWeeklyLogs: any[] = [];
+  let page = 0;
+  const pageSize = 1000;
+  while (true) {
+    const { data, error } = await supabase
+      .from('allocations_weekly')
+      .select('user_id, month')
+      .range(page * pageSize, (page + 1) * pageSize - 1);
+    
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    allWeeklyLogs = allWeeklyLogs.concat(data);
+    if (data.length < pageSize) break;
+    page++;
+  }
 
   const firstMonthByUser: Record<string, string> = {};
   if (allWeeklyLogs) {
@@ -54,14 +63,22 @@ export const getCoreMasterAllocations = async (opts: {
     });
   }
 
-  // 2. Fetch all allocations for selected month
-  const { data: allocations, error: allocError } = await supabase
-    .from('allocations_weekly')
-    .select('*, users(*), clients(*)')
-    .eq('month', month)
-    .limit(20000);
-
-  if (allocError) throw allocError;
+  // 2. Fetch all allocations for selected month (paginated)
+  let allocations: any[] = [];
+  page = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from('allocations_weekly')
+      .select('*, users(*), clients(*)')
+      .eq('month', month)
+      .range(page * pageSize, (page + 1) * pageSize - 1);
+    
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    allocations = allocations.concat(data);
+    if (data.length < pageSize) break;
+    page++;
+  }
 
   // 3. Fetch all registered users
   const { data: allUsers, error: usersError } = await supabase

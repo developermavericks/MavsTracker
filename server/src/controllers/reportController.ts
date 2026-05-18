@@ -109,10 +109,31 @@ export const getMemberReport = async (req: Request, res: Response) => {
 export const getActiveEmails = async (req: Request, res: Response) => {
   const { month } = req.query;
   try {
-    // Get all user_ids who have logged actual hours this month
+    // Get all user_ids who have logged actual hours this month (paginated)
+    const fetchActiveUserIds = async (table: string) => {
+      let ids: any[] = [];
+      let page = 0;
+      const pageSize = 1000;
+      while (true) {
+        const { data, error } = await supabase
+          .from(table)
+          .select('user_id')
+          .gt('hours', 0)
+          .eq('month', month)
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+        
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        ids = ids.concat(data);
+        if (data.length < pageSize) break;
+        page++;
+      }
+      return ids;
+    };
+
     const [weeklyLogs, monthlyLogs] = await Promise.all([
-      supabase.from('allocations_weekly').select('user_id').gt('hours', 0).eq('month', month).limit(20000),
-      supabase.from('allocations_monthly').select('user_id').gt('hours', 0).eq('month', month).limit(20000)
+      fetchActiveUserIds('allocations_weekly'),
+      fetchActiveUserIds('allocations_monthly')
     ]);
 
     if (weeklyLogs.error) throw weeklyLogs.error;

@@ -20,14 +20,23 @@ const normalizeClientForMaster = (client: string, groupBd: boolean) => {
 export const getMasterReportData = async (month: string, options: any = {}) => {
   const { groupBd = true, groupLeave = true, groupInternal = true } = options;
 
-  // Fetch all allocations for the month
-  const { data: allocations, error } = await supabase
-    .from('allocations_weekly')
-    .select('*, users(name, email), clients(name, core_owner)')
-    .eq('month', month)
-    .limit(20000);
-
-  if (error) throw error;
+  // Fetch all allocations for the month (paginated)
+  let allocations: any[] = [];
+  let page = 0;
+  const pageSize = 1000;
+  while (true) {
+    const { data, error: fetchError } = await supabase
+      .from('allocations_weekly')
+      .select('*, users(name, email), clients(name, core_owner)')
+      .eq('month', month)
+      .range(page * pageSize, (page + 1) * pageSize - 1);
+    
+    if (fetchError) throw fetchError;
+    if (!data || data.length === 0) break;
+    allocations = allocations.concat(data);
+    if (data.length < pageSize) break;
+    page++;
+  }
 
   const byMember: Record<string, any> = {};
   const clientSet = new Set<string>();
@@ -78,13 +87,22 @@ export const getMasterReportData = async (month: string, options: any = {}) => {
 export const getClientSummary = async (month: string, view: 'weekly' | 'projected' = 'weekly') => {
   const table = view === 'weekly' ? 'allocations_weekly' : 'allocations_projected';
   
-  const { data: allocations, error } = await supabase
-    .from(table)
-    .select('hours, clients(name)')
-    .eq('month', month)
-    .limit(20000);
-
-  if (error) throw error;
+  let allocations: any[] = [];
+  let page = 0;
+  const pageSize = 1000;
+  while (true) {
+    const { data, error: fetchError } = await supabase
+      .from(table)
+      .select('hours, clients(name)')
+      .eq('month', month)
+      .range(page * pageSize, (page + 1) * pageSize - 1);
+    
+    if (fetchError) throw fetchError;
+    if (!data || data.length === 0) break;
+    allocations = allocations.concat(data);
+    if (data.length < pageSize) break;
+    page++;
+  }
 
   const summary: Record<string, number> = {};
   allocations.forEach((r: any) => {
@@ -100,13 +118,22 @@ export const getClientSummary = async (month: string, view: 'weekly' | 'projecte
 export const getClientRoster = async (month: string, clientName: string, view: 'weekly' | 'projected' = 'weekly') => {
   const table = view === 'weekly' ? 'allocations_weekly' : 'allocations_projected';
   
-  const { data: allocations, error } = await supabase
-    .from(table)
-    .select('hours, users(name, email), clients(name)')
-    .eq('month', month)
-    .limit(20000);
-
-  if (error) throw error;
+  let allocations: any[] = [];
+  let page = 0;
+  const pageSize = 1000;
+  while (true) {
+    const { data, error: fetchError } = await supabase
+      .from(table)
+      .select('hours, users(name, email), clients(name)')
+      .eq('month', month)
+      .range(page * pageSize, (page + 1) * pageSize - 1);
+    
+    if (fetchError) throw fetchError;
+    if (!data || data.length === 0) break;
+    allocations = allocations.concat(data);
+    if (data.length < pageSize) break;
+    page++;
+  }
 
   const roster: Record<string, any> = {};
   allocations.forEach((r: any) => {
