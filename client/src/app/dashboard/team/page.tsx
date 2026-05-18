@@ -178,22 +178,9 @@ export default function TeamPortal() {
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="border-b border-slate-100 px-6 py-4 flex items-center justify-between bg-slate-50/50">
           <div className="flex gap-6">
-            <button 
-              onClick={() => setActiveTab('weekly')}
-              className={`pb-4 pt-2 text-sm font-bold border-b-2 transition-all ${
-                activeTab === 'weekly' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
-            >
+            <div className="pb-4 pt-2 text-sm font-bold border-b-2 border-blue-600 text-blue-600">
               Monthly Actuals
-            </button>
-            <button 
-              onClick={() => setActiveTab('projected')}
-              className={`pb-4 pt-2 text-sm font-bold border-b-2 transition-all ${
-                activeTab === 'projected' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              Monthly Projected
-            </button>
+            </div>
           </div>
           <div className="flex gap-4 items-center">
             <div className="flex bg-slate-100 p-1 rounded-lg">
@@ -226,11 +213,7 @@ export default function TeamPortal() {
             </div>
           ) : (
             <div className="space-y-8">
-              {activeTab === 'projected' && (
-                <div className="px-6 pt-6">
-                  <ClientTargetsCard month={month} actuals={data} title="Monthly Achievement Goals" />
-                </div>
-              )}
+              {/* ClientTargetsCard removed */}
               <AllocationsTable 
                 data={data} 
                 type={activeTab} 
@@ -253,11 +236,7 @@ export default function TeamPortal() {
           </div>
         )}
 
-        {activeTab === 'projected' && user && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <ExcelUpload userId={user.id} month={month} type="projected" onSuccess={refresh} />
-          </div>
-        )}
+        {/* ExcelUpload for projected removed */}
         </div>
       </div>
 
