@@ -25,6 +25,7 @@ export default function AddEntryModal({
   const [clients, setClients] = useState<{ id: string, name: string }[]>([]);
   const [formData, setFormData] = useState({
     client_id: '',
+    customBdName: '',
     category: '',
     hours: '',
     notes: '',
@@ -32,12 +33,18 @@ export default function AddEntryModal({
     end_date: '',
   });
 
+  const selectOptions = [
+    { value: '', label: 'Select Client...' },
+    ...clients.map(c => ({ value: c.id, label: c.name }))
+  ];
+
   useEffect(() => {
     if (isOpen) {
       fetchClients();
       if (isEdit && initialData) {
         setFormData({
           client_id: initialData.client_id || '',
+          customBdName: '',
           category: initialData.category || '',
           hours: initialData.hours?.toString() || '',
           notes: initialData.notes || '',
@@ -47,6 +54,7 @@ export default function AddEntryModal({
       } else {
         setFormData({
           client_id: '',
+          customBdName: '',
           category: '',
           hours: '',
           notes: '',
@@ -74,13 +82,45 @@ export default function AddEntryModal({
     if (e) e.preventDefault();
     setLoading(true);
 
-    let currentClientId = formData.client_id;
-
-
-    if (!currentClientId) {
-      alert("Please select or enter a client name");
+    // Validate both populated
+    if (formData.client_id && formData.customBdName.trim()) {
+      alert("🚨 Error: You have selected a client from the dropdown AND entered a custom BD client name. Please use only one of these options.");
       setLoading(false);
       return;
+    }
+
+    // Validate neither populated
+    if (!formData.client_id && !formData.customBdName.trim()) {
+      alert("🚨 Error: Please select a client or enter a custom BD name.");
+      setLoading(false);
+      return;
+    }
+
+    let currentClientId = formData.client_id;
+
+    if (formData.customBdName.trim()) {
+      try {
+        const bdName = `BD - ${formData.customBdName.trim()}`;
+        const createRes = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ name: bdName })
+        });
+
+        if (!createRes.ok) {
+          const errData = await createRes.json();
+          throw new Error(errData.error || `Failed to create client "${bdName}"`);
+        }
+
+        const newClient = await createRes.json();
+        currentClientId = newClient.id;
+      } catch (err: any) {
+        alert(`Failed to add client: ${err.message}`);
+        setLoading(false);
+        return;
+      }
     }
 
     const method = isEdit ? 'PUT' : 'POST';
@@ -95,9 +135,12 @@ export default function AddEntryModal({
           user_id: userId,
           month,
           kind: type,
-          ...formData,
           client_id: currentClientId,
+          category: formData.category,
           hours: parseFloat(formData.hours),
+          notes: formData.notes,
+          start_date: formData.start_date,
+          end_date: formData.end_date,
           force
         })
       });
@@ -107,7 +150,14 @@ export default function AddEntryModal({
         if (response.status === 409) {
           try {
             const result = JSON.parse(errorText);
-            onOverlap(result.existing, result.error.includes('Blocking'), { ...formData, client_id: currentClientId });
+            onOverlap(result.existing, result.error.includes('Blocking'), {
+              client_id: currentClientId,
+              category: formData.category,
+              hours: formData.hours,
+              notes: formData.notes,
+              start_date: formData.start_date,
+              end_date: formData.end_date
+            });
             setLoading(false);
             return;
           } catch (e) {
@@ -145,16 +195,32 @@ export default function AddEntryModal({
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Client</label>
-              <SearchableSelect 
-                options={clients.map(c => ({ value: c.id, label: c.name }))}
-                value={formData.client_id}
-                onChange={(val) => setFormData({ ...formData, client_id: val })}
-                placeholder="Select Client"
-              />
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">Client (Dropdown)</label>
+                <SearchableSelect 
+                  options={selectOptions}
+                  value={formData.client_id}
+                  onChange={(val) => setFormData({ ...formData, client_id: val })}
+                  placeholder="Select Client"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">Or Add as BD (Manual)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-sm font-bold text-slate-400">BD -</span>
+                  <input 
+                    type="text" 
+                    value={formData.customBdName} 
+                    onChange={(e) => setFormData({ ...formData, customBdName: e.target.value })} 
+                    placeholder="Client Name" 
+                    className="w-full bg-white border border-slate-200 rounded-xl pl-12 pr-4 py-2.5 text-sm font-bold text-slate-900 outline-none focus:border-blue-500 h-[42px]"
+                  />
+                </div>
+              </div>
             </div>
+
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700">Category</label>
               <input 
@@ -163,7 +229,7 @@ export default function AddEntryModal({
                 placeholder="Meeting / Internal / Billable"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none transition-all h-[42px]"
               />
             </div>
           </div>
