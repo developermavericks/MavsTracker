@@ -119,7 +119,7 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
 
   const filteredItems = menuItems.filter(item => {
     if (item.name === 'My Allocations') return true;
-    if (item.name === 'Finance Portal') return true; // Let everyone inspect for now
+    if (item.name === 'Finance Portal' && userRole === 'core') return true;
     if (item.name === 'Manager Portal' && (userRole === 'manager' || userRole === 'core')) return true;
     if (item.name === 'Core Portal' && userRole === 'core') return true;
     return false;
