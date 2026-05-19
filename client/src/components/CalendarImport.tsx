@@ -109,31 +109,62 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
       // Initialize events with default client, category, and event title as notes
       const initializedEvents = data.map((ev: any, index: number) => {
         let bestMatch: typeof clients[0] | null = null;
-        let maxMatchedWords = 0;
+        let bestScore = -1;
+
+        const titleLower = ev.title.toLowerCase();
 
         for (const c of clients) {
           const clientNameLower = c.name.toLowerCase();
-          const titleLower = ev.title.toLowerCase();
+          
+          let isMatch = false;
+          let matchTypeWeight = 0; // 1000 for exact phrase, 500 for token-based
 
-          // 1. Direct match gets highest priority
+          // 1. Check exact phrase match
           if (titleLower.includes(clientNameLower)) {
-            bestMatch = c;
-            break;
+            isMatch = true;
+            matchTypeWeight = 1000;
+          } else {
+            // 2. Check token-based match (all words in client name are present in title)
+            const clientWords = clientNameLower.split(/[\s_\-\/]+/).filter(w => w.length > 1);
+            if (clientWords.length > 0) {
+              const matchingWords = clientWords.filter(word => titleLower.includes(word));
+              if (matchingWords.length === clientWords.length) {
+                isMatch = true;
+                matchTypeWeight = 500;
+              }
+            }
           }
 
-          // 2. Multi-word match (e.g. "Tech Catchup - Internal" matching "Internal Tech")
-          // Split the client name into words of length > 1 (ignores "-" or single letters)
-          const clientWords = clientNameLower.split(/[\s_\-\/]+/).filter(w => w.length > 1);
-          if (clientWords.length > 0) {
-            const matchingWords = clientWords.filter(word => titleLower.includes(word));
+          if (isMatch) {
+            // Calculate Category Priority
+            let categoryPriority = 100; // Default generic (Internal, LEAVE, etc.)
             
-            // If ALL words of the client name exist in the event title
-            if (matchingWords.length === clientWords.length) {
-              // The client with the most matching words is the most specific match
-              if (matchingWords.length > maxMatchedWords) {
-                maxMatchedWords = matchingWords.length;
-                bestMatch = c;
-              }
+            const isGenericInternalOrLeave = [
+              'internal', 'leave', 'free_time', 'free time', 'personal commitments'
+            ].includes(clientNameLower) || clientNameLower.startsWith('group internal');
+
+            const isSpecificInternal = clientNameLower.includes('internal') && !isGenericInternalOrLeave;
+
+            const isBDClient = clientNameLower.startsWith('bd -') || clientNameLower.startsWith('bd ');
+            const isGenericBD = clientNameLower === 'bd';
+
+            if (isBDClient) {
+              categoryPriority = 10000; // Highest priority for proper specific BD clients
+            } else if (!isGenericInternalOrLeave && !isSpecificInternal && !isGenericBD) {
+              categoryPriority = 5000;  // High priority for normal proper clients (e.g. Google)
+            } else if (isGenericBD) {
+              categoryPriority = 1000;  // Medium priority for generic BD
+            } else if (isSpecificInternal) {
+              categoryPriority = 500;   // Medium-low priority for specific internal groups
+            }
+
+            // Calculate overall score
+            // Score = Category Priority + Match Type Weight + Length Specificity
+            const score = categoryPriority + matchTypeWeight + (clientNameLower.length * 10);
+
+            if (score > bestScore) {
+              bestScore = score;
+              bestMatch = c;
             }
           }
         }
