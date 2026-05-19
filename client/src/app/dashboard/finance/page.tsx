@@ -464,7 +464,7 @@ export default function FinancePortal() {
                         <th
                           key={i}
                           colSpan={g.count}
-                          className="px-6 py-3 text-xs font-bold text-center text-slate-700 bg-slate-100/80 border-r border-slate-200 uppercase tracking-widest font-black"
+                          className="px-6 py-3 text-xs font-bold text-center text-slate-700 bg-slate-100/80 border-r-4 border-slate-300 uppercase tracking-widest font-black"
                         >
                           {g.name}
                         </th>
@@ -479,14 +479,17 @@ export default function FinancePortal() {
                       <th className="px-6 py-3 text-xs font-bold text-slate-500 bg-slate-50 sticky left-0 z-40">Member</th>
                       <th className="px-6 py-3 text-xs font-bold text-slate-500 bg-slate-50 sticky left-[140px] z-40">Email</th>
                       <th className="px-6 py-3 text-xs font-bold text-slate-500 bg-slate-50 sticky left-[320px] z-40 border-r border-slate-200 text-right">Salary</th>
-                      {reportData?.clients.map((c: any) => (
-                        <th
-                          key={c.name}
-                          className="px-6 py-3 text-xs font-bold text-slate-600 text-right border-r border-slate-200 min-w-[120px]"
-                        >
-                          {c.name}
-                        </th>
-                      ))}
+                      {reportData?.clients.map((c: any, i: number) => {
+                        const isLastInGroup = i === reportData.clients.length - 1 || c.core !== reportData.clients[i + 1].core;
+                        return (
+                          <th
+                            key={c.name}
+                            className={`px-6 py-3 text-xs font-bold text-slate-600 text-right min-w-[120px] ${isLastInGroup ? 'border-r-4 border-slate-300' : 'border-r border-slate-200'}`}
+                          >
+                            {c.name}
+                          </th>
+                        );
+                      })}
                       <th className="px-6 py-3 text-xs font-bold text-slate-950 text-right font-black bg-slate-100/50">Total</th>
                     </tr>
 
@@ -495,14 +498,17 @@ export default function FinancePortal() {
                       <th className="px-6 py-3 text-xs font-bold text-slate-500 sticky left-0 z-40 bg-emerald-50"></th>
                       <th className="px-6 py-3 text-xs font-bold text-slate-500 sticky left-[140px] z-40 bg-emerald-50"></th>
                       <th className="px-6 py-3 text-xs font-bold text-slate-800 sticky left-[320px] z-40 bg-emerald-50 border-r border-slate-200 text-right">Budget</th>
-                      {reportData?.clients.map((c: any) => (
-                        <th
-                          key={c.name}
-                          className="px-6 py-3 text-xs font-black text-emerald-800 text-right border-r border-slate-200 bg-emerald-50/70"
-                        >
-                          {c.budget ? fmtCurrency(c.budget) : '-'}
-                        </th>
-                      ))}
+                      {reportData?.clients.map((c: any, i: number) => {
+                        const isLastInGroup = i === reportData.clients.length - 1 || c.core !== reportData.clients[i + 1].core;
+                        return (
+                          <th
+                            key={c.name}
+                            className={`px-6 py-3 text-xs font-black text-emerald-800 text-right bg-emerald-50/70 ${isLastInGroup ? 'border-r-4 border-slate-300' : 'border-r border-slate-200'}`}
+                          >
+                            {c.budget ? fmtCurrency(c.budget) : '-'}
+                          </th>
+                        );
+                      })}
                       <th className="px-6 py-3 text-xs font-bold text-slate-50 bg-emerald-50"></th>
                     </tr>
 
@@ -559,8 +565,9 @@ export default function FinancePortal() {
                             </td>
 
                             {/* Dynamic Allocation Cells */}
-                            {reportData.clients.map((c: any) => {
+                            {reportData.clients.map((c: any, i: number) => {
                               const hours = Number(row.allocations[c.name] || 0);
+                              const isLastInGroup = i === reportData.clients.length - 1 || c.core !== reportData.clients[i + 1].core;
                               
                               let displayVal = '';
                               if (currentViewMode === 'hours') {
@@ -574,7 +581,7 @@ export default function FinancePortal() {
                               }
 
                               return (
-                                <td key={c.name} className="px-6 py-4 text-sm font-medium text-slate-600 font-mono text-right border-r border-slate-100">
+                                <td key={c.name} className={`px-6 py-4 text-sm font-medium text-slate-600 font-mono text-right ${isLastInGroup ? 'border-r-4 border-slate-300' : 'border-r border-slate-100'}`}>
                                   {displayVal}
                                 </td>
                               );
@@ -606,7 +613,8 @@ export default function FinancePortal() {
                         </td>
                         
                         {/* Dynamic Column Totals */}
-                        {reportData.clients.map((c: any) => {
+                        {reportData.clients.map((c: any, i: number) => {
+                          const isLastInGroup = i === reportData.clients.length - 1 || c.core !== reportData.clients[i + 1].core;
                           let colVal = 0;
                           
                           // Sum column based on view type
@@ -628,7 +636,7 @@ export default function FinancePortal() {
                           });
 
                           return (
-                            <td key={c.name} className="px-6 py-4 text-sm font-black font-mono text-right text-slate-200 border-r border-slate-800">
+                            <td key={c.name} className={`px-6 py-4 text-sm font-black font-mono text-right text-slate-200 ${isLastInGroup ? 'border-r-4 border-slate-600' : 'border-r border-slate-800'}`}>
                               {currentViewMode === 'percent'
                                 ? colVal > 0 ? `${colVal.toFixed(1)}%` : '0.0%'
                                 : currentViewMode === 'salary'
