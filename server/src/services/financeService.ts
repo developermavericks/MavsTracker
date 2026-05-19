@@ -3,6 +3,38 @@ import ExcelJS from 'exceljs';
 import { isActiveUser, getActiveEmailsList } from '../config/activeUsers';
 import { getEffectiveExitMonthsMap } from './reportService';
 
+const isLeaveClient = (name: string) => {
+  return ['leave', 'personal commitments'].includes(name.toLowerCase());
+};
+
+const isBdClient = (name: string) => {
+  const low = name.toLowerCase();
+  return (
+    low === 'bd' ||
+    low.startsWith('bd ') ||
+    low.startsWith('bd-') ||
+    low.startsWith('bd -') ||
+    low.startsWith('bd/') ||
+    low.startsWith('bd –') ||
+    low.startsWith('bd —')
+  );
+};
+
+const isInternalClient = (name: string) => {
+  const low = name.toLowerCase();
+  const internalGroupList = [
+    'internal – cs',
+    'internal - cs',
+    'internal creative',
+    'internal finance',
+    'internal hr',
+    'internal marketing',
+    'internal tech',
+    'internal training'
+  ];
+  return internalGroupList.includes(low);
+};
+
 const normalizeClientForMaster = (client: string, groupBd: boolean) => {
   const s = String(client || '').trim();
   const low = s.toLowerCase();
@@ -132,28 +164,8 @@ export const getCoreMasterAllocations = async (opts: {
 
   // Pre-populate all active clients so they appear as columns even with 0 hours
   allClients.forEach((c: any) => {
-    let clientName = c.name;
-    clientName = normalizeClientForMaster(clientName, groupBd);
-
-    if (groupLeave && ['leave', 'personal commitments'].includes(clientName.toLowerCase())) {
-      clientName = 'LEAVE';
-    }
-
-    const cLow = clientName.toLowerCase();
-    const internalGroupList = [
-      'internal – cs',
-      'internal - cs',
-      'internal creative',
-      'internal finance',
-      'internal hr',
-      'internal marketing',
-      'internal tech',
-      'internal training'
-    ];
-
-    if (groupInternal && internalGroupList.includes(cLow)) {
-      clientName = 'Group Internal';
-    }
+    const clientName = String(c.name || '').trim();
+    if (!clientName) return;
 
     if (!clientObjs.has(clientName)) {
       clientObjs.set(clientName, {
@@ -163,6 +175,17 @@ export const getCoreMasterAllocations = async (opts: {
       });
     }
   });
+
+  // If grouping is enabled, add special group columns at the end
+  if (groupBd) {
+    clientObjs.set('Group BD', { name: 'Group BD', core: '', budget: 0 });
+  }
+  if (groupInternal) {
+    clientObjs.set('Group Internal', { name: 'Group Internal', core: '', budget: 0 });
+  }
+  if (groupLeave) {
+    clientObjs.set('Group LEAVE', { name: 'Group LEAVE', core: '', budget: 0 });
+  }
 
   allocations.forEach((r: any) => {
     const u = r.users;
@@ -181,34 +204,11 @@ export const getCoreMasterAllocations = async (opts: {
     const firstMonth = firstMonthByUser[u.id] || null;
     if (!firstMonth || firstMonth > month) return;
 
-    let clientName = r.clients?.name || 'Unknown Client';
-    clientName = normalizeClientForMaster(clientName, groupBd);
-
-    if (groupLeave && ['leave', 'personal commitments'].includes(clientName.toLowerCase())) {
-      clientName = 'LEAVE';
-    }
-
-    const cLow = clientName.toLowerCase();
-    const internalGroupList = [
-      'internal – cs',
-      'internal - cs',
-      'internal creative',
-      'internal finance',
-      'internal hr',
-      'internal marketing',
-      'internal tech',
-      'internal training'
-    ];
-
-    if (groupInternal && internalGroupList.includes(cLow)) {
-      clientName = 'Group Internal';
-    }
-
+    const clientName = String(r.clients?.name || 'Unknown Client').trim();
     const hours = Number(r.hours) || 0;
     if (!clientName) return;
 
     if (!clientObjs.has(clientName)) {
-      // Safe read client budget & core (fall back to defaults if columns don't exist yet)
       const clientCore = r.clients?.core || r.clients?.core_owner || '';
       const clientBudget = r.clients?.budget !== undefined ? Number(r.clients.budget) : 0;
 
@@ -236,11 +236,22 @@ export const getCoreMasterAllocations = async (opts: {
     const m = byMember.get(u.id);
     m.allocations[clientName] = (m.allocations[clientName] || 0) + hours;
     m.totalHours += hours;
+
+    // Accumulate to special group columns if enabled
+    if (groupBd && isBdClient(clientName)) {
+      m.allocations['Group BD'] = (m.allocations['Group BD'] || 0) + hours;
+    }
+    if (groupInternal && isInternalClient(clientName)) {
+      m.allocations['Group Internal'] = (m.allocations['Group Internal'] || 0) + hours;
+    }
+    if (groupLeave && isLeaveClient(clientName)) {
+      m.allocations['Group LEAVE'] = (m.allocations['Group LEAVE'] || 0) + hours;
+    }
   });
 
-  // Sort clients: cores grouped, alphabetical name. Grouped columns (BD, Group Internal, LEAVE) go to the absolute end.
+  // Sort clients: cores grouped, alphabetical name. Grouped columns (Group BD, Group Internal, Group LEAVE) go to the absolute end.
   const clientsFull = Array.from(clientObjs.values()).sort((a, b) => {
-    const isGroupedName = (name: string) => ['bd', 'group internal', 'leave'].includes(name.toLowerCase());
+    const isGroupedName = (name: string) => ['group bd', 'group internal', 'group leave'].includes(name.toLowerCase());
     const isGroupA = isGroupedName(a.name);
     const isGroupB = isGroupedName(b.name);
 
