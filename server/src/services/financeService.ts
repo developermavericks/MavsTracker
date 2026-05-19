@@ -82,12 +82,17 @@ export const getCoreMasterAllocations = async (opts: {
     page++;
   }
 
-  // 3. Fetch all registered users
-  const { data: allUsers, error: usersError } = await supabase
-    .from('users')
-    .select('*');
+  // 3. Fetch all registered users and all clients
+  const [usersRes, clientsRes] = await Promise.all([
+    supabase.from('users').select('*'),
+    supabase.from('clients').select('*')
+  ]);
 
-  if (usersError) throw usersError;
+  if (usersRes.error) throw usersRes.error;
+  if (clientsRes.error) throw clientsRes.error;
+  
+  const allUsers = usersRes.data;
+  const allClients = clientsRes.data;
 
   // Fetch the effective exit months map
   const { byUserId } = await getEffectiveExitMonthsMap();
@@ -124,6 +129,40 @@ export const getCoreMasterAllocations = async (opts: {
   });
 
   const clientObjs = new Map<string, any>();
+
+  // Pre-populate all active clients so they appear as columns even with 0 hours
+  allClients.forEach((c: any) => {
+    let clientName = c.name;
+    clientName = normalizeClientForMaster(clientName, groupBd);
+
+    if (groupLeave && ['leave', 'personal commitments'].includes(clientName.toLowerCase())) {
+      clientName = 'LEAVE';
+    }
+
+    const cLow = clientName.toLowerCase();
+    const internalGroupList = [
+      'internal – cs',
+      'internal - cs',
+      'internal creative',
+      'internal finance',
+      'internal hr',
+      'internal marketing',
+      'internal tech',
+      'internal training'
+    ];
+
+    if (groupInternal && internalGroupList.includes(cLow)) {
+      clientName = 'Group Internal';
+    }
+
+    if (!clientObjs.has(clientName)) {
+      clientObjs.set(clientName, {
+        name: clientName,
+        core: c.core || c.core_owner || '',
+        budget: c.budget !== undefined ? Number(c.budget) : 0
+      });
+    }
+  });
 
   allocations.forEach((r: any) => {
     const u = r.users;
