@@ -201,26 +201,26 @@ export default function FinancePortal() {
 
         {/* Dedicated Split Month/Year Selector Pill */}
         <div className="flex items-center gap-4 relative z-50">
-          <div className="flex bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-visible">
+          <div className="flex bg-white border border-slate-200 rounded-xl shadow-sm overflow-visible">
             <select
               value={month.split('-')[1]}
               onChange={(e) => setMonth(`${month.split('-')[0]}-${e.target.value}`)}
-              className="px-4 py-2 text-sm font-bold bg-white dark:bg-slate-950 border-none focus:ring-0 outline-none cursor-pointer text-slate-900 dark:text-slate-100 min-w-[120px] rounded-l-xl"
+              className="px-4 py-2 text-sm font-bold bg-white border-none focus:ring-0 outline-none cursor-pointer text-slate-900 min-w-[120px] rounded-l-xl"
             >
               {['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map((m) => (
-                <option key={m} value={m} className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+                <option key={m} value={m} className="bg-white text-slate-900">
                   {new Date(2025, parseInt(m) - 1).toLocaleString('en-US', { month: 'long' })}
                 </option>
               ))}
             </select>
-            <div className="w-[1px] bg-slate-100 dark:bg-slate-800 my-2" />
+            <div className="w-[1px] bg-slate-100 my-2" />
             <select
               value={month.split('-')[0]}
               onChange={(e) => setMonth(`${e.target.value}-${month.split('-')[1]}`)}
-              className="px-4 py-2 text-sm font-bold bg-white dark:bg-slate-950 border-none focus:ring-0 outline-none cursor-pointer text-blue-600 dark:text-blue-400 min-w-[90px] rounded-r-xl"
+              className="px-4 py-2 text-sm font-bold bg-white border-none focus:ring-0 outline-none cursor-pointer text-blue-600 min-w-[90px] rounded-r-xl"
             >
               {[2025, 2026, 2027, 2028, 2029, 2030].map((y) => (
-                <option key={y} value={y} className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+                <option key={y} value={y} className="bg-white text-slate-900">
                   {y}
                 </option>
               ))}
@@ -252,16 +252,16 @@ export default function FinancePortal() {
       </div>
 
       {/* Workspace Tabs & View Filters Container */}
-      <div className="bg-white dark:bg-slate-950 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         
         {/* Workspace Level Selector */}
-        <div className="border-b border-slate-100 dark:border-slate-800 px-6 py-2 flex items-center bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="border-b border-slate-100 px-6 py-2 flex items-center bg-slate-50/50">
           <button
             onClick={() => setActiveWorkspace('pivot')}
             className={`px-6 py-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
               activeWorkspace === 'pivot'
-                ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
             <Layers className="w-4 h-4" />
@@ -271,8 +271,8 @@ export default function FinancePortal() {
             onClick={() => setActiveWorkspace('manager')}
             className={`px-6 py-4 text-sm font-bold border-b-2 transition-all flex items-center gap-2 ${
               activeWorkspace === 'manager'
-                ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
             <Sliders className="w-4 h-4" />
@@ -287,18 +287,18 @@ export default function FinancePortal() {
             <div className="space-y-6">
               
               {/* Controls and Views Row */}
-              <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+              <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
                 
                 {/* 3 View Tabs */}
-                <div className="flex bg-slate-200/60 dark:bg-slate-800/60 p-1 rounded-xl">
+                <div className="flex bg-slate-200/60 p-1 rounded-xl">
                   {(['hours', 'percent', 'salary'] as const).map((view) => (
                     <button
                       key={view}
                       onClick={() => setCurrentViewMode(view)}
                       className={`px-4 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-wider ${
                         currentViewMode === view
-                          ? 'bg-white dark:bg-slate-950 text-blue-600 dark:text-blue-400 shadow-sm'
-                          : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                          ? 'bg-white text-blue-600 shadow-sm'
+                          : 'text-slate-500 hover:text-slate-700'
                       }`}
                     >
                       {view === 'hours' ? 'Hours View' : view === 'percent' ? 'Percentage View' : 'Allocated Salary'}
@@ -315,7 +315,7 @@ export default function FinancePortal() {
                       onChange={(e) => setGroupBD(e.target.checked)}
                       className="peer appearance-none w-4 h-4 border-2 border-slate-300 rounded focus:ring-2 focus:ring-blue-600 checked:bg-blue-600 checked:border-blue-600 transition-all cursor-pointer"
                     />
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider group-hover:text-blue-600 transition-colors">Group BD</span>
+                    <span className="text-xs font-bold text-slate-700 uppercase tracking-wider group-hover:text-blue-600 transition-colors">Group BD</span>
                   </label>
                   <div className="w-[1px] h-4 bg-slate-300" />
                   <label className="flex items-center gap-2 cursor-pointer group">
@@ -325,7 +325,7 @@ export default function FinancePortal() {
                       onChange={(e) => setGroupLeave(e.target.checked)}
                       className="peer appearance-none w-4 h-4 border-2 border-slate-300 rounded focus:ring-2 focus:ring-blue-600 checked:bg-blue-600 checked:border-blue-600 transition-all cursor-pointer"
                     />
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider group-hover:text-blue-600 transition-colors">Group LEAVE</span>
+                    <span className="text-xs font-bold text-slate-700 uppercase tracking-wider group-hover:text-blue-600 transition-colors">Group LEAVE</span>
                   </label>
                   <div className="w-[1px] h-4 bg-slate-300" />
                   <label className="flex items-center gap-2 cursor-pointer group">
@@ -335,7 +335,7 @@ export default function FinancePortal() {
                       onChange={(e) => setGroupInternal(e.target.checked)}
                       className="peer appearance-none w-4 h-4 border-2 border-slate-300 rounded focus:ring-2 focus:ring-blue-600 checked:bg-blue-600 checked:border-blue-600 transition-all cursor-pointer"
                     />
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider group-hover:text-blue-600 transition-colors">Group Internal</span>
+                    <span className="text-xs font-bold text-slate-700 uppercase tracking-wider group-hover:text-blue-600 transition-colors">Group Internal</span>
                   </label>
                 </div>
 
@@ -344,13 +344,13 @@ export default function FinancePortal() {
                   <button
                     onClick={fetchReport}
                     disabled={loading}
-                    className="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 transition-all disabled:opacity-50"
+                    className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all disabled:opacity-50"
                   >
                     <RefreshCw className={`w-4 h-4 text-slate-600 ${loading ? 'animate-spin' : ''}`} />
                   </button>
                   <button
                     onClick={handleExport}
-                    className="bg-slate-900 dark:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-black hover:bg-blue-600 transition-all flex items-center gap-2 shadow-lg shadow-slate-200 dark:shadow-none uppercase tracking-widest"
+                    className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-black hover:bg-blue-600 transition-all flex items-center gap-2 shadow-lg shadow-slate-200 uppercase tracking-widest"
                   >
                     <Download className="w-4 h-4" />
                     Download Finance Excel
@@ -359,70 +359,70 @@ export default function FinancePortal() {
               </div>
 
               {/* Main Financial Pivot Table */}
-              <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl max-h-[65vh] shadow-sm relative">
+              <div className="overflow-x-auto border border-slate-200 rounded-2xl max-h-[65vh] shadow-sm relative">
                 <table className="w-full text-left border-collapse">
                   
                   {/* Sticky Header */}
-                  <thead className="sticky top-0 bg-slate-50 dark:bg-slate-900 z-30 shadow-[0_1px_0_rgba(229,231,235,1)]">
+                  <thead className="sticky top-0 bg-slate-50 z-30 shadow-[0_1px_0_rgba(229,231,235,1)]">
                     
                     {/* Header Row 1: Core Verticals */}
-                    <tr className="border-b border-slate-200 dark:border-slate-800">
-                      <th colSpan={3} className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 sticky left-0 z-40 border-r border-slate-200 dark:border-slate-800 text-center uppercase tracking-widest">
+                    <tr className="border-b border-slate-200">
+                      <th colSpan={3} className="px-6 py-3 text-xs font-bold text-slate-500 bg-slate-50 sticky left-0 z-40 border-r border-slate-200 text-center uppercase tracking-widest">
                         Metadata
                       </th>
                       {coreHeaderGroups.map((g, i) => (
                         <th
                           key={i}
                           colSpan={g.count}
-                          className="px-6 py-3 text-xs font-bold text-center text-slate-700 dark:text-slate-300 bg-slate-100/80 dark:bg-slate-800/80 border-r border-slate-200 dark:border-slate-800 uppercase tracking-widest font-black"
+                          className="px-6 py-3 text-xs font-bold text-center text-slate-700 bg-slate-100/80 border-r border-slate-200 uppercase tracking-widest font-black"
                         >
                           {g.name}
                         </th>
                       ))}
-                      <th className="px-6 py-3 text-xs font-bold text-center text-slate-950 dark:text-white bg-slate-100/90 dark:bg-slate-800/90 uppercase tracking-widest font-black">
+                      <th className="px-6 py-3 text-xs font-bold text-center text-slate-950 bg-slate-100/90 uppercase tracking-widest font-black">
                         Total
                       </th>
                     </tr>
 
                     {/* Header Row 2: Client Names */}
-                    <tr className="border-b border-slate-200 dark:border-slate-800">
-                      <th className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 sticky left-0 z-40">Member</th>
-                      <th className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 sticky left-[140px] z-40">Email</th>
-                      <th className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 sticky left-[320px] z-40 border-r border-slate-200 dark:border-slate-800 text-right">Salary</th>
+                    <tr className="border-b border-slate-200">
+                      <th className="px-6 py-3 text-xs font-bold text-slate-500 bg-slate-50 sticky left-0 z-40">Member</th>
+                      <th className="px-6 py-3 text-xs font-bold text-slate-500 bg-slate-50 sticky left-[140px] z-40">Email</th>
+                      <th className="px-6 py-3 text-xs font-bold text-slate-500 bg-slate-50 sticky left-[320px] z-40 border-r border-slate-200 text-right">Salary</th>
                       {reportData?.clients.map((c: any) => (
                         <th
                           key={c.name}
-                          className="px-6 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 text-right border-r border-slate-200 dark:border-slate-800 min-w-[120px]"
+                          className="px-6 py-3 text-xs font-bold text-slate-600 text-right border-r border-slate-200 min-w-[120px]"
                         >
                           {c.name}
                         </th>
                       ))}
-                      <th className="px-6 py-3 text-xs font-bold text-slate-950 dark:text-white text-right font-black bg-slate-100/50 dark:bg-slate-800/50">Total</th>
+                      <th className="px-6 py-3 text-xs font-bold text-slate-950 text-right font-black bg-slate-100/50">Total</th>
                     </tr>
 
                     {/* Header Row 3: Client Budgets */}
-                    <tr className="border-b-2 border-slate-300 dark:border-slate-700 bg-emerald-50/50 dark:bg-emerald-950/20">
-                      <th className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 sticky left-0 z-40 bg-emerald-50 dark:bg-emerald-950/20"></th>
-                      <th className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 sticky left-[140px] z-40 bg-emerald-50 dark:bg-emerald-950/20"></th>
-                      <th className="px-6 py-3 text-xs font-bold text-slate-800 dark:text-slate-200 sticky left-[320px] z-40 bg-emerald-50 dark:bg-emerald-950/20 border-r border-slate-200 dark:border-slate-800 text-right">Budget</th>
+                    <tr className="border-b-2 border-slate-300 bg-emerald-50/50">
+                      <th className="px-6 py-3 text-xs font-bold text-slate-500 sticky left-0 z-40 bg-emerald-50"></th>
+                      <th className="px-6 py-3 text-xs font-bold text-slate-500 sticky left-[140px] z-40 bg-emerald-50"></th>
+                      <th className="px-6 py-3 text-xs font-bold text-slate-800 sticky left-[320px] z-40 bg-emerald-50 border-r border-slate-200 text-right">Budget</th>
                       {reportData?.clients.map((c: any) => (
                         <th
                           key={c.name}
-                          className="px-6 py-3 text-xs font-black text-emerald-800 dark:text-emerald-400 text-right border-r border-slate-200 dark:border-slate-800 bg-emerald-50/70 dark:bg-emerald-950/30"
+                          className="px-6 py-3 text-xs font-black text-emerald-800 text-right border-r border-slate-200 bg-emerald-50/70"
                         >
                           {c.budget ? fmtCurrency(c.budget) : '-'}
                         </th>
                       ))}
-                      <th className="px-6 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 bg-emerald-50 dark:bg-emerald-950/20"></th>
+                      <th className="px-6 py-3 text-xs font-bold text-slate-50 bg-emerald-50"></th>
                     </tr>
 
                   </thead>
 
                   {/* Body */}
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tbody className="divide-y divide-slate-100">
                     {loading ? (
                       <tr>
-                        <td colSpan={10} className="text-center py-20 bg-white dark:bg-slate-950">
+                        <td colSpan={10} className="text-center py-20 bg-white">
                           <div className="animate-spin inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full"></div>
                         </td>
                       </tr>
@@ -448,10 +448,10 @@ export default function FinancePortal() {
                         }
 
                         return (
-                          <tr key={row.email} className="hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors group/row">
+                          <tr key={row.email} className="hover:bg-slate-50 transition-colors group/row">
                             
                             {/* Member Name */}
-                            <td className={`px-6 py-4 text-sm font-bold sticky left-0 z-20 bg-white dark:bg-slate-950 group-hover/row:bg-slate-50 dark:group-hover/row:bg-slate-900 border-r border-slate-100 dark:border-slate-900 ${totalHours === 0 ? 'text-rose-500' : 'text-slate-900 dark:text-white'}`}>
+                            <td className={`px-6 py-4 text-sm font-bold sticky left-0 z-20 bg-white group-hover/row:bg-slate-50 border-r border-slate-100 ${totalHours === 0 ? 'text-rose-500' : 'text-slate-900'}`}>
                               {row.name}
                               {totalHours === 0 && (
                                 <span className="block text-[10px] font-black text-rose-500 uppercase tracking-widest mt-0.5">Missing Timesheet</span>
@@ -459,12 +459,12 @@ export default function FinancePortal() {
                             </td>
 
                             {/* Email */}
-                            <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 font-medium sticky left-[140px] z-20 bg-white dark:bg-slate-950 group-hover/row:bg-slate-50 dark:group-hover/row:bg-slate-900 border-r border-slate-100 dark:border-slate-900 truncate max-w-[170px]">
+                            <td className="px-6 py-4 text-sm text-slate-500 font-medium sticky left-[140px] z-20 bg-white group-hover/row:bg-slate-50 border-r border-slate-100 truncate max-w-[170px]">
                               {row.email}
                             </td>
 
                             {/* Salary */}
-                            <td className="px-6 py-4 text-sm text-emerald-600 dark:text-emerald-400 font-semibold sticky left-[320px] z-20 bg-white dark:bg-slate-950 group-hover/row:bg-slate-50 dark:group-hover/row:bg-slate-900 border-r-2 border-slate-200 dark:border-slate-800 text-right font-mono">
+                            <td className="px-6 py-4 text-sm text-emerald-600 font-semibold sticky left-[320px] z-20 bg-white group-hover/row:bg-slate-50 border-r-2 border-slate-200 text-right font-mono">
                               {salary ? fmtCurrency(salary) : '-'}
                             </td>
 
@@ -484,14 +484,14 @@ export default function FinancePortal() {
                               }
 
                               return (
-                                <td key={c.name} className="px-6 py-4 text-sm font-medium text-slate-600 dark:text-slate-300 font-mono text-right border-r border-slate-100 dark:border-slate-900">
+                                <td key={c.name} className="px-6 py-4 text-sm font-medium text-slate-600 font-mono text-right border-r border-slate-100">
                                   {displayVal}
                                 </td>
                               );
                             })}
 
                             {/* Row Total */}
-                            <td className="px-6 py-4 text-sm font-black text-slate-900 dark:text-white font-mono text-right bg-slate-50 dark:bg-slate-900/50">
+                            <td className="px-6 py-4 text-sm font-black text-slate-900 font-mono text-right bg-slate-50">
                               {currentViewMode === 'percent'
                                 ? rowTotal > 0 ? '100.0%' : ''
                                 : currentViewMode === 'salary'
@@ -507,11 +507,11 @@ export default function FinancePortal() {
 
                   {/* Footers for Totals */}
                   {!loading && reportData && reportData.rows.length > 0 && (
-                    <tfoot className="bg-slate-900 dark:bg-slate-950 text-slate-100 border-t-2 border-slate-800 sticky bottom-0 z-30 shadow-[0_-2px_4px_rgba(0,0,0,0.06)]">
+                    <tfoot className="bg-slate-900 text-slate-100 border-t-2 border-slate-800 sticky bottom-0 z-30 shadow-[0_-2px_4px_rgba(0,0,0,0.06)]">
                       <tr>
-                        <td className="px-6 py-4 text-sm font-bold bg-slate-900 dark:bg-slate-950 sticky left-0 z-40 uppercase tracking-widest">TOTAL</td>
-                        <td className="px-6 py-4 text-sm font-bold bg-slate-900 dark:bg-slate-950 sticky left-[140px] z-40"></td>
-                        <td className="px-6 py-4 text-sm font-black text-emerald-400 bg-slate-900 dark:bg-slate-950 sticky left-[320px] z-40 border-r border-slate-700 text-right font-mono">
+                        <td className="px-6 py-4 text-sm font-bold bg-slate-900 sticky left-0 z-40 uppercase tracking-widest">TOTAL</td>
+                        <td className="px-6 py-4 text-sm font-bold bg-slate-900 sticky left-[140px] z-40"></td>
+                        <td className="px-6 py-4 text-sm font-black text-emerald-400 bg-slate-900 sticky left-[320px] z-40 border-r border-slate-700 text-right font-mono">
                           {fmtCurrency(stats.payroll)}
                         </td>
                         
@@ -549,7 +549,7 @@ export default function FinancePortal() {
                         })}
 
                         {/* Grand Allocation Total */}
-                        <td className="px-6 py-4 text-sm font-black font-mono text-right text-blue-400 bg-slate-800 dark:bg-slate-900">
+                        <td className="px-6 py-4 text-sm font-black font-mono text-right text-blue-400 bg-slate-800">
                           {currentViewMode === 'percent'
                             ? '100.0%'
                             : currentViewMode === 'salary'
@@ -565,11 +565,11 @@ export default function FinancePortal() {
               </div>
 
               {/* Zero-Allocation Alert Note */}
-              <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-2xl p-4 flex gap-3">
+              <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3">
                 <AlertCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                 <div>
-                  <span className="text-xs font-bold text-blue-950 dark:text-blue-200 block uppercase tracking-wider">Zero Hours Notification</span>
-                  <p className="text-xs text-blue-700 dark:text-blue-300 mt-0.5 leading-relaxed font-medium">
+                  <span className="text-xs font-bold text-blue-950 block uppercase tracking-wider">Zero Hours Notification</span>
+                  <p className="text-xs text-blue-700 mt-0.5 leading-relaxed font-medium">
                     Members highlighted in **red** have zero timesheet hours logged for this period. Finance must reconcile their entries before final monthly salary overhead distributions.
                   </p>
                 </div>
@@ -582,11 +582,11 @@ export default function FinancePortal() {
           {activeWorkspace === 'manager' && (
             <div className="space-y-8">
               
-              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900 rounded-xl p-4 flex gap-3">
+              <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 flex gap-3">
                 <Sliders className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                 <div>
-                  <span className="text-xs font-bold text-amber-950 dark:text-amber-200 block uppercase tracking-wider">Self-Contained DB Configuration</span>
-                  <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5 leading-relaxed font-medium">
+                  <span className="text-xs font-bold text-amber-950 block uppercase tracking-wider">Self-Contained DB Configuration</span>
+                  <p className="text-xs text-amber-700 mt-0.5 leading-relaxed font-medium">
                     Manage payroll salaries, core verticals, and client budgets directly inside this console. All changes save directly to Supabase and immediately update the Financial Pivot Analyzer!
                   </p>
                 </div>
@@ -596,28 +596,28 @@ export default function FinancePortal() {
                 
                 {/* A. User Salaries configuration */}
                 <div className="space-y-4">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-2">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <div className="border-b border-slate-100 pb-2">
+                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                       <Users className="w-5 h-5 text-blue-600" />
                       Employee Payroll Registry
                     </h3>
                   </div>
 
-                  <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-xl max-h-[50vh]">
+                  <div className="overflow-x-auto border border-slate-200 rounded-xl max-h-[50vh]">
                     <table className="w-full text-left border-collapse">
-                      <thead className="bg-slate-50 dark:bg-slate-900 sticky top-0">
+                      <thead className="bg-slate-50 sticky top-0">
                         <tr>
                           <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Employee</th>
                           <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-right">Salary (INR)</th>
                           <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-right">Edit</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      <tbody className="divide-y divide-slate-100">
                         {users.map((u) => (
-                          <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                          <tr key={u.id} className="hover:bg-slate-50">
                             <td className="px-4 py-3 text-sm">
-                              <span className="font-bold text-slate-950 dark:text-white block leading-tight">{u.name || u.email.split('@')[0]}</span>
-                              <span className="text-[10px] text-slate-500 truncate block">{u.email}</span>
+                              <span className="font-bold text-slate-950 block leading-tight">{u.name || u.email.split('@')[0]}</span>
+                              <span className="text-[10px] text-slate-505 truncate block">{u.email}</span>
                             </td>
                             <td className="px-4 py-3 text-sm text-right font-mono font-bold text-emerald-600">
                               {editingUserId === u.id ? (
@@ -625,7 +625,7 @@ export default function FinancePortal() {
                                   type="number"
                                   value={editingSalaryVal}
                                   onChange={(e) => setEditingSalaryVal(e.target.value)}
-                                  className="w-32 px-2 py-1 border border-slate-300 rounded focus:ring-1 focus:ring-blue-600 text-right bg-white dark:bg-slate-900 text-slate-950 dark:text-white"
+                                  className="w-32 px-2 py-1 border border-slate-300 rounded focus:ring-1 focus:ring-blue-600 text-right bg-white text-slate-950"
                                   autoFocus
                                 />
                               ) : (
@@ -670,16 +670,16 @@ export default function FinancePortal() {
 
                 {/* B. Client Budgets & Cores configuration */}
                 <div className="space-y-4">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-2">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <div className="border-b border-slate-100 pb-2">
+                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                       <Briefcase className="w-5 h-5 text-emerald-600" />
                       Client Accounts Configuration
                     </h3>
                   </div>
 
-                  <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-xl max-h-[50vh]">
+                  <div className="overflow-x-auto border border-slate-200 rounded-xl max-h-[50vh]">
                     <table className="w-full text-left border-collapse">
-                      <thead className="bg-slate-50 dark:bg-slate-900 sticky top-0">
+                      <thead className="bg-slate-50 sticky top-0">
                         <tr>
                           <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Account</th>
                           <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase">Core Vertical</th>
@@ -687,10 +687,10 @@ export default function FinancePortal() {
                           <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase text-right">Edit</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      <tbody className="divide-y divide-slate-100">
                         {clients.map((c) => (
-                          <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50">
-                            <td className="px-4 py-3 text-sm font-bold text-slate-950 dark:text-white">
+                          <tr key={c.id} className="hover:bg-slate-50">
+                            <td className="px-4 py-3 text-sm font-bold text-slate-955">
                               {c.name}
                             </td>
                             <td className="px-4 py-3 text-sm">
@@ -699,11 +699,11 @@ export default function FinancePortal() {
                                   type="text"
                                   value={editingCoreVal}
                                   onChange={(e) => setEditingCoreVal(e.target.value)}
-                                  className="w-24 px-2 py-1 border border-slate-300 rounded focus:ring-1 focus:ring-blue-600 bg-white dark:bg-slate-900 text-slate-950 dark:text-white"
+                                  className="w-24 px-2 py-1 border border-slate-300 rounded focus:ring-1 focus:ring-blue-600 bg-white text-slate-950"
                                   placeholder="e.g. PR"
                                 />
                               ) : (
-                                <span className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded text-xs font-black uppercase text-slate-600 dark:text-slate-400">
+                                <span className="bg-slate-100 px-2 py-1 rounded text-xs font-black uppercase text-slate-600">
                                   {c.core || c.core_owner || 'Unassigned'}
                                 </span>
                               )}
@@ -714,7 +714,7 @@ export default function FinancePortal() {
                                   type="number"
                                   value={editingBudgetVal}
                                   onChange={(e) => setEditingBudgetVal(e.target.value)}
-                                  className="w-28 px-2 py-1 border border-slate-300 rounded focus:ring-1 focus:ring-blue-600 text-right bg-white dark:bg-slate-900 text-slate-950 dark:text-white"
+                                  className="w-28 px-2 py-1 border border-slate-300 rounded focus:ring-1 focus:ring-blue-600 text-right bg-white text-slate-950"
                                 />
                               ) : (
                                 c.budget ? fmtCurrency(c.budget) : '₹0.00'
