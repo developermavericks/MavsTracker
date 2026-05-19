@@ -238,8 +238,18 @@ export const getCoreMasterAllocations = async (opts: {
     m.totalHours += hours;
   });
 
-  // Sort clients: cores grouped, alphabetical name
+  // Sort clients: cores grouped, alphabetical name. Grouped columns (BD, Group Internal, LEAVE) go to the absolute end.
   const clientsFull = Array.from(clientObjs.values()).sort((a, b) => {
+    const isGroupedName = (name: string) => ['bd', 'group internal', 'leave'].includes(name.toLowerCase());
+    const isGroupA = isGroupedName(a.name);
+    const isGroupB = isGroupedName(b.name);
+
+    if (isGroupA && !isGroupB) return 1;
+    if (!isGroupA && isGroupB) return -1;
+    if (isGroupA && isGroupB) {
+      return a.name.localeCompare(b.name);
+    }
+
     const cA = (a.core || '').toLowerCase();
     const cB = (b.core || '').toLowerCase();
 

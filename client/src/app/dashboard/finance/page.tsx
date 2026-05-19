@@ -13,9 +13,9 @@ export default function FinancePortal() {
   const [currentViewMode, setCurrentViewMode] = useState<'hours' | 'percent' | 'salary'>('hours');
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
   const [loading, setLoading] = useState(false);
-  const [groupBD, setGroupBD] = useState(true);
-  const [groupLeave, setGroupLeave] = useState(true);
-  const [groupInternal, setGroupInternal] = useState(true);
+  const [groupBD, setGroupBD] = useState(false);
+  const [groupLeave, setGroupLeave] = useState(false);
+  const [groupInternal, setGroupInternal] = useState(false);
   const [reportData, setReportData] = useState<any>(null);
 
   // States for the Salary & Budget editor
