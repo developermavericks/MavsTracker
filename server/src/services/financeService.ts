@@ -3,6 +3,127 @@ import ExcelJS from 'exceljs';
 import { isActiveUser, getActiveEmailsList } from '../config/activeUsers';
 import { getEffectiveExitMonthsMap } from './reportService';
 
+const CLIENT_CORES: Record<string, string> = {
+  "Adda Education": "Archana",
+  "CapitaLand": "Archana",
+  "Chargezone (TECSO)": "Archana",
+  "College Vidya": "Archana",
+  "Goldi Solar": "Archana",
+  "GradRight": "Archana",
+  "iCreate": "Archana",
+  "Merrakki": "Archana",
+  "Murf AI": "Archana",
+  "Musashi": "Archana",
+  "Musashi-D": "Archana",
+  "Omnicom Global Solutions": "Archana",
+  "Pearl Academy": "Archana",
+  "Plaksha": "Archana",
+
+  "Angara": "Mitali",
+  "Bambrew": "Mitali",
+  "Chupps": "Mitali",
+  "Clinikally": "Mitali",
+  "Eruditus": "Mitali",
+  "FUJIFILM": "Mitali",
+  "GNFZ": "Mitali",
+  "Google": "Mitali",
+  "Inc.5": "Mitali",
+  "Innover": "Mitali",
+  "JCI": "Mitali",
+  "JoshTalks": "Mitali",
+  "Milliken": "Mitali",
+  "Modi Illva": "Mitali",
+  "NEC": "Mitali",
+  "Noise": "Mitali",
+  "Nuuk": "Mitali",
+  "People Matters": "Mitali",
+  "QUBO (HEPL)": "Mitali",
+  "Truworth": "Mitali",
+  "Vivo": "Mitali",
+  "Wadhwani": "Mitali",
+
+  "Aptiv": "Smriti",
+  "Astra Security": "Smriti",
+  "AVPN": "Smriti",
+  "AxiTrust": "Smriti",
+  "BCG": "Smriti",
+  "BD - Bright Money": "Smriti",
+  "Decentro": "Smriti",
+  "FACE": "Smriti",
+  "Hasbro": "Smriti",
+  "MFF": "Smriti",
+  "mPokket": "Smriti",
+  "MSDF": "Smriti",
+  "Oister": "Smriti",
+  "Paasa": "Smriti",
+  "PayGlocal": "Smriti",
+  "Pixxel": "Smriti",
+  "Plum": "Smriti",
+  "PYT": "Smriti",
+  "Razorpay": "Smriti",
+  "Room to Read": "Smriti",
+  "SCALE": "Smriti",
+  "Scapia": "Smriti",
+  "Sense AI": "Smriti",
+  "Shubhanshu": "Smriti",
+  "Straive": "Smriti",
+  "TrueFan AI": "Smriti",
+  "Udaiti": "Smriti",
+  "Udhyam": "Smriti",
+  "Zeno": "Smriti",
+
+  "Capital League": "Chetan",
+  "Crazzy Bosses": "Chetan",
+  "Optiemus Infracom": "Chetan",
+  "PMI": "Chetan",
+
+  "BD": "",
+  "BD - AECOM": "",
+  "BD - Astrotalk": "",
+  "BD - Boston Scientific": "",
+  "BD - Capitalmind": "",
+  "BD - Caterpillar": "",
+  "BD - Chalet": "",
+  "BD - Chorus": "",
+  "BD - CLI": "",
+  "BD - Griffith": "",
+  "BD - Infinite": "",
+  "BD - iTel": "",
+  "BD - IVCA": "",
+  "BD - JAR": "",
+  "BD - Mahavir": "",
+  "BD - Mitsbushi": "",
+  "BD - Panasonic": "",
+  "BD - Peak XV": "",
+  "BD - Qualcomm": "",
+  "BD - Shadowfax": "",
+  "BD - Shiprocket": "",
+  "BD - Simple Energy": "",
+  "BD - UPgrad": "",
+  "BD - WGT": "",
+  "BD - YouTube": "",
+  "BD - Zeti": "",
+  "BD - Zeta": "",
+  "BD - Eume": "",
+  "FREE_TIME": "",
+  "Internal - CS": "",
+  "Internal Creative": "",
+  "Internal Finance": "",
+  "Internal HR": "",
+  "Internal Marketing": "",
+  "Internal Tech": "",
+  "Internal Training": "",
+  "LEAVE": "",
+  "Personal Commitments": "",
+  "BD - BD": "",
+  "BD - Innovist": ""
+};
+
+const LOWERCASE_CLIENT_CORES: Record<string, { originalName: string; core: string }> = {};
+Object.entries(CLIENT_CORES).forEach(([name, core]) => {
+  LOWERCASE_CLIENT_CORES[name.toLowerCase()] = { originalName: name, core };
+});
+
 const isLeaveClient = (name: string) => {
   return ['leave', 'personal commitments'].includes(name.toLowerCase());
 };
@@ -162,18 +283,17 @@ export const getCoreMasterAllocations = async (opts: {
 
   const clientObjs = new Map<string, any>();
 
-  // Pre-populate all active clients so they appear as columns even with 0 hours
-  allClients.forEach((c: any) => {
-    const clientName = String(c.name || '').trim();
-    if (!clientName) return;
+  // Pre-populate only the strict client list from our reference map
+  Object.entries(CLIENT_CORES).forEach(([clientName, core]) => {
+    // Find budget from DB if it exists
+    const dbClient = allClients.find((c: any) => c.name.toLowerCase() === clientName.toLowerCase());
+    const budget = dbClient?.budget !== undefined ? Number(dbClient.budget) : 0;
 
-    if (!clientObjs.has(clientName)) {
-      clientObjs.set(clientName, {
-        name: clientName,
-        core: c.core || c.core_owner || '',
-        budget: c.budget !== undefined ? Number(c.budget) : 0
-      });
-    }
+    clientObjs.set(clientName, {
+      name: clientName,
+      core: core,
+      budget: budget
+    });
   });
 
   // If grouping is enabled, add special group columns at the end
@@ -204,20 +324,14 @@ export const getCoreMasterAllocations = async (opts: {
     const firstMonth = firstMonthByUser[u.id] || null;
     if (!firstMonth || firstMonth > month) return;
 
-    const clientName = String(r.clients?.name || 'Unknown Client').trim();
+    const rawClientName = String(r.clients?.name || 'Unknown Client').trim();
+    
+    // Strict lookup: if it's not in our allowed client map, filter it out!
+    const match = LOWERCASE_CLIENT_CORES[rawClientName.toLowerCase()];
+    if (!match) return;
+
+    const clientName = match.originalName;
     const hours = Number(r.hours) || 0;
-    if (!clientName) return;
-
-    if (!clientObjs.has(clientName)) {
-      const clientCore = r.clients?.core || r.clients?.core_owner || '';
-      const clientBudget = r.clients?.budget !== undefined ? Number(r.clients.budget) : 0;
-
-      clientObjs.set(clientName, {
-        name: clientName,
-        core: clientCore,
-        budget: clientBudget
-      });
-    }
 
     if (!byMember.has(u.id)) {
       const sal = u.salary !== undefined ? Number(u.salary) : 0;
