@@ -16,6 +16,8 @@ interface CalendarEvent {
   client_id?: string;
   category?: string;
   notes?: string;
+  isCustomBd?: boolean;
+  customBdName?: string;
 }
 
 export default function CalendarImport({ userId, month, onSuccess }: { userId: string, month: string, onSuccess: () => void }) {
@@ -194,12 +196,50 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
       
       if (selected.length === 0) return;
 
-      const missingClient = selected.find(e => !e.client_id);
+      const missingClient = selected.find(e => !e.isCustomBd && !e.client_id);
       if (missingClient) {
         throw new Error(`Please select a client for "${missingClient.title}" before saving.`);
       }
 
-      for (const event of selected) {
+      const emptyCustomBd = selected.find(e => e.isCustomBd && !e.customBdName?.trim());
+      if (emptyCustomBd) {
+        throw new Error(`Please enter a BD client name for "${emptyCustomBd.title}".`);
+      }
+
+      const eventsToSave = [...selected];
+      const updatedClientsList = [...clients];
+
+      for (const event of eventsToSave) {
+        if (event.isCustomBd) {
+          const bdName = `BD - ${event.customBdName!.trim()}`;
+          
+          const createRes = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clients`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: bdName })
+          });
+
+          if (!createRes.ok) {
+            const errData = await createRes.json();
+            throw new Error(errData.error || `Failed to create client "${bdName}"`);
+          }
+
+          const newClient = await createRes.json();
+          event.client_id = newClient.id;
+
+          if (!updatedClientsList.some(c => c.id === newClient.id)) {
+            updatedClientsList.push(newClient);
+          }
+        }
+      }
+
+      // Sort and update the clients state so they immediately show in all dropdowns
+      updatedClientsList.sort((a, b) => a.name.localeCompare(b.name));
+      setClients(updatedClientsList);
+
+      for (const event of eventsToSave) {
         const { error } = await supabase
           .from('allocations_weekly')
           .insert([{
@@ -423,14 +463,44 @@ export default function CalendarImport({ userId, month, onSuccess }: { userId: s
                 {selectedEvents.has(event.id) && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-200" onClick={(e) => e.stopPropagation()}>
                     <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Client</label>
-                      <SearchableSelect 
-                        options={clients.map(c => ({ value: c.id, label: c.name }))}
-                        value={event.client_id || ''}
-                        onChange={(val) => updateEventDetails(event.id, 'client_id', val)}
-                        placeholder="Select Client"
-                        className="text-xs"
-                      />
+                      <div className="flex justify-between items-center ml-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Client</label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const isCustom = !event.isCustomBd;
+                            setEvents(prev => prev.map(ev => 
+                              ev.id === event.id 
+                                ? { ...ev, isCustomBd: isCustom, customBdName: isCustom ? '' : undefined } 
+                                : ev
+                            ));
+                          }}
+                          className="text-[10px] font-bold text-blue-600 hover:text-blue-700 transition-colors"
+                        >
+                          {event.isCustomBd ? "Select Existing" : "Add as BD"}
+                        </button>
+                      </div>
+
+                      {event.isCustomBd ? (
+                        <div className="relative">
+                          <span className="absolute left-3 top-2 text-xs font-bold text-slate-400">BD -</span>
+                          <input 
+                            type="text" 
+                            value={event.customBdName || ''} 
+                            onChange={(e) => updateEventDetails(event.id, 'customBdName', e.target.value)} 
+                            placeholder="Client Name" 
+                            className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-3 py-2 text-xs font-bold text-slate-900 outline-none focus:border-blue-500 h-[38px]"
+                          />
+                        </div>
+                      ) : (
+                        <SearchableSelect 
+                          options={clients.map(c => ({ value: c.id, label: c.name }))}
+                          value={event.client_id || ''}
+                          onChange={(val) => updateEventDetails(event.id, 'client_id', val)}
+                          placeholder="Select Client"
+                          className="text-xs"
+                        />
+                      )}
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Category</label>
