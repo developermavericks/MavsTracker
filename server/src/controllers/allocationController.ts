@@ -135,10 +135,16 @@ export const addMonthlyAllocation = async (req: Request, res: Response) => {
 };
 
 export const addWeeklyAllocation = async (req: Request, res: Response) => {
-  const { user_id, month, client_id, category, hours, notes, start_date, end_date, source } = req.body;
+  const { user_id, month: bodyMonth, client_id, category, hours, notes, start_date, end_date, source } = req.body;
   const userRole = (req as any).user_role || 'team';
 
   try {
+    // Determine the true month of the weekly allocation from start_date
+    let month = bodyMonth;
+    if (start_date && /^\d{4}-\d{2}-\d{2}$/.test(start_date)) {
+      month = start_date.slice(0, 7); // YYYY-MM
+    }
+
     // Debug log role and month
     console.log('[LOCK] Checking lock for month', month, 'role', userRole);
     // Check lock
@@ -234,7 +240,7 @@ export const updateAllocation = async (req: Request, res: Response) => {
     // Fetch month first to verify lock
     const { data: record, error: fetchError } = await supabase
       .from(table)
-      .select('month')
+      .select('*')
       .eq('id', id)
       .maybeSingle();
 
@@ -242,9 +248,28 @@ export const updateAllocation = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Allocation not found' });
     }
 
-    const isLocked = await checkIfMonthLocked(record.month, userRole);
-    if (isLocked) {
+    // 1. Check if the original month is locked
+    const isOldLocked = await checkIfMonthLocked(record.month, userRole);
+    if (isOldLocked) {
       return res.status(403).json({ error: `This month (${record.month}) is locked for editing.` });
+    }
+
+    // 2. Check if the target month is locked, and dynamically update week_code / month
+    let targetMonth = record.month;
+    if (kind === 'weekly') {
+      const activeStartDate = updates.start_date || record.start_date;
+      if (activeStartDate && /^\d{4}-\d{2}-\d{2}$/.test(activeStartDate)) {
+        targetMonth = activeStartDate.slice(0, 7);
+        updates.month = targetMonth;
+        updates.week_code = calculateWeekCode(targetMonth, activeStartDate);
+      }
+    } else if (updates.month) {
+      targetMonth = updates.month;
+    }
+
+    const isNewLocked = await checkIfMonthLocked(targetMonth, userRole);
+    if (isNewLocked) {
+      return res.status(403).json({ error: `The target month (${targetMonth}) is locked for editing.` });
     }
 
     const { data, error } = await supabase

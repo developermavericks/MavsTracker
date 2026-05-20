@@ -75,14 +75,29 @@ export const importExcel = async (req: Request, res: Response) => {
         if (type === 'weekly') {
           entry.start_date = startDate || null;
           entry.end_date = endDate || null;
-          if (startDate) {
-            entry.week_code = calculateWeekCode(month, startDate);
-          }
         }
 
         rows.push(entry);
       }
     });
+
+    // 2. Validate each row's month lock and set correct target month / week_code
+    for (const row of rows) {
+      let rowMonth = month;
+      if (type === 'weekly' && row.start_date && /^\d{4}-\d{2}/.test(row.start_date)) {
+        rowMonth = row.start_date.slice(0, 7);
+      }
+
+      const isRowLocked = await checkIfMonthLocked(rowMonth, userRole);
+      if (isRowLocked) {
+        return res.status(403).json({ error: `Cannot import: The date ${row.start_date} is in a locked month (${rowMonth}).` });
+      }
+
+      row.month = rowMonth;
+      if (type === 'weekly' && row.start_date) {
+        row.week_code = calculateWeekCode(rowMonth, row.start_date);
+      }
+    }
 
     const table = type === 'projected' ? 'allocations_monthly' : 'allocations_weekly';
     const { error } = await supabase.from(table).insert(rows);
