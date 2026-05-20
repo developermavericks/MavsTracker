@@ -943,112 +943,6 @@ export default function FinancePortal() {
                 </div>
               </div>
 
-              {/* CORE TEAM & UNASSIGNED DISTRIBUTION CHART CARD */}
-              <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/50 rounded-[24px] p-6 flex flex-col">
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">CORE TEAM DISTRIBUTION</span>
-                    <h4 className="text-base font-bold text-slate-900 mt-0.5">
-                      Leadership Core Team & Unassigned Allocation Share
-                    </h4>
-                    <p className="text-xs text-slate-500">
-                      Proportional distribution of working hours across teams managed under the four core members and the Unassigned category.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setExpandedChart('team')}
-                    className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-xl transition-all"
-                    title="Enlarge Chart"
-                  >
-                    <Maximize2 className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {coreTeamData.length === 0 ? (
-                  <div className="min-h-[200px] flex items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-slate-100 rounded-xl">
-                    No core team allocations found for this month.
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-                    {/* Left Column: Gorgeous Donut Chart */}
-                    <div className="md:col-span-5 h-[260px] w-full flex items-center justify-center relative">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={coreTeamData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={70}
-                            outerRadius={105}
-                            paddingAngle={4}
-                            dataKey="value"
-                          >
-                            {coreTeamData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <RechartsTooltip
-                            contentStyle={{
-                              background: '#0f172a',
-                              border: 'none',
-                              borderRadius: '12px',
-                              color: '#fff',
-                              fontSize: '11px',
-                              fontWeight: 'bold',
-                              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                            }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                      
-                      {/* Center Stats overlay for donut */}
-                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Hours</span>
-                        <span className="text-2xl font-black text-slate-900 mt-0.5">
-                          {coreTeamData.reduce((acc, c) => acc + c.value, 0).toFixed(1)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Right Column: Leadership list table details */}
-                    <div className="md:col-span-7 space-y-3">
-                      <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-2">
-                        Core Team Allocation Summary
-                      </h5>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {coreTeamData.map((entry) => {
-                          const totalHoursSum = coreTeamData.reduce((sum, item) => sum + item.value, 0);
-                          const pct = totalHoursSum > 0 ? ((entry.value / totalHoursSum) * 100).toFixed(1) : '0';
-                          return (
-                            <div 
-                              key={entry.name} 
-                              className="flex items-center justify-between p-3.5 bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-2xl transition-all duration-200"
-                            >
-                              <div className="flex items-center gap-3 min-w-0">
-                                <span 
-                                  className="w-3.5 h-3.5 rounded-full flex-shrink-0 border-2 border-white shadow-sm"
-                                  style={{ backgroundColor: entry.color }}
-                                />
-                                <div className="min-w-0">
-                                  <span className="text-sm font-bold text-slate-800 block leading-tight">{entry.name} Team</span>
-                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{pct}% Share</span>
-                                </div>
-                              </div>
-                              <div className="text-right pl-2">
-                                <span className="text-sm font-black text-slate-900 block font-mono">
-                                  {entry.value.toFixed(1)}
-                                </span>
-                                <span className="text-[9px] font-bold text-slate-400">Hours</span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
               {/* Both charts container: Grid 1col on mobile, 2col on desktop for side-by-side */}
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-stretch">
                 
@@ -1256,6 +1150,112 @@ export default function FinancePortal() {
 
                 </div>
 
+              </div>
+
+              {/* CORE TEAM & UNASSIGNED DISTRIBUTION CHART CARD */}
+              <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/50 rounded-[24px] p-6 flex flex-col">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">CORE TEAM DISTRIBUTION</span>
+                    <h4 className="text-base font-bold text-slate-900 mt-0.5">
+                      Leadership Core Team & Unassigned Allocation Share
+                    </h4>
+                    <p className="text-xs text-slate-500">
+                      Proportional distribution of working hours across teams managed under the four core members and the Unassigned category.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setExpandedChart('team')}
+                    className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-xl transition-all"
+                    title="Enlarge Chart"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {coreTeamData.length === 0 ? (
+                  <div className="min-h-[200px] flex items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-slate-100 rounded-xl">
+                    No core team allocations found for this month.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                    {/* Left Column: Gorgeous Donut Chart */}
+                    <div className="md:col-span-5 h-[260px] w-full flex items-center justify-center relative">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={coreTeamData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={70}
+                            outerRadius={105}
+                            paddingAngle={4}
+                            dataKey="value"
+                          >
+                            {coreTeamData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip
+                            contentStyle={{
+                              background: '#0f172a',
+                              border: 'none',
+                              borderRadius: '12px',
+                              color: '#fff',
+                              fontSize: '11px',
+                              fontWeight: 'bold',
+                              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                            }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      
+                      {/* Center Stats overlay for donut */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Hours</span>
+                        <span className="text-2xl font-black text-slate-900 mt-0.5">
+                          {coreTeamData.reduce((acc, c) => acc + c.value, 0).toFixed(1)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Right Column: Leadership list table details */}
+                    <div className="md:col-span-7 space-y-3">
+                      <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-2">
+                        Core Team Allocation Summary
+                      </h5>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {coreTeamData.map((entry) => {
+                          const totalHoursSum = coreTeamData.reduce((sum, item) => sum + item.value, 0);
+                          const pct = totalHoursSum > 0 ? ((entry.value / totalHoursSum) * 100).toFixed(1) : '0';
+                          return (
+                            <div 
+                              key={entry.name} 
+                              className="flex items-center justify-between p-3.5 bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-2xl transition-all duration-200"
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <span 
+                                  className="w-3.5 h-3.5 rounded-full flex-shrink-0 border-2 border-white shadow-sm"
+                                  style={{ backgroundColor: entry.color }}
+                                />
+                                <div className="min-w-0">
+                                  <span className="text-sm font-bold text-slate-800 block leading-tight">{entry.name} Team</span>
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{pct}% Share</span>
+                                </div>
+                              </div>
+                              <div className="text-right pl-2">
+                                <span className="text-sm font-black text-slate-900 block font-mono">
+                                  {entry.value.toFixed(1)}
+                                </span>
+                                <span className="text-[9px] font-bold text-slate-400">Hours</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
             </div>
