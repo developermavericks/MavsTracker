@@ -37,9 +37,7 @@ export const getMyAllocations = async (req: Request, res: Response) => {
 
 export const checkIfMonthLocked = async (month: string, userRole: string): Promise<boolean> => {
   // 1. Core users are NEVER locked out
-  if (userRole === 'core') {
-    return false;
-  }
+  // Core users are subject to the same lock rules as others; they can unlock via unlocked_months table
 
   if (!/^\d{4}-\d{2}$/.test(month)) {
     return false;
@@ -137,10 +135,12 @@ export const addMonthlyAllocation = async (req: Request, res: Response) => {
 };
 
 export const addWeeklyAllocation = async (req: Request, res: Response) => {
-  const { user_id, month, client_id, category, hours, notes, start_date, end_date } = req.body;
+  const { user_id, month, client_id, category, hours, notes, start_date, end_date, source } = req.body;
   const userRole = (req as any).user_role || 'team';
 
   try {
+    // Debug log role and month
+    console.log('[LOCK] Checking lock for month', month, 'role', userRole);
     // Check lock
     const isLocked = await checkIfMonthLocked(month, userRole);
     if (isLocked) {
@@ -169,11 +169,13 @@ export const addWeeklyAllocation = async (req: Request, res: Response) => {
       return res.status(400).json({ error: `Monthly cap exceeded. Current total: ${totalHours}h. Adding ${hours}h would exceed 160h.` });
     }
 
-    // Proceed with insertion
+    // Proceed with insertion, include source if provided
     const week_code = calculateWeekCode(month, start_date);
+    const insertPayload: any = { user_id, month, client_id, category, hours, notes, start_date, end_date, week_code };
+    if (source) insertPayload.source = source;
     const { data, error } = await supabase
       .from('allocations_weekly')
-      .insert([{ user_id, month, client_id, category, hours, notes, start_date, end_date, week_code }])
+      .insert([insertPayload])
       .select();
 
     if (error) throw error;
@@ -182,6 +184,8 @@ export const addWeeklyAllocation = async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
 
 export const deleteAllocation = async (req: Request, res: Response) => {
   const { id } = req.params;
