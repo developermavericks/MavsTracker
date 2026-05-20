@@ -1,6 +1,6 @@
 'use client';
 
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2, Lock } from 'lucide-react';
 
 interface Allocation {
   id: string;
@@ -20,9 +20,17 @@ interface AllocationsTableProps {
   displayMode?: 'detailed' | 'summary';
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  isLocked?: boolean;
 }
 
-export default function AllocationsTable({ data, type, displayMode = 'detailed', onEdit, onDelete }: AllocationsTableProps) {
+export default function AllocationsTable({ 
+  data, 
+  type, 
+  displayMode = 'detailed', 
+  onEdit, 
+  onDelete,
+  isLocked = false 
+}: AllocationsTableProps) {
   // Aggregate data if in summary mode
   const displayData = displayMode === 'summary' ? 
     Object.values(data.reduce((acc: any, item) => {
@@ -93,20 +101,26 @@ export default function AllocationsTable({ data, type, displayMode = 'detailed',
                   {displayMode === 'detailed' && <td className="px-6 py-4 text-sm text-slate-500 max-w-xs truncate">{sourceInfo.cleanNotes}</td>}
                   {displayMode === 'detailed' && (
                     <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
-                          onClick={() => onEdit?.(item.id)}
-                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => onDelete?.(item.id)}
-                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                      {isLocked ? (
+                        <div className="flex justify-end pr-2 text-slate-400">
+                          <Lock className="w-4.5 h-4.5" />
+                        </div>
+                      ) : (
+                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => onEdit?.(item.id)}
+                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => onDelete?.(item.id)}
+                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
                     </td>
                   )}
                 </tr>
