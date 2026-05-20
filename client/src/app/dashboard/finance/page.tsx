@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useMemo } from 'react';
-import { IndianRupee, Download, Users, Briefcase, RefreshCw, Layers, Sliders, CheckCircle2, AlertCircle, Edit2, BarChart3 } from 'lucide-react';
+import { IndianRupee, Download, Users, Briefcase, RefreshCw, Layers, Sliders, CheckCircle2, AlertCircle, Edit2, BarChart3, Maximize2, Minimize2 } from 'lucide-react';
 import StatsCard from '@/components/StatsCard';
 import { apiFetch } from '@/lib/api';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -413,6 +413,60 @@ export default function FinancePortal() {
       entities: sortedEntities
     };
   }, [reportData, month, daysInMonth, analysisView, groupBD, groupLeave, groupInternal]);
+
+  // State to track which chart is expanded in modal overlay
+  const [expandedChart, setExpandedChart] = useState<'bar' | 'line' | 'team' | null>(null);
+
+  // Helper to resolve client names to their core leadership team owners
+  const getClientCoreTeam = (rawName: string): string => {
+    const s = String(rawName || '').trim();
+    const low = s.toLowerCase();
+
+    const archanaClients = ["adda education", "capitaland", "chargezone", "college vidya", "goldi solar", "gradright", "icreate", "merrakki", "murf ai", "musashi", "musashi-d", "omnicom global", "pearl academy", "plaksha"];
+    const mitaliClients = ["angara", "bambrew", "chupps", "clinikally", "eruditus", "fujifilm", "gnfz", "google", "inc.5", "innover", "jci", "joshtalks", "milliken", "modi illva", "nec", "noise", "nuuk", "people matters", "people matteras", "qubo", "truworth", "vivo", "wadhwani", "haystack"];
+    const smritiClients = ["aptiv", "astra security", "avpn", "axitrust", "bcg", "bd - bright money", "decentro", "face", "hasbro", "mff", "mpokket", "msdf", "oister", "olster", "paasa", "payglocal", "pixxel", "pixel", "plum", "pyt", "razorpay", "room to read", "scale", "scapia", "sense ai", "shubhanshu", "straive", "truefan ai", "udaiti", "udhyam", "zeno"];
+    const chetanClients = ["capital league", "crazzy bosses", "optiemus infracom", "optimus infrastructure", "pmi"];
+
+    if (archanaClients.some(c => low.includes(c))) return "Archana";
+    if (mitaliClients.some(c => low.includes(c))) return "Mitali";
+    if (smritiClients.some(c => low.includes(c))) return "Smriti";
+    if (chetanClients.some(c => low.includes(c))) return "Chetan";
+
+    return "Unassigned";
+  };
+
+  // Compute Core Team-wise Hours allocation distribution
+  const coreTeamData = useMemo(() => {
+    if (!reportData || !reportData.rawAllocations) return [];
+
+    const totals: Record<string, number> = {
+      "Archana": 0,
+      "Mitali": 0,
+      "Smriti": 0,
+      "Chetan": 0,
+      "Unassigned": 0
+    };
+
+    reportData.rawAllocations.forEach((alloc: any) => {
+      const cName = alloc.clients?.name || 'Unknown';
+      const core = getClientCoreTeam(cName);
+      totals[core] = (totals[core] || 0) + (Number(alloc.hours) || 0);
+    });
+
+    const colorsMap: Record<string, string> = {
+      "Archana": "#2563eb",   // Vivid Blue
+      "Mitali": "#10b981",    // Emerald Green
+      "Smriti": "#ec4899",    // Rose Pink
+      "Chetan": "#8b5cf6",    // Purple
+      "Unassigned": "#64748b" // Slate Gray
+    };
+
+    return Object.keys(totals).map(name => ({
+      name,
+      value: Math.round(totals[name] * 10) / 10,
+      color: colorsMap[name] || '#cbd5e1'
+    })).filter(item => item.value > 0);
+  }, [reportData]);
 
   // Automatically check the top 5 entities to populate line chart without clutter
   useEffect(() => {
@@ -889,19 +943,134 @@ export default function FinancePortal() {
                 </div>
               </div>
 
+              {/* CORE TEAM & UNASSIGNED DISTRIBUTION CHART CARD */}
+              <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/50 rounded-[24px] p-6 flex flex-col">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">CORE TEAM DISTRIBUTION</span>
+                    <h4 className="text-base font-bold text-slate-900 mt-0.5">
+                      Leadership Core Team & Unassigned Allocation Share
+                    </h4>
+                    <p className="text-xs text-slate-500">
+                      Proportional distribution of working hours across teams managed under the four core members and the Unassigned category.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setExpandedChart('team')}
+                    className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-xl transition-all"
+                    title="Enlarge Chart"
+                  >
+                    <Maximize2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {coreTeamData.length === 0 ? (
+                  <div className="min-h-[200px] flex items-center justify-center text-slate-400 text-xs font-medium border-2 border-dashed border-slate-100 rounded-xl">
+                    No core team allocations found for this month.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                    {/* Left Column: Gorgeous Donut Chart */}
+                    <div className="md:col-span-5 h-[260px] w-full flex items-center justify-center relative">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={coreTeamData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={70}
+                            outerRadius={105}
+                            paddingAngle={4}
+                            dataKey="value"
+                          >
+                            {coreTeamData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip
+                            contentStyle={{
+                              background: '#0f172a',
+                              border: 'none',
+                              borderRadius: '12px',
+                              color: '#fff',
+                              fontSize: '11px',
+                              fontWeight: 'bold',
+                              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                            }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      
+                      {/* Center Stats overlay for donut */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Hours</span>
+                        <span className="text-2xl font-black text-slate-900 mt-0.5">
+                          {coreTeamData.reduce((acc, c) => acc + c.value, 0).toFixed(1)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Right Column: Leadership list table details */}
+                    <div className="md:col-span-7 space-y-3">
+                      <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-2">
+                        Core Team Allocation Summary
+                      </h5>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {coreTeamData.map((entry) => {
+                          const totalHoursSum = coreTeamData.reduce((sum, item) => sum + item.value, 0);
+                          const pct = totalHoursSum > 0 ? ((entry.value / totalHoursSum) * 100).toFixed(1) : '0';
+                          return (
+                            <div 
+                              key={entry.name} 
+                              className="flex items-center justify-between p-3.5 bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-2xl transition-all duration-200"
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                <span 
+                                  className="w-3.5 h-3.5 rounded-full flex-shrink-0 border-2 border-white shadow-sm"
+                                  style={{ backgroundColor: entry.color }}
+                                />
+                                <div className="min-w-0">
+                                  <span className="text-sm font-bold text-slate-800 block leading-tight">{entry.name} Team</span>
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{pct}% Share</span>
+                                </div>
+                              </div>
+                              <div className="text-right pl-2">
+                                <span className="text-sm font-black text-slate-900 block font-mono">
+                                  {entry.value.toFixed(1)}
+                                </span>
+                                <span className="text-[9px] font-bold text-slate-400">Hours</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
               {/* Both charts container: Grid 1col on mobile, 2col on desktop for side-by-side */}
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-stretch">
                 
                 {/* Chart 1: Bar Graph (Left Side) */}
                 <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/50 rounded-[24px] p-6 flex flex-col min-h-[480px]">
-                  <div className="mb-4">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">CHART 1</span>
-                    <h4 className="text-base font-bold text-slate-900 mt-0.5">
-                      Total Allocation Hours ({analysisView === 'employee' ? 'by Employee' : 'by Client'})
-                    </h4>
-                    <p className="text-xs text-slate-500">
-                      Alphabetically sorted total logged hours for this month. Scroll horizontally if needed.
-                    </p>
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">CHART 1</span>
+                      <h4 className="text-base font-bold text-slate-900 mt-0.5">
+                        Total Allocation Hours ({analysisView === 'employee' ? 'by Employee' : 'by Client'})
+                      </h4>
+                      <p className="text-xs text-slate-500">
+                        Alphabetically sorted total logged hours for this month. Scroll horizontally if needed.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setExpandedChart('bar')}
+                      className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-xl transition-all"
+                      title="Enlarge Chart"
+                    >
+                      <Maximize2 className="w-4 h-4" />
+                    </button>
                   </div>
 
                   {barChartData.length === 0 ? (
@@ -963,14 +1132,23 @@ export default function FinancePortal() {
 
                 {/* Chart 2: Line Chart (Right Side) */}
                 <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/50 rounded-[24px] p-6 flex flex-col min-h-[480px]">
-                  <div className="mb-4">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">CHART 2</span>
-                    <h4 className="text-base font-bold text-slate-900 mt-0.5">
-                      Daily Hours Timeline Trend
-                    </h4>
-                    <p className="text-xs text-slate-500">
-                      Day-by-day allocation curves. Select up to 10 entities to overlay.
-                    </p>
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">CHART 2</span>
+                      <h4 className="text-base font-bold text-slate-900 mt-0.5">
+                        Daily Hours Timeline Trend
+                      </h4>
+                      <p className="text-xs text-slate-500">
+                        Day-by-day allocation curves. Select up to 10 entities to overlay.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setExpandedChart('line')}
+                      className="p-2 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-xl transition-all"
+                      title="Enlarge Chart"
+                    >
+                      <Maximize2 className="w-4 h-4" />
+                    </button>
                   </div>
 
                   {dailyLineChartData.chartData.length === 0 || dailyLineChartData.entities.length === 0 ? (
@@ -1267,9 +1445,252 @@ export default function FinancePortal() {
             </div>
           )}
 
-
         </div>
       </div>
+
+      {/* Expanded Chart Overlay Modal */}
+      {expandedChart && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-955/70 backdrop-blur-md p-4 md:p-8 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 rounded-[28px] border border-slate-100 shadow-2xl w-full max-w-[92vw] h-[86vh] flex flex-col p-6 md:p-8 relative">
+            
+            {/* Header of Modal */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+              <div>
+                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">
+                  {expandedChart === 'team' ? 'Core Team Distribution' : expandedChart === 'bar' ? 'Total Hours Bar Chart' : 'Daily Hours Line Chart'}
+                </span>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-1">
+                  {expandedChart === 'team' 
+                    ? 'Core Leadership Team & Unassigned Allocation Share' 
+                    : expandedChart === 'bar' 
+                    ? `Total Allocation Hours (${analysisView === 'employee' ? 'by Employee' : 'by Client'})` 
+                    : 'Daily Hours Timeline Trend Curve'}
+                </h3>
+              </div>
+
+              {/* Minimize Action Button */}
+              <button
+                onClick={() => setExpandedChart(null)}
+                className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 rounded-xl text-xs font-bold text-slate-600 transition-all shadow-sm"
+              >
+                <Minimize2 className="w-4 h-4" />
+                <span>Minimize</span>
+              </button>
+            </div>
+
+            {/* Modal Chart Content Container */}
+            <div className="flex-1 min-h-0 w-full flex items-center justify-center">
+              {expandedChart === 'team' && (
+                <div className="w-full h-full flex flex-col md:flex-row items-center gap-8">
+                  {/* Left Side: Pie Chart */}
+                  <div className="flex-1 w-full h-[80%] min-h-[250px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={coreTeamData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={80}
+                          outerRadius={130}
+                          paddingAngle={4}
+                          dataKey="value"
+                        >
+                          {coreTeamData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip
+                          contentStyle={{
+                            background: '#0f172a',
+                            border: 'none',
+                            borderRadius: '12px',
+                            color: '#fff',
+                            fontSize: '11px',
+                            fontWeight: 'bold'
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  {/* Right Side: Legend Table */}
+                  <div className="w-full md:w-80 space-y-4">
+                    <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-2">
+                      Breakdown List
+                    </h4>
+                    <div className="space-y-3">
+                      {coreTeamData.map((entry) => {
+                        const totalHoursSum = coreTeamData.reduce((sum, item) => sum + item.value, 0);
+                        const pct = totalHoursSum > 0 ? ((entry.value / totalHoursSum) * 100).toFixed(1) : '0';
+                        return (
+                          <div key={entry.name} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div className="flex items-center gap-2">
+                              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+                              <span className="text-sm font-bold text-slate-700">{entry.name}</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-sm font-bold text-slate-900 block">{entry.value.toFixed(1)} hrs</span>
+                              <span className="text-[10px] font-black text-slate-400">{pct}% share</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {expandedChart === 'bar' && (
+                <div className="w-full h-full overflow-x-auto custom-scrollbar pt-2">
+                  <div style={{ minWidth: `${Math.max(barChartData.length * 60, 600)}px` }} className="h-[90%]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={barChartData} margin={{ top: 10, right: 10, left: -10, bottom: 40 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                        <XAxis 
+                          dataKey="name" 
+                          stroke="#64748b" 
+                          fontSize={11} 
+                          fontWeight="bold" 
+                          tickLine={false} 
+                          axisLine={false} 
+                          interval={0}
+                          angle={-25}
+                          dx={-10}
+                          dy={10}
+                        />
+                        <YAxis 
+                          stroke="#64748b" 
+                          fontSize={11} 
+                          fontWeight="bold" 
+                          tickLine={false} 
+                          axisLine={false} 
+                          allowDecimals={false}
+                        />
+                        <RechartsTooltip 
+                          contentStyle={{ 
+                            background: '#0f172a', 
+                            border: 'none', 
+                            borderRadius: '12px', 
+                            color: '#fff',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                          }}
+                        />
+                        <Bar 
+                          dataKey="Hours" 
+                          fill="#3b82f6" 
+                          radius={[12, 12, 0, 0]}
+                        >
+                          {barChartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+
+              {expandedChart === 'line' && (
+                <div className="w-full h-full flex flex-col md:flex-row gap-6">
+                  {/* Sidebar Checkbox List */}
+                  <div className="w-full md:w-56 flex flex-col border border-slate-100 rounded-xl overflow-hidden bg-slate-50">
+                    <div className="bg-slate-200 px-3 py-2 text-xs font-black uppercase text-slate-700 tracking-wider">
+                      Toggle Lines
+                    </div>
+                    <div className="p-3 overflow-y-auto space-y-2 custom-scrollbar flex-1">
+                      {dailyLineChartData.entities.map((entity, index) => {
+                        const isChecked = selectedEntities.includes(entity);
+                        const color = CHART_COLORS[index % CHART_COLORS.length];
+                        
+                        return (
+                          <label 
+                            key={entity}
+                            className="flex items-center gap-2.5 cursor-pointer p-1.5 rounded hover:bg-slate-100 transition-colors select-none"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedEntities(prev => [...prev, entity]);
+                                } else {
+                                  setSelectedEntities(prev => prev.filter(x => x !== entity));
+                                }
+                              }}
+                              className="peer appearance-none w-4 h-4 border border-slate-300 rounded checked:bg-blue-600 checked:border-blue-600 cursor-pointer"
+                            />
+                            <span 
+                              className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: color }}
+                            />
+                            <span className="text-xs font-bold text-slate-700 truncate flex-1">
+                              {entity}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Line Chart */}
+                  <div className="flex-1 min-w-0">
+                    <ResponsiveContainer width="100%" height="95%">
+                      <LineChart data={dailyLineChartData.chartData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                        <XAxis 
+                          dataKey="day" 
+                          stroke="#64748b" 
+                          fontSize={11} 
+                          fontWeight="bold" 
+                          tickLine={false} 
+                          axisLine={false}
+                          label={{ value: 'Day of Month', position: 'insideBottom', offset: -10, fill: '#64748b', fontSize: 11, fontWeight: 'bold' }}
+                        />
+                        <YAxis 
+                          stroke="#64748b" 
+                          fontSize={11} 
+                          fontWeight="bold" 
+                          tickLine={false} 
+                          axisLine={false} 
+                          allowDecimals={false}
+                        />
+                        <RechartsTooltip 
+                          contentStyle={{ 
+                            background: '#0f172a', 
+                            border: 'none', 
+                            borderRadius: '12px', 
+                            color: '#fff',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                          }}
+                        />
+                        {selectedEntities.map((entity) => {
+                          const globalIndex = dailyLineChartData.entities.indexOf(entity);
+                          const color = CHART_COLORS[globalIndex % CHART_COLORS.length];
+                          
+                          return (
+                            <Line
+                              key={entity}
+                              type="monotone"
+                              dataKey={entity}
+                              stroke={color}
+                              strokeWidth={3}
+                              dot={{ r: 3 }}
+                              activeDot={{ r: 5 }}
+                            />
+                          );
+                        })}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
