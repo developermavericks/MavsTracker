@@ -15,37 +15,39 @@ const menuItems = [
 ];
 
 const CORE_EMAILS = [
-  'pooja@themavericksindia.com',
-  'chetan@themavericksindia.com',
-  'tech@themavericksindia.com',
-  'mitali.p@themavericksindia.com',
   'archana@themavericksindia.com',
-  'smriti@themavericksindia.com',
-  'gaurav@themavericksindia.com',
-  'avinash@themavericksindia.com',
-  'satyam.singh@themavericksindia.com',
   'arunkumar@themavericksindia.com',
+  'avinash@themavericksindia.com',
+  'chetan@themavericksindia.com',
+  'developerteam@themavericksindia.com',
   'divyanshsharma@themavericksindia.com',
-  'developerteam@themavericksindia.com'
+  'gaurav@themavericksindia.com',
+  'mitali.p@themavericksindia.com',
+  'pooja@themavericksindia.com',
+  'satyam.singh@themavericksindia.com',
+  'smriti@themavericksindia.com',
+  'tech@themavericksindia.com'
 ];
 
 const MANAGER_EMAILS = [
   'aashna@themavericksindia.com',
-  'mahek@themavericksindia.com',
-  'srishtee@themavericksindia.com',
-  'vibhuti@themavericksindia.com',
   'akshay@themavericksindia.com',
+  'alisha@themavericksindia.com',
+  'ananya@themavericksindia.com',
+  'anil@themavericksindia.com',
+  'chhavi.a@themavericksindia.com',
+  'ila@themavericksindia.com',
+  'ishmeet@themavericksindia.com',
+  'kavita@themavericksindia.com',
+  'mahek@themavericksindia.com',
   'manaswi@themavericksindia.com',
   'muskaan@themavericksindia.com',
-  'indrajit@themavericksindia.com',
   'pavithra@themavericksindia.com',
-  'shrestha@themavericksindia.com',
-  'ila@themavericksindia.com',
+  'rajvi@themavericksindia.com',
   'samrat@themavericksindia.com',
-  'anil@themavericksindia.com',
-  'viviqa@themavericksindia.com',
-  'ananya@themavericksindia.com',
-  'kavita@themavericksindia.com'
+  'shrestha@themavericksindia.com',
+  'srishtee@themavericksindia.com',
+  'vibhuti@themavericksindia.com'
 ];
 
 interface SidebarProps {
