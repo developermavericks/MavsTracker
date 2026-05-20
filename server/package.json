@@ -30,10 +30,11 @@
     "googleapis": "^171.4.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
-    "resend": "^6.12.3",
+    "nodemailer": "^8.0.7",
     "typescript": "^6.0.3"
   },
   "devDependencies": {
+    "@types/nodemailer": "^8.0.0",
     "ts-node": "^10.9.2"
   }
 }

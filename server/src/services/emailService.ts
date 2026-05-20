@@ -1,4 +1,4 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import { supabase } from '../config/supabase';
 
 // Executive / CEO CC Emails
@@ -9,18 +9,37 @@ const CEO_EMAILS = [
   'chetan@themavericksindia.com'
 ];
 
-let resendInstance: Resend | null = null;
+let transporterInstance: nodemailer.Transporter | null = null;
 
-const getResendInstance = () => {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.warn('[EMAIL] RESEND_API_KEY is not defined in environment variables. Email service is running in mock/logging mode.');
+const getTransporter = () => {
+  const host = process.env.SMTP_HOST;
+  const port = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  if (!host || !user || !pass) {
+    console.warn('[EMAIL] SMTP_HOST, SMTP_USER, or SMTP_PASS is not defined in environment variables. Email service is running in mock/logging mode.');
     return null;
   }
-  if (!resendInstance) {
-    resendInstance = new Resend(apiKey);
+
+  if (!transporterInstance) {
+    const isSecure = process.env.SMTP_SECURE === 'true' || port === 465;
+    transporterInstance = nodemailer.createTransport({
+      host,
+      port,
+      secure: isSecure,
+      auth: {
+        user,
+        pass
+      },
+      // Increase timeouts to be extra robust
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000
+    });
   }
-  return resendInstance;
+
+  return transporterInstance;
 };
 
 export const formatMonthName = (monthStr: string) => {
@@ -37,13 +56,13 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * Sends a reminder email to a single employee
  */
 export const sendReminderEmail = async (email: string, name: string, monthStr: string) => {
-  const resend = getResendInstance();
+  const transporter = getTransporter();
   const monthName = formatMonthName(monthStr);
   const employeeName = name || email.split('@')[0];
 
   const subject = `Action Required: MavsTracker Submission Reminder for ${monthName}`;
   const html = `
-    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; rounded: 16px;">
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 16px;">
       <h2 style="color: #ea580c; margin-bottom: 20px;">MavsTracker Reminder</h2>
       <p>Hi <strong>${employeeName}</strong>,</p>
       <p>This is a reminder that you have <strong>0 logged working hours</strong> in MavsTracker for the month of <strong>${monthName}</strong>.</p>
@@ -59,22 +78,23 @@ export const sendReminderEmail = async (email: string, name: string, monthStr: s
     </div>
   `;
 
-  if (!resend) {
-    console.log(`[EMAIL-MOCK] Reminder sent to: ${email} (CC: ${CEO_EMAILS.join(', ')}) for ${monthName}.`);
+  const fromEmail = process.env.SMTP_FROM || 'MavsTracker <notifications@themavericksindia.com>';
+
+  if (!transporter) {
+    console.log(`[EMAIL-MOCK] Reminder sent via SMTP to: ${email} (CC: ${CEO_EMAILS.join(', ')}) for ${monthName}.`);
     return { success: true, mock: true };
   }
 
   try {
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'MavsTracker <notifications@themavericksindia.com>';
-    const data = await resend.emails.send({
+    const info = await transporter.sendMail({
       from: fromEmail,
-      to: [email],
-      cc: CEO_EMAILS,
+      to: email,
+      cc: CEO_EMAILS.join(', '),
       subject: subject,
       html: html,
     });
     console.log(`[EMAIL] Reminder email successfully sent to ${email} (CC: ${CEO_EMAILS.join(', ')})`);
-    return { success: true, data };
+    return { success: true, messageId: info.messageId };
   } catch (error: any) {
     console.error(`[EMAIL-ERROR] Failed to send reminder email to ${email}:`, error);
     throw error;
@@ -85,7 +105,7 @@ export const sendReminderEmail = async (email: string, name: string, monthStr: s
  * Sends reminder emails in batches smoothly with a small delay to avoid rate-limiting
  */
 export const sendBulkReminderEmails = async (members: { email: string, name: string }[], monthStr: string) => {
-  console.log(`[EMAIL] Starting bulk reminder dispatch for ${members.length} zero-hour members for ${monthStr}`);
+  console.log(`[EMAIL] Starting bulk SMTP reminder dispatch for ${members.length} zero-hour members for ${monthStr}`);
   
   // Ensure uniqueness in emails to prevent duplicate dispatch
   const uniqueMembers = Array.from(new Map(members.map(m => [m.email.toLowerCase(), m])).values());
@@ -109,7 +129,7 @@ export const sendBulkReminderEmails = async (members: { email: string, name: str
  * Sends a thank-you acknowledgment email upon logging time
  */
 export const sendAcknowledgmentEmail = async (userId: string, monthStr: string) => {
-  const resend = getResendInstance();
+  const transporter = getTransporter();
   const monthName = formatMonthName(monthStr);
 
   try {
@@ -129,7 +149,7 @@ export const sendAcknowledgmentEmail = async (userId: string, monthStr: string) 
     const employeeName = user.name || email.split('@')[0];
     const subject = `Thank You for Your MavsTracker Submission - ${monthName}`;
     const html = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; rounded: 16px;">
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 16px;">
         <h2 style="color: #10b981; margin-bottom: 20px;">Submission Received!</h2>
         <p>Hi <strong>${employeeName}</strong>,</p>
         <p>Thank you for logging your time allocation actuals in MavsTracker for the month of <strong>${monthName}</strong>.</p>
@@ -139,22 +159,23 @@ export const sendAcknowledgmentEmail = async (userId: string, monthStr: string) 
       </div>
     `;
 
-    if (!resend) {
-      console.log(`[EMAIL-MOCK] Acknowledgment email sent to: ${email} for ${monthName}. (No CEO in CC)`);
+    const fromEmail = process.env.SMTP_FROM || 'MavsTracker <notifications@themavericksindia.com>';
+
+    if (!transporter) {
+      console.log(`[EMAIL-MOCK] Acknowledgment email sent via SMTP to: ${email} for ${monthName}. (No CEO in CC)`);
       return { success: true, mock: true };
     }
 
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'MavsTracker <notifications@themavericksindia.com>';
-    const data = await resend.emails.send({
+    const info = await transporter.sendMail({
       from: fromEmail,
-      to: [email],
+      to: email,
       // For acknowledgment emails, do not include any CEO in CC
       subject: subject,
       html: html,
     });
-    console.log(`[EMAIL] Acknowledgment email successfully sent to ${email}`);
-    return { success: true, data };
+    console.log(`[EMAIL] Acknowledgment email successfully sent via SMTP to ${email}`);
+    return { success: true, messageId: info.messageId };
   } catch (error: any) {
-    console.error(`[EMAIL-ERROR] Failed to send acknowledgment email for user ${userId}:`, error);
+    console.error(`[EMAIL-ERROR] Failed to send SMTP acknowledgment email for user ${userId}:`, error);
   }
 };
