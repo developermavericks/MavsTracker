@@ -2,11 +2,6 @@ import nodemailer from 'nodemailer';
 import { supabase } from '../config/supabase';
 import dns from 'dns';
 
-// Force dns lookup to use IPv4 (family 4) only, preventing unreachable IPv6 routing on cloud hosts
-const ipv4Lookup = (hostname: string, options: any, callback: any) => {
-  return dns.lookup(hostname, { ...options, family: 4 }, callback);
-};
-
 // Executive / CEO CC Emails
 const CEO_EMAILS = [
   'chetan@themavericksindia.com',
@@ -17,7 +12,23 @@ const CEO_EMAILS = [
 
 let transporterInstance: nodemailer.Transporter | null = null;
 
-const getTransporter = () => {
+const resolveHost = async (host: string): Promise<string> => {
+  // If it's already an IP address, return it
+  if (/^[0-9.]+$/.test(host)) return host;
+  
+  try {
+    const addresses = await dns.promises.resolve4(host);
+    if (addresses && addresses.length > 0) {
+      console.log(`[EMAIL] Resolved SMTP host ${host} to IPv4: ${addresses[0]}`);
+      return addresses[0];
+    }
+  } catch (err) {
+    console.warn(`[EMAIL] DNS resolution for ${host} failed. Using original hostname.`, err);
+  }
+  return host;
+};
+
+const getTransporter = async () => {
   const host = process.env.SMTP_HOST;
   const port = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587;
   const user = process.env.SMTP_USER;
@@ -30,8 +41,10 @@ const getTransporter = () => {
 
   if (!transporterInstance) {
     const isSecure = process.env.SMTP_SECURE === 'true' || port === 465;
+    const resolvedIp = await resolveHost(host);
+
     transporterInstance = nodemailer.createTransport({
-      host,
+      host: resolvedIp,
       port,
       secure: isSecure,
       auth: {
@@ -42,8 +55,11 @@ const getTransporter = () => {
       connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 10000,
-      // Force lookup to use IPv4 only!
-      lookup: ipv4Lookup
+      tls: {
+        // Enforce servername matching the original hostname for SSL validation!
+        servername: host,
+        rejectUnauthorized: false
+      }
     } as any);
   }
 
@@ -64,7 +80,7 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * Sends a reminder email to a single employee
  */
 export const sendReminderEmail = async (email: string, name: string, monthStr: string) => {
-  const transporter = getTransporter();
+  const transporter = await getTransporter();
   const monthName = formatMonthName(monthStr);
   const employeeName = name || email.split('@')[0];
 
@@ -76,7 +92,7 @@ export const sendReminderEmail = async (email: string, name: string, monthStr: s
       <p>This is a reminder that you have <strong>0 logged working hours</strong> in MavsTracker for the month of <strong>${monthName}</strong>.</p>
       <p>Please log your time allocation entries as soon as possible to ensure accurate monthly tracking.</p>
       <p style="margin-top: 30px;">
-        <a href="${process.env.CLIENT_URL || 'https://mavstracker.themavericksindia.com'}" 
+        <a href="${process.env.CLIENT_URL || 'https://mavs-tracker.vercel.app/'}" 
            style="background-color: #ea580c; color: white; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 8px; display: inline-block;">
           Go to MavsTracker
         </a>
@@ -137,7 +153,7 @@ export const sendBulkReminderEmails = async (members: { email: string, name: str
  * Sends a thank-you acknowledgment email upon logging time
  */
 export const sendAcknowledgmentEmail = async (userId: string, monthStr: string) => {
-  const transporter = getTransporter();
+  const transporter = await getTransporter();
   const monthName = formatMonthName(monthStr);
 
   try {
