@@ -197,6 +197,7 @@ export default function TeamPortal() {
           } 
           icon={Clock} 
           color="bg-blue-600" 
+          tooltip="Sum of your logged working hours for the selected month"
         />
         <StatsCard 
           label="Entries" 
@@ -204,6 +205,7 @@ export default function TeamPortal() {
           subtext="items" 
           icon={CalendarIcon} 
           color="bg-emerald-600" 
+          tooltip="Total number of logged time allocation entries"
         />
         <StatsCard 
           label="Efficiency" 
@@ -211,6 +213,7 @@ export default function TeamPortal() {
           subtext="vs projected" 
           icon={Filter} 
           color="bg-indigo-600" 
+          tooltip="Ratio of actual hours spent on client tasks vs projected monthly work capacity"
         />
       </div>
 

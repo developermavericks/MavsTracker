@@ -348,8 +348,8 @@ export default function CorePortal() {
           {activeTab === 'admin' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <StatsCard label="Active Users" value={activeUsersOnly.length.toString()} icon={Settings} color="bg-orange-600" />
-                <StatsCard label="System Health" value="Optimal" icon={ShieldCheck} color="bg-emerald-600" />
+                <StatsCard label="Active Users" value={activeUsersOnly.length.toString()} icon={Settings} color="bg-orange-600" tooltip="Total number of active team members in the database" />
+                <StatsCard label="System Health" value="Optimal" icon={ShieldCheck} color="bg-emerald-600" tooltip="Real-time connectivity status with Supabase Database and API endpoints" />
               </div>
               
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
