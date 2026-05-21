@@ -79,33 +79,63 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 /**
  * Sends a reminder email to a single employee
  */
-export const sendReminderEmail = async (email: string, name: string, monthStr: string) => {
+export const sendReminderEmail = async (
+  email: string, 
+  name: string, 
+  monthStr: string,
+  isClosureWarning: boolean = false
+) => {
   const transporter = await getTransporter();
   const monthName = formatMonthName(monthStr);
   const employeeName = name || email.split('@')[0];
 
-  const subject = `Action Required: MavsTracker Submission Reminder for ${monthName}`;
-  const html = `
-    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 16px;">
-      <h2 style="color: #ea580c; margin-bottom: 20px;">MavsTracker Reminder</h2>
-      <p>Hi <strong>${employeeName}</strong>,</p>
-      <p>This is a reminder that you have <strong>0 logged working hours</strong> in MavsTracker for the month of <strong>${monthName}</strong>.</p>
-      <p>Please log your time allocation entries as soon as possible to ensure accurate monthly tracking.</p>
-      <p style="margin-top: 30px;">
-        <a href="${process.env.CLIENT_URL || 'https://mavs-tracker.vercel.app/'}" 
-           style="background-color: #ea580c; color: white; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 8px; display: inline-block;">
-          Go to MavsTracker
-        </a>
-      </p>
-      <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
-      <p style="font-size: 12px; color: #64748b;">This is an automated notification. If you have already logged your hours or have questions, please reach out to your manager.</p>
-    </div>
-  `;
+  const subject = isClosureWarning
+    ? `🚨 CRITICAL: Final MavsTracker Closure Notice for ${monthName}`
+    : `Action Required: MavsTracker Submission Reminder for ${monthName}`;
+
+  const html = isClosureWarning
+    ? `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 2px solid #ef4444; border-radius: 16px; background-color: #fef2f2;">
+        <h2 style="color: #dc2626; margin-top: 0; margin-bottom: 20px;">🚨 Final Closure Notice</h2>
+        <p>Hi <strong>${employeeName}</strong>,</p>
+        <p>This is a <strong>critical warning</strong> that the MavsTracker is closing for the month of <strong>${monthName}</strong>.</p>
+        <p>You currently have <strong>0 logged working hours</strong> in the tracking registry for this period.</p>
+        <p>Please submit your actual time allocations immediately to ensure they are captured before registry lock.</p>
+        <p style="margin-top: 30px; margin-bottom: 30px;">
+          <a href="${process.env.CLIENT_URL || 'https://mavs-tracker.vercel.app/'}" 
+             style="background-color: #dc2626; color: white; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 8px; display: inline-block;">
+            Submit Logs Immediately
+          </a>
+        </p>
+        <hr style="border: 0; border-top: 1px solid #fee2e2; margin: 30px 0;" />
+        <p style="font-size: 11px; color: #991b1b; line-height: 1.4;">Note: The executive leadership team has been copied on this final closure notice.</p>
+      </div>
+    `
+    : `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 16px;">
+        <h2 style="color: #ea580c; margin-top: 0; margin-bottom: 20px;">MavsTracker Reminder</h2>
+        <p>Hi <strong>${employeeName}</strong>,</p>
+        <p>This is a reminder that you have <strong>0 logged working hours</strong> in MavsTracker for the month of <strong>${monthName}</strong>.</p>
+        <p>Please log your time allocation entries as soon as possible to ensure accurate monthly tracking.</p>
+        <p style="margin-top: 30px; margin-bottom: 30px;">
+          <a href="${process.env.CLIENT_URL || 'https://mavs-tracker.vercel.app/'}" 
+             style="background-color: #ea580c; color: white; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 8px; display: inline-block;">
+            Go to MavsTracker
+          </a>
+        </p>
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+        <p style="font-size: 12px; color: #64748b;">This is an automated notification. If you have already logged your hours or have questions, please reach out to your manager.</p>
+      </div>
+    `;
 
   const fromEmail = process.env.SMTP_FROM || 'MavsTracker <notifications@themavericksindia.com>';
 
+  // Weekly reminders (isClosureWarning = false) have NO CC.
+  // Closure warnings have the 4 executive emails in CC.
+  const ccString = isClosureWarning ? CEO_EMAILS.join(', ') : undefined;
+
   if (!transporter) {
-    console.log(`[EMAIL-MOCK] Reminder sent via SMTP to: ${email} (CC: ${CEO_EMAILS.join(', ')}) for ${monthName}.`);
+    console.log(`[EMAIL-MOCK] Reminder sent via SMTP to: ${email} (isClosureWarning: ${isClosureWarning}, CC: ${ccString || 'None'}) for ${monthName}.`);
     return { success: true, mock: true };
   }
 
@@ -113,11 +143,11 @@ export const sendReminderEmail = async (email: string, name: string, monthStr: s
     const info = await transporter.sendMail({
       from: fromEmail,
       to: email,
-      cc: CEO_EMAILS.join(', '),
+      ...(ccString ? { cc: ccString } : {}),
       subject: subject,
       html: html,
     });
-    console.log(`[EMAIL] Reminder email successfully sent to ${email} (CC: ${CEO_EMAILS.join(', ')})`);
+    console.log(`[EMAIL] Reminder email successfully sent to ${email} (isClosureWarning: ${isClosureWarning}, CC: ${ccString || 'None'})`);
     return { success: true, messageId: info.messageId };
   } catch (error: any) {
     console.error(`[EMAIL-ERROR] Failed to send reminder email to ${email}:`, error);
@@ -128,8 +158,12 @@ export const sendReminderEmail = async (email: string, name: string, monthStr: s
 /**
  * Sends reminder emails in batches smoothly with a small delay to avoid rate-limiting
  */
-export const sendBulkReminderEmails = async (members: { email: string, name: string }[], monthStr: string) => {
-  console.log(`[EMAIL] Starting bulk SMTP reminder dispatch for ${members.length} zero-hour members for ${monthStr}`);
+export const sendBulkReminderEmails = async (
+  members: { email: string, name: string }[], 
+  monthStr: string,
+  isClosureWarning: boolean = false
+) => {
+  console.log(`[EMAIL] Starting bulk SMTP reminder dispatch for ${members.length} zero-hour members for ${monthStr} (isClosureWarning: ${isClosureWarning})`);
   
   // Ensure uniqueness in emails to prevent duplicate dispatch
   const uniqueMembers = Array.from(new Map(members.map(m => [m.email.toLowerCase(), m])).values());
@@ -137,7 +171,7 @@ export const sendBulkReminderEmails = async (members: { email: string, name: str
 
   for (const member of uniqueMembers) {
     try {
-      const res = await sendReminderEmail(member.email, member.name, monthStr);
+      const res = await sendReminderEmail(member.email, member.name, monthStr, isClosureWarning);
       results.push({ email: member.email, success: true, details: res });
     } catch (err: any) {
       results.push({ email: member.email, success: false, error: err.message });

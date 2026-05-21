@@ -109,6 +109,7 @@ export default function MemberInsights({ month: initialMonth }: { month: string 
 
   // State for email notifications
   const [sendingAll, setSendingAll] = useState(false);
+  const [sendingClosure, setSendingClosure] = useState(false);
   const [sendingIndividual, setSendingIndividual] = useState<Record<string, boolean>>({});
   const [sentStatus, setSentStatus] = useState<Record<string, boolean>>({});
 
@@ -152,7 +153,7 @@ export default function MemberInsights({ month: initialMonth }: { month: string 
         body: JSON.stringify({ month: internalMonth })
       });
       if (response.ok) {
-        alert('All reminders successfully dispatched!');
+        alert('All weekly reminders successfully dispatched!');
         const nextSent: Record<string, boolean> = {};
         zeroHourMembers.forEach(email => {
           nextSent[email] = true;
@@ -169,6 +170,41 @@ export default function MemberInsights({ month: initialMonth }: { month: string 
       alert(err.message || 'Failed to connect to server.');
     } finally {
       setSendingAll(false);
+    }
+  };
+
+  const handleSendClosureReminders = async () => {
+    if (zeroHourMembers.length === 0) return;
+    const confirmMsg = `⚠️ CRITICAL ACTION: Are you sure you want to send the FINAL CLOSURE NOTICE to all ${zeroHourMembers.length} members with 0 logged hours? \n\nThis will send a strict warning email and automatically CC the 4 executive team members.`;
+    if (!confirm(confirmMsg)) return;
+
+    setSendingClosure(true);
+    try {
+      const response = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/remind-closure`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ month: internalMonth })
+      });
+      if (response.ok) {
+        alert('Final monthly closure reminders successfully dispatched with Executive CC!');
+        const nextSent: Record<string, boolean> = {};
+        zeroHourMembers.forEach(email => {
+          nextSent[email] = true;
+        });
+        setSentStatus(nextSent);
+        setTimeout(() => {
+          setSentStatus({});
+        }, 5000);
+      } else {
+        const errData = await response.json();
+        alert(errData.error || 'Failed to send closure reminders.');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to connect to server.');
+    } finally {
+      setSendingClosure(false);
     }
   };
 
@@ -337,13 +373,14 @@ export default function MemberInsights({ month: initialMonth }: { month: string 
               </span>
             </div>
 
-            {/* SEND REMINDER TO ALL BUTTON */}
+            {/* SEND REMINDER TO ALL BUTTONS */}
             {zeroHourMembers.length > 0 && (
-              <div className="px-6 pt-6 pb-2 border-b border-slate-50">
+              <div className="px-6 pt-6 pb-4 border-b border-slate-50 space-y-3">
                 <button
                   onClick={handleSendBulkReminders}
-                  disabled={sendingAll}
-                  className="w-full bg-slate-900 hover:bg-red-600 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-red-200/50 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer"
+                  disabled={sendingAll || sendingClosure}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer"
+                  title="Send regular weekly reminder (directly to members only, NO executive CC)"
                 >
                   {sendingAll ? (
                     <>
@@ -352,8 +389,27 @@ export default function MemberInsights({ month: initialMonth }: { month: string 
                     </>
                   ) : (
                     <>
-                      <Mail className="w-4 h-4" />
-                      REMIND ALL ({zeroHourMembers.length})
+                      <Mail className="w-4 h-4 text-orange-500" />
+                      WEEKLY REMIND ALL ({zeroHourMembers.length})
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={handleSendClosureReminders}
+                  disabled={sendingAll || sendingClosure}
+                  className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-widest transition-all shadow-md shadow-red-200/50 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 cursor-pointer"
+                  title="Send strict 5th-of-the-month closure warning (includes CC to all 4 Executive Members)"
+                >
+                  {sendingClosure ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      DISPATCHING CLOSURE...
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="w-4 h-4 text-white animate-pulse" />
+                      FINAL CLOSURE REMIND ({zeroHourMembers.length})
                     </>
                   )}
                 </button>
