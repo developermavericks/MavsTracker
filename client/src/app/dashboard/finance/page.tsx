@@ -659,13 +659,7 @@ export default function FinancePortal() {
           </button>
         </div>
 
-        <div className="p-8 relative min-h-[400px]">
-          {loading && (
-            <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-b-2xl animate-in fade-in duration-200">
-              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-            </div>
-          )}
-          
+        <div className="p-8">
           {/* TAB 1: FINANCIAL PIVOT ANALYZER */}
           {activeWorkspace === 'pivot' && (
             <div className="space-y-6">
@@ -812,8 +806,10 @@ export default function FinancePortal() {
                   <tbody className="divide-y divide-slate-100">
                     {loading ? (
                       <tr>
-                        <td colSpan={10} className="text-center py-20 bg-white">
-                          <div className="animate-spin inline-block w-8 h-8 border-b-2 border-blue-600 rounded-full"></div>
+                        <td colSpan={10} className="text-center py-20 bg-white dark:bg-slate-900">
+                          <div className="flex items-center justify-center">
+                            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                          </div>
                         </td>
                       </tr>
                     ) : reportData?.rows.length === 0 ? (
@@ -1014,7 +1010,12 @@ export default function FinancePortal() {
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-stretch">
                 
                 {/* Chart 1: Bar Graph (Left Side) */}
-                <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/50 rounded-[24px] p-6 flex flex-col min-h-[480px]">
+                <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/50 rounded-[24px] p-6 flex flex-col min-h-[480px] relative">
+                  {loading && (
+                    <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-[24px] animate-in fade-in duration-200">
+                      <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                    </div>
+                  )}
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">CHART 1</span>
@@ -1220,7 +1221,12 @@ export default function FinancePortal() {
               </div>
 
               {/* CORE TEAM & UNASSIGNED DISTRIBUTION CHART CARD */}
-              <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/50 rounded-[24px] p-6 flex flex-col">
+              <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/50 rounded-[24px] p-6 flex flex-col relative">
+                {loading && (
+                  <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-[24px] animate-in fade-in duration-200">
+                    <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                  </div>
+                )}
                 <div className="flex justify-between items-start mb-6">
                   <div>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">CORE TEAM DISTRIBUTION</span>
@@ -1326,7 +1332,12 @@ export default function FinancePortal() {
               </div>
 
               {/* FEATURE 2: BUDGET-BASED FINANCIAL ANALYSIS BOARD */}
-              <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/50 rounded-[32px] p-8 flex flex-col space-y-8">
+              <div className="bg-white border border-slate-100 shadow-xl shadow-slate-100/50 rounded-[32px] p-8 flex flex-col space-y-8 relative">
+                {loading && (
+                  <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 backdrop-blur-[1px] z-10 flex items-center justify-center rounded-[32px] animate-in fade-in duration-200">
+                    <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                  </div>
+                )}
                 <div>
                   <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest block">Financial Overview</span>
                   <h4 className="text-xl font-bold text-slate-900 mt-1">
