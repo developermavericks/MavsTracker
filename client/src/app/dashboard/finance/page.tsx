@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useMemo } from 'react';
-import { IndianRupee, Download, Users, Briefcase, RefreshCw, Layers, Sliders, CheckCircle2, AlertCircle, Edit2, BarChart3, Maximize2, Minimize2 } from 'lucide-react';
+import { IndianRupee, Download, Users, Briefcase, RefreshCw, Layers, Sliders, CheckCircle2, AlertCircle, Edit2, BarChart3, Maximize2, Minimize2, Loader2 } from 'lucide-react';
 import StatsCard from '@/components/StatsCard';
 import { apiFetch } from '@/lib/api';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -550,8 +550,17 @@ export default function FinancePortal() {
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
-      
+    <div className="space-y-8 relative">
+      {/* Month switching loading overlay */}
+      {loading && (
+        <div className="fixed inset-0 bg-slate-900/10 dark:bg-slate-950/20 backdrop-blur-[2px] z-[9999] flex items-center justify-center animate-in fade-in duration-200">
+          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-6 rounded-3xl shadow-xl border border-white/20 dark:border-white/5 flex flex-col items-center gap-3">
+            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 tracking-[0.2em] uppercase animate-pulse">Loading Month Data...</p>
+          </div>
+        </div>
+      )}
+
       {/* Upper Title Band */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>

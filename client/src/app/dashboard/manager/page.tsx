@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, User, ArrowLeft, Search, Calendar, AlertCircle } from 'lucide-react';
+import { LayoutDashboard, Users, User, ArrowLeft, Search, Calendar, AlertCircle, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { apiFetch } from '@/lib/api';
 import StatsCard from '@/components/StatsCard';
@@ -141,7 +141,17 @@ export default function ManagerPortal() {
   const inactiveMembers = filteredMembers.filter(m => !activeEmails.includes(m.email.toLowerCase()));
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
+      {/* Month switching loading overlay */}
+      {activeEmailsLoading && (
+        <div className="fixed inset-0 bg-slate-900/10 dark:bg-slate-950/20 backdrop-blur-[2px] z-[9999] flex items-center justify-center animate-in fade-in duration-200">
+          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-6 rounded-3xl shadow-xl border border-white/20 dark:border-white/5 flex flex-col items-center gap-3">
+            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 tracking-[0.2em] uppercase animate-pulse">Loading Month Data...</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Manager Portal</h1>

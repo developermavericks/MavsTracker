@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { Menu, Loader2 } from 'lucide-react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 export default function DashboardLayout({
   children,
@@ -13,7 +13,6 @@ export default function DashboardLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   // Load state from localStorage on mount (safe for Next.js SSR)
   useEffect(() => {
@@ -23,10 +22,10 @@ export default function DashboardLayout({
     }
   }, []);
 
-  // Whenever path or search params change, route load is complete!
+  // Whenever path changes, route load is complete!
   useEffect(() => {
     setIsNavigating(false);
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   // Intercept all sidebar navigation link clicks to trigger the loader instantly
   useEffect(() => {
