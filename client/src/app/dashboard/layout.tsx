@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
-import { Menu } from 'lucide-react';
+import { Menu, Loader2 } from 'lucide-react';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 export default function DashboardLayout({
   children,
@@ -10,6 +11,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   // Load state from localStorage on mount (safe for Next.js SSR)
   useEffect(() => {
@@ -18,6 +22,31 @@ export default function DashboardLayout({
       setIsSidebarOpen(savedState === 'true');
     }
   }, []);
+
+  // Whenever path or search params change, route load is complete!
+  useEffect(() => {
+    setIsNavigating(false);
+  }, [pathname, searchParams]);
+
+  // Intercept all sidebar navigation link clicks to trigger the loader instantly
+  useEffect(() => {
+    const handleLinkClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest('a');
+      if (anchor) {
+        const href = anchor.getAttribute('href');
+        // Only trigger loader for dashboard subpages and only if it's a new route
+        if (href && href.startsWith('/dashboard') && href !== pathname) {
+          setIsNavigating(true);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleLinkClick);
+    return () => {
+      document.removeEventListener('click', handleLinkClick);
+    };
+  }, [pathname]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(prev => {
@@ -29,6 +58,16 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-900 transition-colors relative overflow-hidden">
+      {/* Global premium semi-transparent glassmorphic loader */}
+      {isNavigating && (
+        <div className="absolute inset-0 bg-slate-900/10 dark:bg-slate-950/20 backdrop-blur-[2px] z-[9999] flex items-center justify-center animate-in fade-in duration-300">
+          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-6 rounded-3xl shadow-xl border border-white/20 dark:border-white/5 flex flex-col items-center gap-3">
+            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 tracking-[0.2em] uppercase animate-pulse">Loading Portal...</p>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar container with smooth width/opacity transition */}
       <div 
         className={`transition-all duration-300 ease-in-out ${
