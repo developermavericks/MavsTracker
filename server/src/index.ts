@@ -1,4 +1,7 @@
 // Production Deploy Trigger - e7f6b48
+import dns from 'dns';
+dns.setDefaultResultOrder('ipv4first');
+
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
