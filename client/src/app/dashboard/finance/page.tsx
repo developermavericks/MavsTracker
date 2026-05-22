@@ -6,7 +6,25 @@ import { useState, useEffect, useMemo } from 'react';
 import { IndianRupee, Download, Users, Briefcase, RefreshCw, Layers, Sliders, CheckCircle2, AlertCircle, Edit2, BarChart3, Maximize2, Minimize2, Loader2 } from 'lucide-react';
 import StatsCard from '@/components/StatsCard';
 import { apiFetch } from '@/lib/api';
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, ReferenceLine } from 'recharts';
+
+// Helper to resolve client names to their core leadership team owners
+const getClientCoreTeam = (rawName: string): string => {
+  const s = String(rawName || '').trim();
+  const low = s.toLowerCase();
+
+  const archanaClients = ["adda education", "capitaland", "chargezone", "college vidya", "goldi solar", "gradright", "icreate", "merrakki", "murf ai", "musashi", "musashi-d", "omnicom global", "pearl academy", "plaksha"];
+  const mitaliClients = ["angara", "bambrew", "chupps", "clinikally", "eruditus", "fujifilm", "gnfz", "google", "inc.5", "innover", "jci", "joshtalks", "milliken", "modi illva", "nec", "noise", "nuuk", "people matters", "people matteras", "qubo", "truworth", "vivo", "wadhwani", "haystack"];
+  const smritiClients = ["aptiv", "astra security", "avpn", "axitrust", "bcg", "bd - bright money", "decentro", "face", "hasbro", "mff", "mpokket", "msdf", "oister", "olster", "paasa", "payglocal", "pixxel", "pixel", "plum", "pyt", "razorpay", "room to read", "scale", "scapia", "sense ai", "shubhanshu", "straive", "truefan ai", "udaiti", "udhyam", "zeno"];
+  const chetanClients = ["capital league", "crazzy bosses", "optiemus infracom", "optimus infrastructure", "pmi"];
+
+  if (archanaClients.some(c => low.includes(c))) return "Archana";
+  if (mitaliClients.some(c => low.includes(c))) return "Mitali";
+  if (smritiClients.some(c => low.includes(c))) return "Smriti";
+  if (chetanClients.some(c => low.includes(c))) return "Chetan";
+
+  return "Unassigned";
+};
 
 export default function FinancePortal() {
   const [activeWorkspace, setActiveWorkspace] = useState<'pivot' | 'manager' | 'analysis'>('pivot');
@@ -327,6 +345,12 @@ export default function FinancePortal() {
   // ============================================================================
   const [analysisView, setAnalysisView] = useState<'employee' | 'client'>('employee');
   const [selectedEntities, setSelectedEntities] = useState<string[]>([]);
+  const [selectedDrillDownCoreTeam, setSelectedDrillDownCoreTeam] = useState<string | null>(null);
+
+  const drillDownData = useMemo(() => {
+    if (!selectedDrillDownCoreTeam) return [];
+    return budgetAnalysisData.filter(item => getClientCoreTeam(item.name) === selectedDrillDownCoreTeam);
+  }, [budgetAnalysisData, selectedDrillDownCoreTeam]);
 
   const daysInMonth = useMemo(() => {
     const [year, m] = month.split('-').map(Number);
@@ -475,24 +499,6 @@ export default function FinancePortal() {
 
   // State to track which chart is expanded in modal overlay
   const [expandedChart, setExpandedChart] = useState<'bar' | 'line' | 'team' | 'costVsRevenue' | 'profitVsLoss' | 'profitabilityMargin' | null>(null);
-
-  // Helper to resolve client names to their core leadership team owners
-  const getClientCoreTeam = (rawName: string): string => {
-    const s = String(rawName || '').trim();
-    const low = s.toLowerCase();
-
-    const archanaClients = ["adda education", "capitaland", "chargezone", "college vidya", "goldi solar", "gradright", "icreate", "merrakki", "murf ai", "musashi", "musashi-d", "omnicom global", "pearl academy", "plaksha"];
-    const mitaliClients = ["angara", "bambrew", "chupps", "clinikally", "eruditus", "fujifilm", "gnfz", "google", "inc.5", "innover", "jci", "joshtalks", "milliken", "modi illva", "nec", "noise", "nuuk", "people matters", "people matteras", "qubo", "truworth", "vivo", "wadhwani", "haystack"];
-    const smritiClients = ["aptiv", "astra security", "avpn", "axitrust", "bcg", "bd - bright money", "decentro", "face", "hasbro", "mff", "mpokket", "msdf", "oister", "olster", "paasa", "payglocal", "pixxel", "pixel", "plum", "pyt", "razorpay", "room to read", "scale", "scapia", "sense ai", "shubhanshu", "straive", "truefan ai", "udaiti", "udhyam", "zeno"];
-    const chetanClients = ["capital league", "crazzy bosses", "optiemus infracom", "optimus infrastructure", "pmi"];
-
-    if (archanaClients.some(c => low.includes(c))) return "Archana";
-    if (mitaliClients.some(c => low.includes(c))) return "Mitali";
-    if (smritiClients.some(c => low.includes(c))) return "Smriti";
-    if (chetanClients.some(c => low.includes(c))) return "Chetan";
-
-    return "Unassigned";
-  };
 
   // Compute Core Team-wise Hours allocation distribution
   const coreTeamData = useMemo(() => {
@@ -1065,6 +1071,21 @@ export default function FinancePortal() {
                               axisLine={false} 
                               allowDecimals={false}
                             />
+                            {analysisView === 'employee' && (
+                              <ReferenceLine 
+                                y={160} 
+                                stroke="#f43f5e" 
+                                strokeDasharray="3 3" 
+                                strokeWidth={2} 
+                                label={{ 
+                                  value: '160h Benchmark', 
+                                  position: 'top', 
+                                  fill: '#f43f5e', 
+                                  fontSize: 10, 
+                                  fontWeight: 'bold' 
+                                }} 
+                              />
+                            )}
                             <RechartsTooltip 
                               contentStyle={{ 
                                 background: '#0f172a', 
@@ -1271,7 +1292,12 @@ export default function FinancePortal() {
                             dataKey="value"
                           >
                             {coreTeamData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={entry.color} 
+                                onClick={() => setSelectedDrillDownCoreTeam(entry.name)}
+                                className="cursor-pointer hover:opacity-80 transition-all duration-150 outline-none"
+                              />
                             ))}
                           </Pie>
                           <RechartsTooltip
@@ -1307,9 +1333,10 @@ export default function FinancePortal() {
                           const totalHoursSum = coreTeamData.reduce((sum, item) => sum + item.value, 0);
                           const pct = totalHoursSum > 0 ? ((entry.value / totalHoursSum) * 100).toFixed(1) : '0';
                           return (
-                            <div 
+                            <button 
                               key={entry.name} 
-                              className="flex items-center justify-between p-3.5 bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-2xl transition-all duration-200"
+                              onClick={() => setSelectedDrillDownCoreTeam(entry.name)}
+                              className="flex items-center justify-between p-3.5 bg-slate-50/50 hover:bg-slate-50 hover:border-blue-300 hover:shadow-sm hover:scale-[1.01] active:scale-[0.99] border border-slate-100 rounded-2xl transition-all duration-200 cursor-pointer text-left w-full"
                             >
                               <div className="flex items-center gap-3 min-w-0">
                                 <span 
@@ -1327,7 +1354,7 @@ export default function FinancePortal() {
                                 </span>
                                 <span className="text-[9px] font-bold text-slate-400">Hours</span>
                               </div>
-                            </div>
+                            </button>
                           );
                         })}
                       </div>
@@ -1811,7 +1838,15 @@ export default function FinancePortal() {
                           dataKey="value"
                         >
                           {coreTeamData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={entry.color} 
+                              onClick={() => {
+                                setSelectedDrillDownCoreTeam(entry.name);
+                                setExpandedChart(null);
+                              }}
+                              className="cursor-pointer hover:opacity-80 transition-all duration-150 outline-none"
+                            />
                           ))}
                         </Pie>
                         <RechartsTooltip
@@ -1846,7 +1881,14 @@ export default function FinancePortal() {
                         const totalHoursSum = coreTeamData.reduce((sum, item) => sum + item.value, 0);
                         const pct = totalHoursSum > 0 ? ((entry.value / totalHoursSum) * 100).toFixed(1) : '0';
                         return (
-                          <div key={entry.name} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                          <button 
+                            key={entry.name} 
+                            onClick={() => {
+                              setSelectedDrillDownCoreTeam(entry.name);
+                              setExpandedChart(null);
+                            }}
+                            className="flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100/80 hover:border-blue-300 hover:shadow-sm hover:scale-[1.01] active:scale-[0.99] rounded-xl border border-slate-100 cursor-pointer text-left w-full"
+                          >
                             <div className="flex items-center gap-2">
                               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
                               <span className="text-sm font-bold text-slate-700">{entry.name}</span>
@@ -1855,7 +1897,7 @@ export default function FinancePortal() {
                               <span className="text-sm font-bold text-slate-900 block">{entry.value.toFixed(1)} hrs</span>
                               <span className="text-[10px] font-black text-slate-400">{pct}% share</span>
                             </div>
-                          </div>
+                          </button>
                         );
                       })}
                     </div>
@@ -1889,6 +1931,21 @@ export default function FinancePortal() {
                           axisLine={false} 
                           allowDecimals={false}
                         />
+                        {analysisView === 'employee' && (
+                          <ReferenceLine 
+                            y={160} 
+                            stroke="#f43f5e" 
+                            strokeDasharray="3 3" 
+                            strokeWidth={2} 
+                            label={{ 
+                              value: '160h Benchmark', 
+                              position: 'top', 
+                              fill: '#f43f5e', 
+                              fontSize: 11, 
+                              fontWeight: 'bold' 
+                            }} 
+                          />
+                        )}
                         <RechartsTooltip 
                           contentStyle={{ 
                             background: '#0f172a', 
@@ -2106,6 +2163,144 @@ export default function FinancePortal() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Drill-Down Analysis Modal */}
+      {selectedDrillDownCoreTeam && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 md:p-8 animate-in fade-in duration-200 overflow-y-auto">
+          <div className="bg-white rounded-[32px] border border-slate-100 shadow-2xl w-full max-w-[94vw] max-h-[92vh] overflow-y-auto flex flex-col p-6 md:p-8 relative custom-scrollbar">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+              <div>
+                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest block">CORE TEAM DRILL-DOWN ANALYSIS</span>
+                <h3 className="text-2xl font-black text-slate-900 mt-1">
+                  {selectedDrillDownCoreTeam} Team Detailed Breakdown
+                </h3>
+                <p className="text-xs text-slate-500 font-medium mt-1">
+                  Financial performance and labor allocation costs for clients owned by {selectedDrillDownCoreTeam} Team during <strong>{month}</strong>.
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedDrillDownCoreTeam(null)}
+                className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 rounded-xl text-xs font-bold text-slate-600 transition-all shadow-sm"
+              >
+                <Minimize2 className="w-4 h-4" />
+                <span>Close</span>
+              </button>
+            </div>
+
+            {drillDownData.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-12">
+                <AlertCircle className="w-12 h-12 text-slate-300 mb-3" />
+                <p className="text-sm font-bold">No client budget or cost data associated with this core team.</p>
+              </div>
+            ) : (
+              <div className="space-y-8 flex-1">
+                
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="p-6 bg-slate-50 border border-slate-100 rounded-3xl">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Total Team Budget (Revenue)</span>
+                    <span className="text-2xl font-black text-emerald-600 block mt-1 font-mono">
+                      {fmtCurrency(drillDownData.reduce((sum, item) => sum + item.revenue, 0))}
+                    </span>
+                  </div>
+                  <div className="p-6 bg-slate-50 border border-slate-100 rounded-3xl">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Total Allocated Labor Cost</span>
+                    <span className="text-2xl font-black text-rose-600 block mt-1 font-mono">
+                      {fmtCurrency(drillDownData.reduce((sum, item) => sum + item.cost, 0))}
+                    </span>
+                  </div>
+                  <div className="p-6 bg-slate-50 border border-slate-100 rounded-3xl">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Net Profit / Loss</span>
+                    {(() => {
+                      const netProfit = drillDownData.reduce((sum, item) => sum + item.profit, 0);
+                      return (
+                        <span className={`text-2xl font-black block mt-1 font-mono ${netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {fmtCurrency(netProfit)}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                {/* Charts Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Chart 1: Revenue vs Cost */}
+                  <div className="border border-slate-100 rounded-3xl p-6 bg-white space-y-4">
+                    <h5 className="text-sm font-bold text-slate-800">Budgeted Revenue & Distributed Labor Cost</h5>
+                    <div className="h-[280px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={drillDownData} margin={{ top: 20, right: 10, left: 10, bottom: 20 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="name" stroke="#64748b" fontSize={9} fontWeight="bold" tickLine={false} axisLine={false} />
+                          <YAxis stroke="#64748b" fontSize={9} fontWeight="bold" tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v/1000}k`} />
+                          <RechartsTooltip formatter={(v) => [fmtCurrency(Number(v)), '']} contentStyle={{ background: '#0f172a', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '11px', fontWeight: 'bold' }} />
+                          <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', fontWeight: 'bold' }} />
+                          <Bar dataKey="revenueFormatted" name="Revenue (Budget)" fill="#10b981" radius={[6, 6, 0, 0]} />
+                          <Bar dataKey="costFormatted" name="Allocated Labor Cost" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Chart 2: Net Profit / Loss */}
+                  <div className="border border-slate-100 rounded-3xl p-6 bg-white space-y-4">
+                    <h5 className="text-sm font-bold text-slate-800">Absolute Net Margin Generated</h5>
+                    <div className="h-[280px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={drillDownData} margin={{ top: 20, right: 10, left: 10, bottom: 20 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="name" stroke="#64748b" fontSize={9} fontWeight="bold" tickLine={false} axisLine={false} />
+                          <YAxis stroke="#64748b" fontSize={9} fontWeight="bold" tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v/1000}k`} />
+                          <RechartsTooltip formatter={(v) => [fmtCurrency(Number(v)), 'Net Profit/Loss']} contentStyle={{ background: '#0f172a', border: 'none', borderRadius: '12px', color: '#fff', fontSize: '11px', fontWeight: 'bold' }} />
+                          <Bar dataKey="profitFormatted" name="Net Profit / Loss" radius={[6, 6, 0, 0]}>
+                            {drillDownData.map((entry, idx) => (
+                              <Cell key={`cell-${idx}`} fill={entry.profit >= 0 ? '#10b981' : '#ef4444'} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Table Breakdown */}
+                <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200">
+                        <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Client Name</th>
+                        <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Budget (Revenue)</th>
+                        <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Allocated Labor Cost</th>
+                        <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Net Profit / Loss</th>
+                        <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Profit Margin</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 bg-white">
+                      {drillDownData.map((c) => (
+                        <tr key={c.name} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-6 py-4 text-sm font-bold text-slate-900">{c.name}</td>
+                          <td className="px-6 py-4 text-sm text-slate-600 font-mono text-right">{c.revenue ? fmtCurrency(c.revenue) : '₹0.00'}</td>
+                          <td className="px-6 py-4 text-sm text-slate-600 font-mono text-right">{fmtCurrency(c.cost)}</td>
+                          <td className={`px-6 py-4 text-sm font-mono text-right font-bold ${c.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {fmtCurrency(c.profit)}
+                          </td>
+                          <td className={`px-6 py-4 text-sm font-mono text-right font-bold ${c.profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            {c.profitMargin}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            )}
+
           </div>
         </div>
       )}
